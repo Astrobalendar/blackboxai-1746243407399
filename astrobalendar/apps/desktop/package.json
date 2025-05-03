@@ -1,0 +1,12 @@
+{
+  "name": "astrobalendar-desktop",
+  "version": "1.0.0",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "echo \"Add build scripts here\""
+  },
+  "devDependencies": {
+    "electron": "^25.0.0"
+  }
+}
