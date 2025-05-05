@@ -1,4 +1,5 @@
 services:
+  # 🚀 Frontend: Astrobalendar Static Frontend
   - type: web
     name: astrobalendar-frontend
     env: static
@@ -11,6 +12,7 @@ services:
       - key: API_BASE_URL
         value: https://astrobalendar-backend.onrender.com
 
+  # 🔧 Backend: FastAPI Server
   - type: web
     name: astrobalendar-backend
     env: python
