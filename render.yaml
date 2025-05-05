@@ -1,0 +1,32 @@
+services:
+  web:
+    type: web
+    env: production
+    buildCommand: docker build -t astrobalendar-frontend ./apps/frontend
+    startCommand: npm run dev
+    envVars:
+      - key: VITE_BACKEND_URL
+        value: "https://api.astrobalendar.onrender.com"
+      - key: NODE_ENV
+        value: production
+
+  api:
+    type: web
+    env: production
+    buildCommand: docker build -t astrobalendar-backend ./apps/backend
+    startCommand: uvicorn main:app --host 0.0.0.0 --port 8000
+    envVars:
+      - key: MONGO_URI
+        value: "mongodb://mongodb:27017/astrobalendar"
+      - key: WINDSURF_ENV
+        value: production
+
+  mongodb:
+    type: mongodb
+    env: production
+    databaseName: astrobalendar
+    envVars:
+      - key: MONGO_INITDB_ROOT_USERNAME
+        value: admin
+      - key: MONGO_INITDB_ROOT_PASSWORD
+        value: password
