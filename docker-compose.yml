@@ -8,29 +8,48 @@ services:
   frontend:
     build: ./apps/frontend
     ports:
-      - "4173:4173"
-      - "3000:4173"  # Public frontend port
+      - "80:4173"  # Map to port 80 for public access
     environment:
       - VITE_BACKEND_URL=${VITE_BACKEND_URL}
+      - NODE_ENV=production
     networks:
       - astrobalendar-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4173"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   backend:
     build: ./apps/backend
     ports:
       - "8000:8000"
-      - "3001:8000"  # Public backend port
     environment:
       - MONGO_URI=${MONGO_URI}
+      - WINDSURF_ENV=production
+      - NODE_ENV=production
     networks:
       - astrobalendar-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   mongodb:
     image: mongo:latest
     ports:
       - "27017:27017"
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=admin
+      - MONGO_INITDB_ROOT_PASSWORD=password
     networks:
       - astrobalendar-network
+    healthcheck:
+      test: ["CMD", "mongo", "--eval", "db.adminCommand('ping')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
     volumes:
       - mongo-data:/data/db
 

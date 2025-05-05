@@ -1,16 +1,5 @@
 services:
-  web:
-    type: web
-    env: production
-    buildCommand: docker build -t astrobalendar-frontend ./apps/frontend
-    startCommand: npm run dev
-    envVars:
-      - key: VITE_BACKEND_URL
-        value: "https://api.astrobalendar.onrender.com"
-      - key: NODE_ENV
-        value: production
-
-  api:
+  backend:
     type: web
     env: production
     buildCommand: docker build -t astrobalendar-backend ./apps/backend
@@ -20,6 +9,23 @@ services:
         value: "mongodb://mongodb:27017/astrobalendar"
       - key: WINDSURF_ENV
         value: production
+      - key: NODE_ENV
+        value: production
+      - key: CORS_ALLOW_ORIGINS
+        value: "https://astrobalendar.netlify.app"
+      - key: SECRET_KEY
+        value: "your-secret-key-here"
+      - key: JWT_SECRET
+        value: "your-jwt-secret-here"
+      - key: RATE_LIMIT_WINDOW
+        value: "60"
+      - key: RATE_LIMIT_MAX_REQUESTS
+        value: "100"
+    healthcheck:
+      test: "curl -f http://localhost:8000/api/health"
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   mongodb:
     type: mongodb
@@ -30,3 +36,30 @@ services:
         value: admin
       - key: MONGO_INITDB_ROOT_PASSWORD
         value: password
+    healthcheck:
+      test: "mongo --eval 'db.adminCommand("ping")'"
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+# Security Settings
+security:
+  https_only: true
+  domain_verification: true
+  rate_limiting:
+    enabled: true
+    window: 60
+    max_requests: 100
+  cors:
+    enabled: true
+    allowed_origins:
+      - "https://astrobalendar.netlify.app"
+    allowed_methods:
+      - "GET"
+      - "POST"
+      - "PUT"
+      - "DELETE"
+      - "OPTIONS"
+    allowed_headers:
+      - "Content-Type"
+      - "Authorization"
