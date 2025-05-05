@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: astrobalendar-frontend
+    env: static
+    repo: https://github.com/Astrobalendar/blackboxai-1746243407399
+    branch: main
+    rootDir: apps/frontend
+    buildCommand: npm install && npm run build
+    staticPublishPath: dist
+    envVars:
+      - key: API_BASE_URL
+        value: your_backend_api_url_here

@@ -9,7 +9,7 @@ services:
     staticPublishPath: dist
     envVars:
       - key: API_BASE_URL
-        value: https://astrobalendar-backend.onrender.com  # Replace with actual Render backend URL
+        value: https://astrobalendar-backend.onrender.com
 
   - type: web
     name: astrobalendar-backend
@@ -19,10 +19,10 @@ services:
     rootDir: apps/backend
     plan: free
     buildCommand: pip install -r requirements.txt
-    startCommand: uvicorn main:app --host 0.0.0.0 --port 10000
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port 10000
     envVars:
       - key: MONGODB_URI
-        value: your_mongodb_connection_string  # or use fromDatabase if stored in Render DB
+        value: your_mongodb_connection_string
       - key: JWT_SECRET_KEY
         value: your_jwt_secret_key
       - key: JWT_ALGORITHM
@@ -34,4 +34,4 @@ services:
       - key: DEBUG
         value: "False"
       - key: CORS_ORIGINS
-        value: https://astrobalendar-frontend.onrender.com  # Replace with actual frontend domain
+        value: https://astrobalendar-frontend.onrender.com
