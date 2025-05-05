@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 
 Built by https://www.blackbox.ai
 
@@ -67,3 +68,8 @@ The project follows a standard structure for frontend applications:
 ---
 
 For further details on the update process, challenges, and recommendations, please refer to the backup of the update process [here](backup_of_update_process.md).
+=======
+# AstroBalendar
+
+AstroBalendar is a full-stack KP Astrology platform including web, mobile, desktop apps, backend services, and infrastructure.
+>>>>>>> 152ab37e1bb02a9b0ac049e2c02a1ac3f006e562

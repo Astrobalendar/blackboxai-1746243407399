@@ -1,0 +1,20 @@
+[build]
+  base = "apps/frontend"  # Frontend directory
+  publish = "dist"  # Build output directory
+  command = "npm install && npm run build"  # Build command
+
+[build.environment]
+  VITE_BACKEND_URL = "https://api.astrobalendar.onrender.com"
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    Access-Control-Allow-Origin = "https://api.astrobalendar.onrender.com"
+    Access-Control-Allow-Methods = "GET,HEAD,PUT,PATCH,POST,DELETE"
+    Access-Control-Allow-Headers = "Origin, X-Requested-With, Content-Type, Accept"
+    Access-Control-Allow-Credentials = "true"
