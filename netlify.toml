@@ -1,7 +1,7 @@
 [build]
-  base = "apps/frontend"  # Build from frontend directory
-  publish = "apps/frontend/dist"  # Publish from frontend's dist directory
-  command = "cd apps/frontend && npm ci && npm run build"
+  base = "/"  # Root directory
+  publish = "apps/frontend/dist"  # Frontend build output
+  command = "cd apps/frontend && npm ci && npm run build"  # Build command
 
 [build.environment]
   VITE_BACKEND_URL = "https://api.astrobalendar.onrender.com"
