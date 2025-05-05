@@ -9,4 +9,29 @@ services:
     staticPublishPath: dist
     envVars:
       - key: API_BASE_URL
-        value: your_backend_api_url_here
+        value: https://astrobalendar-backend.onrender.com  # Replace with actual Render backend URL
+
+  - type: web
+    name: astrobalendar-backend
+    env: python
+    repo: https://github.com/Astrobalendar/blackboxai-1746243407399
+    branch: main
+    rootDir: apps/backend
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn main:app --host 0.0.0.0 --port 10000
+    envVars:
+      - key: MONGODB_URI
+        value: your_mongodb_connection_string  # or use fromDatabase if stored in Render DB
+      - key: JWT_SECRET_KEY
+        value: your_jwt_secret_key
+      - key: JWT_ALGORITHM
+        value: HS256
+      - key: ACCESS_TOKEN_EXPIRE_MINUTES
+        value: "30"
+      - key: REFRESH_TOKEN_EXPIRE_DAYS
+        value: "7"
+      - key: DEBUG
+        value: "False"
+      - key: CORS_ORIGINS
+        value: https://astrobalendar-frontend.onrender.com  # Replace with actual frontend domain
