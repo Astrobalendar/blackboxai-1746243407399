@@ -1,0 +1,38 @@
+version: '3.8'
+
+networks:
+  astrobalendar-network:
+    driver: bridge
+
+services:
+  frontend:
+    build: ./apps/frontend
+    ports:
+      - "4173:4173"
+      - "3000:4173"  # Public frontend port
+    environment:
+      - VITE_BACKEND_URL=${VITE_BACKEND_URL}
+    networks:
+      - astrobalendar-network
+
+  backend:
+    build: ./apps/backend
+    ports:
+      - "8000:8000"
+      - "3001:8000"  # Public backend port
+    environment:
+      - MONGO_URI=${MONGO_URI}
+    networks:
+      - astrobalendar-network
+
+  mongodb:
+    image: mongo:latest
+    ports:
+      - "27017:27017"
+    networks:
+      - astrobalendar-network
+    volumes:
+      - mongo-data:/data/db
+
+volumes:
+  mongo-data:

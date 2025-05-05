@@ -1,0 +1,39 @@
+version: 1
+
+services:
+  frontend:
+    build:
+      context: ./apps/frontend
+      dockerfile: Dockerfile
+    ports:
+      - "4173:4173"
+    environment:
+      - VITE_BACKEND_URL=${VITE_BACKEND_URL}
+
+  backend:
+    build:
+      context: ./apps/backend
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      - MONGO_URI=${MONGO_URI}
+
+  mongodb:
+    image: mongo:latest
+    ports:
+      - "27017:27017"
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=admin
+      - MONGO_INITDB_ROOT_PASSWORD=password
+
+environment:
+  production:
+    VITE_BACKEND_URL: "https://api.astrobalendar.com"
+    MONGO_URI: "mongodb://admin:password@mongodb:27017/astrobalendar"
+    NODE_ENV: production
+
+  development:
+    VITE_BACKEND_URL: "http://localhost:8000"
+    MONGO_URI: "mongodb://localhost:27017/astrobalendar"
+    NODE_ENV: development
