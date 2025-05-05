@@ -1,0 +1,11 @@
+This archive (DEPLOYMENT_CONFIGS.zip) should include the following files for deployment and documentation:
+
+- netlify.toml (if exists)
+- vite.config.ts
+- README_DEPLOYMENT.md
+- .env.example (if exists)
+- render.yaml (if exists)
+- POST_DEPLOYMENT_REPORT.md
+- MONITORING_ALERTS.md
+
+Please create a .zip archive containing these files for easy download and future reference.

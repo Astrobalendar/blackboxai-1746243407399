@@ -1,0 +1,12 @@
+{
+  "predictionResult": {
+    "title": "Prediction Result",
+    "rasiChart": "Rasi Chart",
+    "navamsaChart": "Navamsa Chart",
+    "rulingPlanets": "Ruling Planets",
+    "interpretation": "Interpretation",
+    "downloadPdf": "Download PDF",
+    "loading": "Loading prediction...",
+    "notFound": "Prediction not found."
+  }
+}
