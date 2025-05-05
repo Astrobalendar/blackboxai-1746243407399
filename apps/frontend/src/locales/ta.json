@@ -1,0 +1,12 @@
+{
+  "predictionResult": {
+    "title": "முன்னறிவிப்பு முடிவு",
+    "rasiChart": "ராசி வரைபடம்",
+    "navamsaChart": "நவம்ச வரைபடம்",
+    "rulingPlanets": "ஆளும் கிரகங்கள்",
+    "interpretation": "விளக்கம்",
+    "downloadPdf": "PDF பதிவிறக்கவும்",
+    "loading": "முன்னறிவிப்பு ஏற்றுகிறது...",
+    "notFound": "முன்னறிவிப்பு கிடைக்கவில்லை."
+  }
+}
