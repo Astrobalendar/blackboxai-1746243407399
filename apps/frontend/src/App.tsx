@@ -1,5 +1,6 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
+import PredictionPage from './pages/PredictionPage';
 
 function Home() {
   return (
@@ -138,6 +139,7 @@ function App() {
         <Route path="/" element={<Home />} />
         <Route path="/calendar" element={<Calendar />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/prediction" element={<PredictionPage />} />
       </Routes>
     </Router>
   );

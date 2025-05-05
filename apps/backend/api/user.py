@@ -1,6 +1,7 @@
 from fastapi import APIRouter, HTTPException, Depends
 from apps.backend.models import UserSettings, UserSettingsUpdate
 from apps.backend.services.user_service import get_user_settings, update_user_settings
+from datetime import datetime
 
 router = APIRouter()
 
@@ -10,8 +11,7 @@ def get_current_user():
 
 @router.get("/settings", response_model=UserSettings)
     create_access_token,
-    get_current_user,
-)
+    get_current_user
 
 router = APIRouter()
 
@@ -52,3 +52,15 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends()):
 @router.get("/me", response_model=UserOut)
 async def read_users_me(current_user=Depends(get_current_user)):
     return current_user
+
+@router.get("/horoscope")
+def get_horoscope(date: str, sign: str):
+    """
+    Generate a horoscope based on the provided date and zodiac sign.
+    :param date: Date in YYYY-MM-DD format
+    :param sign: Zodiac sign (e.g., Aries, Taurus)
+    :return: Horoscope text
+    """
+    # Placeholder logic for horoscope generation
+    horoscope = f"Your horoscope for {sign} on {date}: Today is a great day to focus on your goals."
+    return {"date": date, "sign": sign, "horoscope": horoscope}
