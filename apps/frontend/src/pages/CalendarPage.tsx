@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 // Placeholder for calendar component import, e.g., react-calendar or fullcalendar
 // import Calendar from 'react-calendar';
+import HoroscopeGenerator from '../components/HoroscopeGenerator';
 
 const CalendarPage: React.FC = () => {
   const [events, setEvents] = useState([]);
@@ -24,12 +25,13 @@ const CalendarPage: React.FC = () => {
       <h2>Calendar</h2>
       {/* TODO: Replace with actual calendar component */}
       <ul>
-        {events.map(event => (
+        {events.map((event: { id: string; title: string; date: string }) => (
           <li key={event.id} onClick={() => onEventClick(event.id)}>
             {event.title} - {event.date}
           </li>
         ))}
       </ul>
+      <HoroscopeGenerator />
     </div>
   );
 };
