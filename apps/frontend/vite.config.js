@@ -5,15 +5,12 @@ import vue from '@vitejs/plugin-vue'
 export default defineConfig({
   base: './',
   plugins: [vue()],
-  build: {
-    outDir: 'dist',
-    emptyOutDir: true
-  },
   define: {
     'process.env': {}
   },
   build: {
-    outDir: '../dist'  // Ensure output is to dist directory
+    outDir: 'dist',
+    emptyOutDir: true
   },
   server: {
     proxy: {
