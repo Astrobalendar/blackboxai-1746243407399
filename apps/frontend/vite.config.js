@@ -9,6 +9,9 @@ export default defineConfig({
   define: {
     'process.env': {}
   },
+  build: {
+    outDir: '../dist'  // Ensure output is to dist directory
+  },
   server: {
     proxy: {
       '/api': {
