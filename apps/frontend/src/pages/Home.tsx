@@ -9,9 +9,20 @@ const Home = () => {
         <p className="mt-4 text-lg">The World's First AI/ML-Based Astrology Platform</p>
       </header>
 
-      <section className="grid grid-cols-1 md:grid-cols-3 gap-6 px-6 py-10">
-        {["Daily Predictions", "Matchmaking", "Zodiac Scoring", "Offline Support", "PDF Reports", "Multi-language"].map((feature) => (
-          <div key={feature} className="bg-white/10 p-6 rounded-xl border border-purple-500 shadow-lg text-center">
+      {/* Full-width grid section */}
+      <section className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 p-4 sm:px-8 md:px-12 lg:px-20 w-full">
+        {[
+          "Daily Predictions",
+          "Matchmaking",
+          "Zodiac Scoring",
+          "Offline Support",
+          "PDF Reports",
+          "Multi-language"
+        ].map((feature) => (
+          <div
+            key={feature}
+            className="bg-white/10 p-6 rounded-xl border border-purple-500 shadow-lg text-center"
+          >
             <h3 className="text-xl font-semibold">{feature}</h3>
           </div>
         ))}
