@@ -1,6 +1,7 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 import PredictionPage from './pages/PredictionPage';
+import ChatPage from './pages/ChatPage';
 
 function Home() {
   return (
@@ -134,12 +135,14 @@ function App() {
         <Link to="/" className="hover:underline">Home</Link>
         <Link to="/calendar" className="hover:underline">Calendar</Link>
         <Link to="/login" className="hover:underline">Login</Link>
+        <Link to="/chat" className="hover:underline">Chat</Link>
       </nav>
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/calendar" element={<Calendar />} />
         <Route path="/login" element={<Login />} />
         <Route path="/prediction" element={<PredictionPage />} />
+        <Route path="/chat" element={<ChatPage />} />
       </Routes>
     </Router>
   );
