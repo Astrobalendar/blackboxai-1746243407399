@@ -1,36 +1,31 @@
-import React, { useState } from 'react';
-import PredictionForm from '../components/PredictionForm';
+import React, { useState } from "react";
+import PredictionForm from "../components/PredictionForm";
+import PredictionResult from "../components/PredictionResult";
 
 const PredictionPage: React.FC = () => {
-  const [result, setResult] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [result, setResult] = useState<any>(null);
+  const [error, setError] = useState<string | null>(null);
 
-  const handlePrediction = async (formData: any) => {
-    setLoading(true);
-    setResult(null);
+  const handlePrediction = (data: any) => {
+    setResult(data);
+    setError(null);
+  };
 
-    try {
-      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/predict`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
-      });
-      const data = await response.json();
-      setResult(data.message);
-    } catch (error) {
-      console.error('Error fetching prediction:', error);
-      setResult('An error occurred. Please try again.');
-    } finally {
-      setLoading(false);
-    }
+  const handleError = (err: any) => {
+    setError("Something went wrong. Please try again.");
+    console.error("Prediction error:", err);
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-800 via-purple-600 to-blue-500 p-4">
-      <div className="bg-white/10 text-white p-6 rounded-xl shadow-lg w-full max-w-md">
-        <h2 className="text-2xl font-bold mb-4 text-center">Get Your Horoscope Prediction</h2>
-        <PredictionForm onSubmit={handlePrediction} loading={loading} />
-      </div>
+    <div className="flex justify-center items-center min-h-screen bg-gradient-to-r from-purple-700 via-purple-500 to-blue-500 p-4">
+      {result ? (
+        <PredictionResult data={result} onBack={() => setResult(null)} />
+      ) : (
+        <PredictionForm onSuccess={handlePrediction} onError={handleError} />
+      )}
+      {error && (
+        <div className="absolute bottom-4 text-red-200 text-sm">{error}</div>
+      )}
     </div>
   );
 };
