@@ -5,6 +5,7 @@ app = FastAPI()
 
 allow_origins = [
     "https://akuraastrology.netlify.app",
+    "https://stately-gingersnap-b43e3e3.netlify.app"
 ]
 
 app.add_middleware(
@@ -26,4 +27,22 @@ def health_check():
 @app.post("/api/predict")
 async def predict(request: Request):
     data = await request.json()
-    return {"message": f"Prediction logic goes here for {data}"}
+    # Simulate KP Astrology logic for prediction
+    prediction_result = {
+        "ascendant": "Aries 15°",
+        "moon_sign": "Cancer",
+        "dasa": "Mars",
+        "bhukti": "Venus",
+        "antara": "Mercury",
+        "sub_lord": "Saturn",
+        "sub_sub_lord": "Jupiter",
+        "ruling_planets": ["Mars", "Venus", "Saturn"],
+    }
+
+    # Compare Sub-Sub Lord with Ruling Sub Lord
+    match_status = "match" if prediction_result["sub_sub_lord"] in prediction_result["ruling_planets"] else "needs_correction"
+
+    return {
+        "prediction": prediction_result,
+        "match_status": match_status,
+    }
