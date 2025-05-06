@@ -8,6 +8,7 @@ import asyncio
 from db.mongo import db, check_db_connection
 from db.db_ops import create_user, get_user_by_email, create_event, get_events_by_user
 from bson.objectid import ObjectId
+from api import chat
 
 app = FastAPI()
 
@@ -127,3 +128,5 @@ async def get_events(user_id: str):
         event["_id"] = str(event["_id"])
         event["user_id"] = str(event["user_id"])
     return events
+
+app.include_router(chat.router)
