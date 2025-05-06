@@ -12,7 +12,7 @@ const Chat: React.FC = () => {
     setMessages((prev) => [...prev, userMessage]);
 
     try {
-      const response = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/chat`, {
+      const response = await axios.post<{ answer: string }>(`${import.meta.env.VITE_BACKEND_URL}/api/chat`, {
         question: input,
       });
 
