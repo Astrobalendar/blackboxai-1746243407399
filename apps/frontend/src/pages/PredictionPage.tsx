@@ -1,8 +1,8 @@
-import React, { useState } from "react";
+import React, { FunctionComponent, useState } from "react";
 import PredictionForm from "../components/PredictionForm";
 import PredictionResult from "../components/PredictionResult";
 
-const PredictionPage: React.FC = () => {
+const PredictionPage: FunctionComponent = () => {
   const [result, setResult] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
 

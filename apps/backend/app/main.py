@@ -27,7 +27,8 @@ def health_check():
 @app.post("/api/predict")
 async def predict(request: Request):
     data = await request.json()
-    # Simulate KP Astrology logic for prediction
+    
+    # Simulate KP Astrology logic
     prediction_result = {
         "ascendant": "Aries 15°",
         "moon_sign": "Cancer",
@@ -39,8 +40,11 @@ async def predict(request: Request):
         "ruling_planets": ["Mars", "Venus", "Saturn"],
     }
 
-    # Compare Sub-Sub Lord with Ruling Sub Lord
-    match_status = "match" if prediction_result["sub_sub_lord"] in prediction_result["ruling_planets"] else "needs_correction"
+    match_status = (
+        "match"
+        if prediction_result["sub_sub_lord"] in prediction_result["ruling_planets"]
+        else "needs_correction"
+    )
 
     return {
         "prediction": prediction_result,

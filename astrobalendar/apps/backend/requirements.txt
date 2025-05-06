@@ -1,7 +1,0 @@
-fastapi
-uvicorn[standard]
-pydantic
-python-jose[cryptography]
-motor
-pytest
-httpx
