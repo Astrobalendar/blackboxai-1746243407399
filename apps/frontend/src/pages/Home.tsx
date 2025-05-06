@@ -1,9 +1,7 @@
 import React from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 
 const Home = () => {
-  const navigate = useNavigate();
-
   return (
     <div className="w-full min-h-screen bg-gradient-to-b from-purple-900 via-black to-black text-white">
       <header className="text-center py-12">
@@ -31,12 +29,11 @@ const Home = () => {
       </section>
 
       <div className="text-center mt-10 space-x-4">
-        <button
-          onClick={() => navigate('/prediction')}
-          className="bg-purple-600 text-white py-3 px-6 rounded-lg font-semibold hover:bg-purple-700"
-        >
-          New Horoscope
-        </button>
+        <Link to="/new-horoscope">
+          <button className="px-6 py-3 bg-purple-600 hover:bg-purple-700 rounded text-white font-semibold">
+            New Horoscope
+          </button>
+        </Link>
         <Link to="/calendar">
           <button className="px-6 py-3 bg-white/10 hover:bg-white/20 rounded text-white font-semibold">
             View Astro Calendar

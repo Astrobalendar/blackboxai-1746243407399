@@ -3,7 +3,7 @@ from pydantic import BaseModel, Field
 from typing import List, Optional
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse
-import asyncio
+# Removed unused asyncio import
 
 from db.mongo import db, check_db_connection
 from db.db_ops import create_user, get_user_by_email, create_event, get_events_by_user
@@ -37,14 +37,18 @@ import logging
 
 logger = logging.getLogger("uvicorn.error")
 
-@app.on_event("startup")
-async def startup_event():
+from contextlib import asynccontextmanager
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
     connected = await check_db_connection()
     if connected:
         logger.info("✅ MongoDB connection established successfully.")
     else:
         logger.error("❌ Failed to connect to MongoDB")
         raise RuntimeError("Failed to connect to MongoDB")
+    yield
+app = FastAPI(lifespan=lifespan)
 
 @app.get("/", response_class=HTMLResponse)
 async def home():
@@ -65,7 +69,7 @@ async def home():
 async def db_status():
     connected = await check_db_connection()
     return {"mongodb_connected": connected}
-
+    await db.predictions.insert_one(data.model_dump())
 @app.post("/predict", response_model=PredictionResponse)
 async def predict(data: PredictionRequest):
     # Store the request in MongoDB and return mocked response
@@ -93,7 +97,7 @@ class User(BaseModel):
     email: str
 
 @app.post("/users")
-async def add_user(user: User):
+    user_id = create_user(user.model_dump())
     existing_user = get_user_by_email(user.email)
     if existing_user:
         raise HTTPException(status_code=400, detail="User already exists")
@@ -112,7 +116,7 @@ class Event(BaseModel):
     user_id: str
     title: str
     date: str
-    note: Optional[str] = None
+    event_data = event.model_dump()
 
 @app.post("/events")
 async def add_event(event: Event):
@@ -130,3 +134,20 @@ async def get_events(user_id: str):
     return events
 
 app.include_router(chat.router)
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+
+app = FastAPI()  # Ensure the app variable is defined
+
+origins = [
+    "http://localhost:5173",
+    "https://akuraastrology.netlify.app"
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"]
+)

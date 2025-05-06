@@ -1,9 +1,0 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
-/* Basic CSS file to resolve import in main.tsx */
-body {
-  margin: 0;
-  font-family: system-ui, sans-serif;
-}

@@ -1,12 +1,17 @@
-// TODO: ReactDOM entry point
-import React from 'react';
-import ReactDOM from 'react-dom/client';
-import App from './App';
-import './index.css';
+import React from "react";
+import ReactDOM from "react-dom/client";
+import { BrowserRouter, Route, Routes } from "react-router-dom";
+import PredictionTabs from "./components/PredictionTabs"; // Correct the path
+import App from "./App";
+import "./index.css"; // ✅ TailwindCSS
 
-const root = ReactDOM.createRoot(document.getElementById('root')!);
-root.render(
+ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
-    <App />
+    <BrowserRouter>
+      <Routes>
+        <Route path="/prediction/tabs" element={<PredictionTabs />} />
+        <Route path="/*" element={<App />} />
+      </Routes>
+    </BrowserRouter>
   </React.StrictMode>
 );
