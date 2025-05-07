@@ -7,7 +7,7 @@ export interface NotificationOptions {
 }
 
 export const createErrorNotification = ({ title, message, details }: NotificationOptions) => {
-  toast.error(message, {
+  toast.error(details ? `${message}\n\nDetails: ${details}` : message, {
     position: "top-right",
     autoClose: 5000,
     hideProgressBar: false,
@@ -16,7 +16,6 @@ export const createErrorNotification = ({ title, message, details }: Notificatio
     draggable: true,
     progress: undefined,
     theme: "light",
-    title,
-    body: details ? `${message}\n\nDetails: ${details}` : message,
+    toastId: title
   });
 };
