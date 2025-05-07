@@ -8,16 +8,16 @@ export default defineConfig({
   base: './',
   plugins: [react()],
   build: {
-    outDir: '../../dist', // Outputs to the correct directory relative to the frontend folder
+    outDir: 'dist', // Output to dist directory within frontend folder
     emptyOutDir: true,
-    sourcemap: true, // Enable source maps for production builds
+    sourcemap: true,
     rollupOptions: {
       output: {
         manualChunks: {
-          vendor: ['react', 'react-dom'], // Separate vendor libraries
+          vendor: ['react', 'react-dom'],
         },
       },
     },
-    chunkSizeWarningLimit: 1000, // Adjust the warning limit if needed
+    chunkSizeWarningLimit: 1000,
   },
 });
