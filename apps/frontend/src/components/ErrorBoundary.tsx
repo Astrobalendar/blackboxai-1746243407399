@@ -1,5 +1,4 @@
 import React, { Component, ErrorInfo, ReactNode } from "react";
-import { createErrorNotification } from "./notifications";
 
 interface Props {
   children: ReactNode;
@@ -38,7 +37,7 @@ export class ErrorBoundary extends Component<Props, State> {
       routePath: window.location.pathname,
       routeParams: new URLSearchParams(window.location.search).toString()
     });
-    
+
     // Log to console for debugging
     console.error("❌ Detailed Error Info:", {
       error: error,
@@ -47,12 +46,6 @@ export class ErrorBoundary extends Component<Props, State> {
       message: error.message,
       stack: error.stack,
       location: window.location.href
-    });
-
-    createErrorNotification({
-      title: "Application Error",
-      message: "An unexpected error occurred. Please try again later.",
-      details: errorDetails.message
     });
 
     if (this.props.onError) {
