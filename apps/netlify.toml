@@ -1,8 +1,13 @@
 [build]
-  command = "cd apps/frontend && npm run build"
-  publish = "apps/frontend/dist"
-  base = "/"
+  base = "apps/frontend"
+  command = "npm run build"
+  publish = "dist"
 
 [build.environment]
   NODE_VERSION = "18"
   NODE_ENV = "production"
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
