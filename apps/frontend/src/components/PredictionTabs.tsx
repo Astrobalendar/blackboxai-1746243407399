@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
-import { doc, setDoc, getDoc } from "firebase/firestore";
-import { auth, db } from "../lib/firebase";
+import { auth } from "../lib/firebase";
+import { saveProfile, loadProfile } from "../lib/firebaseProfileService";
 import RasiChart from "./charts/RasiChart";
 import NavamsaChart from "./charts/NavamsaChart";
 import PlanetExtChart from "./charts/PlanetExtChart";
@@ -183,10 +183,9 @@ const PredictionTabs: React.FC = () => {
     const unsubscribe = auth.onAuthStateChanged(async (user) => {
       if (user) {
         setUid(user.uid);
-        const docRef = doc(db, "profiles", user.uid);
-        const snap = await getDoc(docRef);
-        if (snap.exists()) {
-          setBirthData(snap.data());
+        const profile = await loadProfile();
+        if (profile) {
+          setBirthData(profile);
         }
       }
     });
@@ -228,12 +227,13 @@ const PredictionTabs: React.FC = () => {
 
   const handleFormSubmit = async (data: any) => {
     if (!uid) return;
-    const docRef = doc(db, "profiles", uid);
-    await setDoc(docRef, { ...data, createdAt: new Date() });
-    setBirthData(data);
-
-    // Generate chart data on form submission
-    handleGenerate(data);
+    try {
+      await saveProfile(data);
+      setBirthData(data);
+      handleGenerate(data); // Generate chart data on form submission
+    } catch (err) {
+      console.error("Error saving profile:", err);
+    }
   };
 
   const handleSaveProfile = () => {

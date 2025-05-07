@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 import jsPDF from "jspdf";
+import { fetchPrediction } from "../services/api";
+import BirthDataForm from './BirthDataForm';
 
 type HoroscopeData = {
   name: string;
@@ -8,38 +10,47 @@ type HoroscopeData = {
   location: string;
 };
 
-const NewHoroscope = () => {
-  const [formData, setFormData] = useState<HoroscopeData>({
-    name: "",
-    date: "",
-    time: "",
-    location: "",
-  });
+interface NewHoroscopeProps {
+  onPrediction?: (data: any) => void;
+}
 
+const NewHoroscope: React.FC<NewHoroscopeProps> = ({ onPrediction }) => {
   const [result, setResult] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [formData, setFormData] = useState<HoroscopeData>({ name: '', date: '', time: '', location: '' });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleBirthDataSubmit = async (formData: any) => {
+    setLoading(true);
+    setError(null);
     try {
-      const res = await fetch("https://astrobalendar-backend.onrender.com/api/predict", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: formData.name,
-          date: formData.date,
-          time: formData.time,
-          place: formData.location,
-        }),
+      const response = await fetchPrediction({
+        birthData: {
+          date: formData.dateOfBirth,
+          time: formData.timeOfBirth,
+          location: formData.placeOfBirth
+        },
+        name: formData.name
       });
-      const data = await res.json();
-      setResult(JSON.stringify(data, null, 2));
-    } catch (err) {
-      setResult("⚠️ Error fetching prediction.");
+
+      if (response.success) {
+        setResult(JSON.stringify(response.data, null, 2));
+        if (onPrediction) {
+          onPrediction(response.data);
+        }
+      } else {
+        throw new Error(response.error || "Prediction failed");
+      }
+    } catch (error) {
+      console.error('Error fetching prediction:', error);
+      setError(error instanceof Error ? error.message : 'Failed to fetch prediction');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -56,22 +67,30 @@ const NewHoroscope = () => {
   };
 
   return (
-    <div className="max-w-xl mx-auto p-6 bg-white rounded shadow mt-10">
-      <h2 className="text-2xl font-semibold mb-4">Create New Horoscope</h2>
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <input name="name" placeholder="Full Name" onChange={handleChange} required className="w-full border px-4 py-2 rounded" />
-        <input name="date" type="date" onChange={handleChange} required className="w-full border px-4 py-2 rounded" />
-        <input name="time" type="time" onChange={handleChange} required className="w-full border px-4 py-2 rounded" />
-        <input name="location" placeholder="City, Country" onChange={handleChange} required className="w-full border px-4 py-2 rounded" />
-        <button type="submit" className="bg-purple-600 text-white px-4 py-2 rounded w-full hover:bg-purple-700">Get Horoscope</button>
-      </form>
+    <div className="container mx-auto px-4 py-8">
+      <h1 className="text-3xl font-bold mb-8">New Horoscope</h1>
+      <BirthDataForm
+        onSubmit={handleBirthDataSubmit}
+        loading={loading}
+        error={error}
+      />
       {result && (
-        <>
-          <pre className="mt-6 bg-gray-100 p-4 rounded text-sm overflow-x-auto">{result}</pre>
-          <button onClick={handleExport} className="mt-4 bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
-            Export as PDF
+        <div className="mt-8">
+          <h2 className="text-xl font-semibold mb-4">Prediction Result</h2>
+          <pre className="bg-gray-800 p-4 rounded-md whitespace-pre-wrap">
+            {result}
+          </pre>
+          <button
+            onClick={() => {
+              const doc = new jsPDF();
+              doc.text(result, 10, 10);
+              doc.save('horoscope_prediction.pdf');
+            }}
+            className="mt-4 bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600 transition-colors"
+          >
+            Download PDF
           </button>
-        </>
+        </div>
       )}
     </div>
   );

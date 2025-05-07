@@ -1,66 +1,146 @@
-import React, { useState } from "react";
-import PredictionResult from "./PredictionResult";
-import PredictionTabs from "../components/PredictionTabs"; // Correct the import path
-import BirthDataForm from "../components/BirthDataForm"; // Import BirthDataForm
-
-type HoroscopeData = {
-  name: string;
-  date: string;
-  time: string;
-  location: string;
-};
+import React from 'react';
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import BirthDataForm from '../components/BirthDataForm';
+import PredictionResult from '../components/PredictionResult';
+import { Button, Card, Container, Row, Col } from 'react-bootstrap';
+import { AstrologicalPrediction } from '../types/astrology';
+import { logError } from '../services/errorLogger';
 
 const NewHoroscope: React.FC = () => {
-  const [formData, setFormData] = useState<HoroscopeData | null>(null); // Holds birth data
-  const [result, setResult] = useState<any | null>(null); // Holds prediction result
+  const navigate = useNavigate();
+  const [step, setStep] = useState(1);
+  const [formData, setFormData] = useState({
+    name: '',
+    dateOfBirth: '',
+    timeOfBirth: '',
+    placeOfBirth: '',
+    latitude: '',
+    longitude: '',
+    timeZone: '',
+  });
+  const [prediction, setPrediction] = useState<AstrologicalPrediction | null>(null);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [showExport, setShowExport] = useState(false);
 
-  const handleBirthDataSubmit = async (data: HoroscopeData) => {
+  const handleBirthDataSubmit = async (data: any) => {
     setFormData(data);
     setLoading(true);
+    setError(null);
+    
     try {
-      const res = await fetch("https://astrobalendar-backend.onrender.com/api/predict", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
+      // Simulate API call with timeout
+      const response = await Promise.race([
+        fetch('/api/prediction', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(data),
+        }),
+        new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Request timed out')), 10000)
+        )
+      ]);
+
+      if (!response.ok) {
+        throw new Error('Failed to get prediction');
+      }
+
+      const result = await response.json();
+      setPrediction(result);
+      setStep(3);
+      setShowExport(true);
+    } catch (err) {
+      logError(err as Error, {
+        userId: data.name,
+        data: {
+          request: data,
+          response: err instanceof Error ? err.message : 'Unknown error'
+        }
       });
-      const prediction = await res.json();
-      setResult(prediction);
-    } catch {
-      setResult({ error: "⚠️ Error fetching prediction." });
+      setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {
       setLoading(false);
     }
   };
 
-  return (
-    <div className="max-w-2xl mx-auto p-6 bg-white rounded shadow mt-10">
-      <h2 className="text-2xl font-semibold mb-4">🧘‍♂️ New Horoscope Entry</h2>
+  const handleBack = () => {
+    if (step === 3) {
+      setStep(2);
+      setShowExport(false);
+    } else {
+      navigate('/');
+    }
+  };
 
-      {!formData ? (
-        <BirthDataForm onSubmit={handleBirthDataSubmit} />
-      ) : (
-        <>
-          {loading ? (
-            <div className="text-center text-purple-600">Loading...</div>
-          ) : result ? (
-            <>
-              <pre className="mt-6 bg-gray-100 p-4 rounded text-sm overflow-x-auto text-black">
-                {JSON.stringify(result, null, 2)}
-              </pre>
-              <PredictionTabs
-                predictionData={{
-                  ...formData,
-                  ...result,
-                }}
-              />
-            </>
-          ) : (
-            <div className="text-red-600 mt-4">⚠️ Error fetching prediction.</div>
-          )}
-        </>
+  const steps = [
+    { title: "Personal Info", completed: step >= 1 },
+    { title: "Prediction", completed: step >= 2 },
+    { title: "Export", completed: step >= 3 }
+  ];
+
+  return (
+    <Container className="mt-5">
+      <div className="steps-container mb-4">
+        {steps.map((stepItem, index) => (
+          <div
+            key={index}
+            className={`step ${stepItem.completed ? 'completed' : ''}`}
+          >
+            <span className="step-number">{index + 1}</span>
+            <span className="step-title">{stepItem.title}</span>
+          </div>
+        ))}
+      </div>
+
+      {step === 1 && (
+        <div className="form-container">
+          <BirthDataForm
+            onSubmit={handleBirthDataSubmit}
+            loading={loading}
+            error={error}
+          />
+        </div>
       )}
-    </div>
+
+      {step === 2 && prediction && (
+        <div className="prediction-container">
+          <PredictionResult
+            prediction={prediction}
+            showExport={false}
+            onBack={handleBack}
+            onError={(err) => {
+              setError(err);
+              setStep(1);
+            }}
+          />
+        </div>
+      )}
+
+      {step === 3 && prediction && (
+        <div className="export-container">
+          <PredictionResult
+            prediction={prediction}
+            showExport={true}
+            onBack={handleBack}
+            onError={(err) => {
+              setError(err);
+              setStep(2);
+            }}
+          />
+        </div>
+      )}
+
+      {error && (
+        <div className="error-container">
+          <div className="alert alert-danger">
+            {error}
+          </div>
+        </div>
+      )}
+    </Container>
   );
 };
 

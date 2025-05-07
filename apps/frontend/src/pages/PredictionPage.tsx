@@ -1,31 +1,37 @@
-import React, { FunctionComponent, useState } from "react";
-import PredictionForm from "../components/PredictionForm";
+import React, { FunctionComponent } from "react";
+import { PredictionResponse } from '../services/api';
 import PredictionResult from "../components/PredictionResult";
 
-const PredictionPage: FunctionComponent = () => {
-  const [result, setResult] = useState<any>(null);
-  const [error, setError] = useState<string | null>(null);
+interface PredictionPageProps {
+  prediction: PredictionResponse | null;
+}
 
-  const handlePrediction = (data: any) => {
-    setResult(data);
-    setError(null);
-  };
+const PredictionPage: FunctionComponent<PredictionPageProps> = ({ prediction }) => {
+  if (!prediction) {
+    return (
+      <div className="flex justify-center items-center min-h-screen bg-gradient-to-r from-purple-700 via-purple-500 to-blue-500 p-4">
+        <div className="text-center">
+          <h2 className="text-2xl mb-4">Loading...</h2>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto"></div>
+        </div>
+      </div>
+    );
+  }
 
-  const handleError = (err: any) => {
-    setError("Something went wrong. Please try again.");
-    console.error("Prediction error:", err);
-  };
+  if (prediction.error) {
+    return (
+      <div className="flex justify-center items-center min-h-screen bg-gradient-to-r from-purple-700 via-purple-500 to-blue-500 p-4">
+        <div className="text-center text-red-500">
+          <h2 className="text-2xl mb-4">Error</h2>
+          <p>{prediction.error}</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex justify-center items-center min-h-screen bg-gradient-to-r from-purple-700 via-purple-500 to-blue-500 p-4">
-      {result ? (
-        <PredictionResult data={result} onBack={() => setResult(null)} />
-      ) : (
-        <PredictionForm onSuccess={handlePrediction} onError={handleError} />
-      )}
-      {error && (
-        <div className="absolute bottom-4 text-red-200 text-sm">{error}</div>
-      )}
+      <PredictionResult data={prediction.data} onBack={() => window.history.back()} />
     </div>
   );
 };

@@ -2,50 +2,56 @@ import React from "react";
 import jsPDF from "jspdf";
 
 interface HoroscopeProps {
-  data: {
-    name: string;
-    rulingPlanets: string[];
-    sublords: string[];
-    kpChart: string;
-  };
+  data: Record<string, any>;
 }
 
 const HoroscopeView: React.FC<HoroscopeProps> = ({ data }) => {
   const handleExport = () => {
     const doc = new jsPDF();
     doc.text("Your Horoscope", 10, 10);
-    doc.text(`Name: ${data.name}`, 10, 20);
-    doc.text("Ruling Planets:", 10, 30);
-    data.rulingPlanets.forEach((planet, index) => {
-      doc.text(`- ${planet}`, 10, 40 + index * 10);
+    
+    // Add all available data fields
+    Object.entries(data).forEach(([key, value], index) => {
+      if (Array.isArray(value)) {
+        doc.text(`${key}:`, 10, 20 + index * 20);
+        value.forEach((item, i) => {
+          doc.text(`- ${item}`, 10, 30 + (index * 20) + (i * 10));
+        });
+      } else {
+        doc.text(`${key}: ${value}`, 10, 20 + index * 20);
+      }
     });
-    doc.text("Sublords:", 10, 70);
-    data.sublords.forEach((sublord, index) => {
-      doc.text(`- ${sublord}`, 10, 80 + index * 10);
-    });
-    doc.text("KP Chart:", 10, 110);
-    doc.text(data.kpChart, 10, 120);
+    
     doc.save("horoscope.pdf");
   };
 
   return (
     <div className="p-6 bg-white rounded shadow">
-      <h2 className="text-2xl font-bold mb-4">Horoscope Details</h2>
-      <p><strong>Name:</strong> {data.name}</p>
-      <h3 className="font-semibold mt-4">Ruling Planets</h3>
-      <ul className="list-disc list-inside">
-        {data.rulingPlanets.map((planet, index) => (
-          <li key={index}>{planet}</li>
+      <div className="space-y-6">
+        {data && Object.entries(data).map(([key, value]) => (
+          <div key={key} className="border-t pt-4">
+            <h3 className="font-semibold text-lg mb-2">{key}</h3>
+            {Array.isArray(value) ? (
+              <ul className="list-disc list-inside space-y-1">
+                {value.map((item, i) => (
+                  <li key={i} className="text-gray-700">{item}</li>
+                ))}
+              </ul>
+            ) : typeof value === 'object' && value !== null ? (
+              <div className="space-y-2">
+                {Object.entries(value).map(([subKey, subValue]) => (
+                  <div key={subKey} className="flex items-center">
+                    <span className="font-medium w-24">{subKey}:</span>
+                    <span className="text-gray-700">{subValue}</span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-gray-700">{value}</p>
+            )}
+          </div>
         ))}
-      </ul>
-      <h3 className="font-semibold mt-4">Sublords</h3>
-      <ul className="list-disc list-inside">
-        {data.sublords.map((sublord, index) => (
-          <li key={index}>{sublord}</li>
-        ))}
-      </ul>
-      <h3 className="font-semibold mt-4">KP Chart</h3>
-      <p>{data.kpChart}</p>
+      </div>
       <button
         onClick={handleExport}
         className="mt-6 bg-purple-600 hover:bg-purple-700 text-white py-2 px-4 rounded"

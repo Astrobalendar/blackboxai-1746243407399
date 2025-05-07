@@ -14,8 +14,12 @@
     "isolatedModules": true,
     "noEmit": true,
     "jsx": "react-jsx",
-    "typeRoots": ["./node_modules/@types"], // Ensure type definitions are included
-    "types": ["react", "react-dom", "node"] // Add react and node types
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"]
+    },
+    "typeRoots": ["./node_modules/@types"],
+    "types": ["react", "react-dom", "node", "jest"]
   },
   "include": ["src"]
 }

@@ -1,234 +1,225 @@
-import React, { useState, useEffect, useRef } from "react";
-import axios from "axios";
-import html2pdf from "html2pdf.js";
-import { getLatLonFromCity } from "../lib/geoService"; // Import OpenCage API service
-import { doc, setDoc, getDoc, serverTimestamp } from "firebase/firestore";
-import { db, auth } from "../lib/firebase"; // Import Firestore and Auth
+import React, { useState } from 'react';
+import { Button, Form, FormLabel, FormControl, FormText } from 'react-bootstrap';
+import { locationData } from '@/lib/locationData';
+import { AstrologicalPrediction } from '@/types/astrology';
 
-declare module "html2pdf.js";
-
-interface FormData {
+interface BirthData {
   name: string;
-  date: string;
-  time: string;
-  location: string;
+  dateOfBirth: string;
+  timeOfBirth: string;
+  placeOfBirth: string;
+  latitude: string;
+  longitude: string;
   timeZone: string;
-  ampm: string;
 }
 
-const BirthDataForm: React.FC = () => {
-  const [formData, setFormData] = useState<FormData>(() => {
-    const savedData = localStorage.getItem("birthData");
-    return savedData
-      ? JSON.parse(savedData)
-      : { name: "", date: "", time: "", location: "", timeZone: "UTC", ampm: "AM" };
+interface BirthDataFormProps {
+  onSubmit: (data: BirthData) => void;
+  loading: boolean;
+  error: string | null;
+}
+
+const BirthDataForm: React.FC<BirthDataFormProps> = ({ onSubmit, loading, error }) => {
+  const [formData, setFormData] = useState<BirthData>({
+    name: '',
+    dateOfBirth: '',
+    timeOfBirth: '',
+    placeOfBirth: '',
+    latitude: '',
+    longitude: '',
+    timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
   });
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const pdfRef = useRef<HTMLDivElement>(null);
 
-  const backend = process.env.REACT_APP_BACKEND_URL as string; // Ensure type safety
+  const [errors, setErrors] = useState<Partial<BirthData>>({});
 
-  useEffect(() => {
-    const loadLastProfile = async () => {
-      if (!auth.currentUser) return;
-      const userId = auth.currentUser.uid;
-      const docRef = doc(db, "birthData", userId);
-      const docSnap = await getDoc(docRef);
+  const validateDate = (date: string): boolean => {
+    const regex = /^(\d{2})\/(\d{2})\/(\d{4})$/;
+    if (!regex.test(date)) return false;
 
-      if (docSnap.exists()) {
-        setFormData(docSnap.data() as FormData);
-      }
-    };
+    const [day, month, year] = date.split('/').map(Number);
+    const dateObj = new Date(year, month - 1, day);
 
-    loadLastProfile();
-  }, []);
+    if (dateObj.getFullYear() !== year) return false;
+    if (dateObj.getMonth() !== month - 1) return false;
+    if (dateObj.getDate() !== day) return false;
 
-  useEffect(() => {
-    localStorage.setItem("birthData", JSON.stringify(formData));
-  }, [formData]);
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    setFormData((prev: FormData) => ({ ...prev, [e.target.name]: e.target.value }));
+    return true;
   };
 
-  const handleNow = () => {
-    const now = new Date();
-    setFormData((prev) => ({
+  const validateTime = (time: string): boolean => {
+    const regex = /^(\d{2}):(\d{2})$/;
+    if (!regex.test(time)) return false;
+
+    const [hours, minutes] = time.split(':').map(Number);
+    return hours >= 0 && hours <= 23 && minutes >= 0 && minutes <= 59;
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
       ...prev,
-      date: now.toISOString().slice(0, 10),
-      time: now.toTimeString().slice(0, 5),
+      [name]: value
+    }));
+
+    // Clear error for the changed field
+    setErrors(prev => ({
+      ...prev,
+      [name]: ''
     }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
-    setError(null);
-    try {
-      const userId = auth.currentUser?.uid;
-      if (userId) {
-        const docRef = doc(db, "birthData", userId);
-        await setDoc(docRef, {
-          ...formData,
-          createdAt: serverTimestamp(),
-        });
-        console.log("Profile saved successfully.");
+    setErrors({});
+
+    const newErrors: Partial<BirthData> = {};
+
+    // Validate required fields
+    const requiredFields = ['name', 'dateOfBirth', 'timeOfBirth', 'placeOfBirth'] as const;
+    requiredFields.forEach(field => {
+      if (!formData[field]) {
+        newErrors[field] = 'This field is required';
       }
+    });
 
-      const response = await axios.post(`${backend}/api/predict`, {
-        date: formData.date,
-        time: `${formData.time} ${formData.ampm}`,
-        place: formData.location,
-      });
-      console.log("Prediction Data:", response.data);
-    } catch (err) {
-      console.error("Error saving profile:", err);
-      setError("Failed to save profile. Please try again.");
-    } finally {
-      setLoading(false);
+    // Validate date format
+    if (formData.dateOfBirth && !validateDate(formData.dateOfBirth)) {
+      newErrors.dateOfBirth = 'Please enter a valid date (DD/MM/YYYY)';
     }
-  };
 
-  const handleExportPDF = () => {
-    if (!pdfRef.current) return;
+    // Validate time format
+    if (formData.timeOfBirth && !validateTime(formData.timeOfBirth)) {
+      newErrors.timeOfBirth = 'Please enter a valid time (HH:MM)';
+    }
 
-    const options = {
-      margin: 1,
-      filename: `${formData.name}_BirthData.pdf`,
-      image: { type: "jpeg", quality: 0.98 },
-      html2canvas: { scale: 2 }, // Ensure high-quality rendering
-      jsPDF: { unit: "in", format: "letter", orientation: "portrait" },
-    };
+    // If there are any errors, show them and return
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      return;
+    }
 
-    html2pdf().set(options).from(pdfRef.current).save();
+    // If location data is missing, try to get it using geocoding
+    if (!formData.latitude || !formData.longitude || !formData.timeZone) {
+      try {
+        // Simple mock geocoding - in production, use a real geocoding service
+        const place = formData.placeOfBirth.toLowerCase();
+        const mockLocationData: Record<string, { latitude: string; longitude: string; timeZone: string }> = {
+          'sholinghur': { latitude: '13.1210', longitude: '79.4182', timeZone: 'Asia/Kolkata' },
+          'chennai': { latitude: '13.0827', longitude: '80.2707', timeZone: 'Asia/Kolkata' },
+          'bangalore': { latitude: '12.9716', longitude: '77.5946', timeZone: 'Asia/Kolkata' },
+          'mumbai': { latitude: '19.0760', longitude: '72.8777', timeZone: 'Asia/Kolkata' },
+          'delhi': { latitude: '28.7041', longitude: '77.1025', timeZone: 'Asia/Kolkata' },
+          'kolkata': { latitude: '22.5726', longitude: '88.3639', timeZone: 'Asia/Kolkata' },
+          'hyderabad': { latitude: '17.3850', longitude: '78.4867', timeZone: 'Asia/Kolkata' }
+        };
+
+        const location = mockLocationData[place];
+        if (location) {
+          setFormData(prev => ({
+            ...prev,
+            latitude: location.latitude,
+            longitude: location.longitude,
+            timeZone: location.timeZone
+          }));
+        } else {
+          throw new Error('Location not found');
+        }
+      } catch (error) {
+        console.error('Error getting location data:', error);
+        newErrors.placeOfBirth = 'Could not find location data';
+        setErrors(newErrors);
+        return;
+      }
+    }
+
+    onSubmit(formData);
   };
 
   return (
-    <div className="w-full px-4 py-8">
-      <h2 className="text-2xl font-bold mb-4">Birth Data Prediction</h2>
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <label className="block mb-2">
-            Name:
-            <input
-              type="text"
-              name="name"
-              value={formData.name}
-              onChange={handleChange}
-              className="w-full p-2 border rounded"
-              placeholder="Your Name"
-              required
-            />
-          </label>
+    <Form onSubmit={handleSubmit} className="birth-data-form">
+      {error && (
+        <div className="alert alert-danger mb-4">
+          {error}
         </div>
-        <div>
-          <label className="block mb-2">
-            Date of Birth:
-            <input
-              type="date"
-              name="date"
-              value={formData.date}
-              onChange={handleChange}
-              className="w-full p-2 border rounded"
-              required
-            />
-          </label>
+      )}
+
+      <div className="mb-3">
+        <FormLabel>Full Name</FormLabel>
+        <FormControl
+          type="text"
+          name="name"
+          value={formData.name}
+          onChange={handleInputChange}
+          isInvalid={!!errors.name}
+        />
+        <div className="invalid-feedback" style={{ display: errors.name ? 'block' : 'none' }}>
+          {errors.name}
         </div>
-        <div>
-          <label className="block mb-2">
-            Time of Birth:
-            <div className="flex gap-2">
-              <input
-                type="time"
-                name="time"
-                value={formData.time}
-                onChange={handleChange}
-                className="w-full p-2 border rounded"
-                required
-              />
-              <select
-                name="ampm"
-                value={formData.ampm}
-                onChange={handleChange}
-                className="p-2 border rounded"
-              >
-                <option value="AM">AM</option>
-                <option value="PM">PM</option>
-              </select>
-            </div>
-          </label>
-        </div>
-        <div>
-          <label className="block mb-2">
-            Place of Birth:
-            <input
-              type="text"
-              name="location"
-              value={formData.location}
-              onChange={handleChange}
-              className="w-full p-2 border rounded"
-              placeholder="e.g., New York, USA"
-              required
-            />
-          </label>
-        </div>
-        <div>
-          <label className="block mb-2">
-            Time Zone:
-            <select
-              name="timeZone"
-              value={formData.timeZone}
-              onChange={handleChange}
-              className="w-full p-2 border rounded"
-            >
-              <option value="UTC">UTC</option>
-              <option value="GMT">GMT</option>
-              <option value="EST">EST</option>
-              <option value="PST">PST</option>
-              <option value="IST">IST</option>
-              {/* Add more time zones as needed */}
-            </select>
-          </label>
-        </div>
-        <div className="flex gap-2">
-          <button
-            type="button"
-            onClick={handleNow}
-            className="px-4 py-2 bg-gray-300 rounded"
-          >
-            Use Current Time
-          </button>
-          <button
-            type="submit"
-            disabled={loading}
-            className={`px-4 py-2 rounded ${
-              loading ? "bg-gray-400" : "bg-blue-500 hover:bg-blue-600"
-            } text-white`}
-          >
-            {loading ? "Saving..." : "Save Profile"}
-          </button>
-          <button
-            type="button"
-            onClick={handleExportPDF}
-            className="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded"
-          >
-            Export PDF
-          </button>
-        </div>
-        {loading && <p className="text-blue-500">Saving...</p>}
-        {error && <p className="text-red-500">{error}</p>}
-      </form>
-      <div ref={pdfRef} className="hidden">
-        {/* Hidden content for PDF generation */}
-        <h2>Birth Data</h2>
-        <p>Name: {formData.name}</p>
-        <p>Date of Birth: {formData.date}</p>
-        <p>Time of Birth: {formData.time} {formData.ampm}</p>
-        <p>Location: {formData.location}</p>
-        <p>Time Zone: {formData.timeZone}</p>
       </div>
-    </div>
+
+      <div className="mb-3">
+        <FormLabel>Date of Birth</FormLabel>
+        <FormControl
+          type="text"
+          name="dateOfBirth"
+          value={formData.dateOfBirth}
+          onChange={handleInputChange}
+          isInvalid={!!errors.dateOfBirth}
+          placeholder="DD/MM/YYYY"
+        />
+        <FormText className="text-muted">
+          Please enter your date of birth in DD/MM/YYYY format
+        </FormText>
+        <div className="invalid-feedback" style={{ display: errors.dateOfBirth ? 'block' : 'none' }}>
+          {errors.dateOfBirth}
+        </div>
+      </div>
+
+      <div className="mb-3">
+        <FormLabel>Time of Birth</FormLabel>
+        <FormControl
+          type="text"
+          name="timeOfBirth"
+          value={formData.timeOfBirth}
+          onChange={handleInputChange}
+          isInvalid={!!errors.timeOfBirth}
+          placeholder="HH:MM"
+        />
+        <FormText className="text-muted">
+          Please enter your time of birth in HH:MM format
+        </FormText>
+        <div className="invalid-feedback" style={{ display: errors.timeOfBirth ? 'block' : 'none' }}>
+          {errors.timeOfBirth}
+        </div>
+      </div>
+
+      <div className="mb-3">
+        <FormLabel>Place of Birth</FormLabel>
+        <FormControl
+          type="text"
+          name="placeOfBirth"
+          value={formData.placeOfBirth}
+          onChange={handleInputChange}
+          isInvalid={!!errors.placeOfBirth}
+        />
+        <FormText className="text-muted">
+          Enter your place of birth (city, country)
+        </FormText>
+        <div className="invalid-feedback" style={{ display: errors.placeOfBirth ? 'block' : 'none' }}>
+          {errors.placeOfBirth}
+        </div>
+      </div>
+
+      <div className="form-actions">
+        <Button
+          type="submit"
+          variant="primary"
+          disabled={loading}
+        >
+          {loading ? 'Generating Prediction...' : 'Generate Prediction'}
+        </Button>
+      </div>
+    </Form>
   );
 };
 
