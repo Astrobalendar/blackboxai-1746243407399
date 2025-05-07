@@ -27,7 +27,7 @@ function App() {
 
   return (
     <ErrorBoundary>
-      <BrowserRouter>
+      <BrowserRouter basename={process.env.PUBLIC_URL || ''}>
         <div className="min-h-screen bg-gradient-to-b from-purple-900 via-black to-black text-white font-sans">
           <HeaderNav />
 
@@ -41,7 +41,17 @@ function App() {
               <Route path="/new-horoscope" element={<NewHoroscopePage />} />
               <Route path="/test-prediction" element={<TestPrediction />} />
               <Route path="/birth-data" element={<NewHoroscopePage />} />
-              <Route path="*" element={<div className="text-center py-8 text-red-500">404 - Page Not Found</div>} />
+              <Route
+                path="*"
+                element={
+                  <div className="text-center py-8 text-red-500">
+                    <h2>404 - Page Not Found</h2>
+                    <Link to="/" className="text-blue-400 hover:text-blue-300">
+                      Go back to home
+                    </Link>
+                  </div>
+                }
+              />
             </Routes>
           </main>
 
