@@ -28,18 +28,7 @@ const Home = () => {
         ))}
       </section>
 
-      <div className="text-center mt-10 space-x-4">
-        <Link to="/new-horoscope">
-          <button className="px-6 py-3 bg-purple-600 hover:bg-purple-700 rounded text-white font-semibold">
-            New Horoscope
-          </button>
-        </Link>
-        <Link to="/calendar">
-          <button className="px-6 py-3 bg-white/10 hover:bg-white/20 rounded text-white font-semibold">
-            View Astro Calendar
-          </button>
-        </Link>
-      </div>
+
 
       <footer className="mt-20 text-center text-sm text-white/70 py-6">
         © 2025 AstroBalendar | Privacy | Terms | Contact

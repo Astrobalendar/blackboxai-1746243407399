@@ -1,47 +1,56 @@
-import React from "react";
-import { Routes, Route, Link } from "react-router-dom";
+import React, { useState } from "react";
+import { BrowserRouter, Routes, Route, Link } from "react-router-dom";
 import Home from "./pages/Home";
 import Calendar from "./pages/Calendar";
 import Login from "./pages/Login";
 import PredictionPage from "./pages/PredictionPage";
 import ChatPage from "./pages/ChatPage";
 import NewHoroscopePage from "./pages/NewHoroscopePage";
-import BirthDataForm from "./components/BirthDataForm"; // Corrected import path
+
+import { fetchPrediction } from "./services/api";
+import TestPrediction from "./pages/TestPrediction";
 import HeaderNav from "./components/HeaderNav";
+import { ErrorBoundary } from "./components/ErrorBoundary";
+
+interface PredictionResponse {
+  success: boolean;
+  data?: any;
+  error?: string;
+}
+
+interface PredictionPageProps {
+  prediction: PredictionResponse | null;
+}
 
 function App() {
+  const [predictionResult, setPredictionResult] = useState<PredictionResponse | null>(null);
+
   return (
-    <div className="min-h-screen bg-gradient-to-b from-purple-900 via-black to-black text-white font-sans">
-      <HeaderNav />
-      <Routes>...</Routes>
-      <header className="bg-yellow-600 shadow-lg py-4 px-6 flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-white tracking-wide">🔮 AstroBalendar</h1>
-        <nav className="space-x-4">
-          <Link to="/" className="hover:underline">Home</Link>
-          <Link to="/calendar" className="hover:underline">Calendar</Link>
-          <Link to="/login" className="hover:underline">Login</Link>
-          <Link to="/chat" className="hover:underline">Chat</Link>
-          <Link to="/new-horoscope" className="hover:underline">New Horoscope</Link>
-          <Link to="/birth-data" className="hover:underline">Birth Data</Link> {/* New Link */}
-        </nav>
-      </header>
+    <ErrorBoundary>
+      <BrowserRouter>
+        <div className="min-h-screen bg-gradient-to-b from-purple-900 via-black to-black text-white font-sans">
+          <HeaderNav />
 
-      <main className="p-4">
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/calendar" element={<Calendar />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/prediction" element={<PredictionPage />} />
-          <Route path="/chat" element={<ChatPage />} />
-          <Route path="/new-horoscope" element={<NewHoroscopePage onPrediction={(data) => console.log(data)} />} />
-          <Route path="/birth-data" element={<BirthDataForm />} /> {/* New Route */}
-        </Routes>
-      </main>
+          <main className="p-4">
+            <Routes>
+              <Route path="/" element={<Home />} />
+              <Route path="/calendar" element={<Calendar />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/prediction" element={<PredictionPage prediction={predictionResult} />} />
+              <Route path="/chat" element={<ChatPage />} />
+              <Route path="/new-horoscope" element={<NewHoroscopePage />} />
+              <Route path="/test-prediction" element={<TestPrediction />} />
+              <Route path="/birth-data" element={<NewHoroscopePage />} />
+              <Route path="*" element={<div className="text-center py-8 text-red-500">404 - Page Not Found</div>} />
+            </Routes>
+          </main>
 
-      <footer className="text-center text-xs text-gray-400 py-6">
-        © 2025 AstroBalendar | Privacy | Terms | Contact
-      </footer>
-    </div>
+          <footer className="text-center text-xs text-gray-400 py-6">
+            2025 AstroBalendar | Privacy | Terms | Contact
+          </footer>
+        </div>
+      </BrowserRouter>
+    </ErrorBoundary>
   );
 }
 

@@ -4,14 +4,18 @@ import NewHoroscope from "../components/NewHoroscope";
 import HoroscopeView from "../components/HoroscopeView";
 
 interface NewHoroscopePageProps {
-  onPrediction: (data: any) => void; // Replace `any` with the appropriate type if available
+  onPrediction?: (data: any) => void; // Replace `any` with the appropriate type if available
 }
 
 const NewHoroscopePage: React.FC<NewHoroscopePageProps> = ({ onPrediction }) => {
   const [horoscopeData, setHoroscopeData] = useState(null);
 
+  // Create a local handler that uses the component's state
   const handlePrediction = (data: any) => {
     setHoroscopeData(data);
+    if (onPrediction) {
+      onPrediction(data);
+    }
   };
 
   return (
