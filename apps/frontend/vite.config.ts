@@ -17,7 +17,8 @@ export default defineConfig(({ mode }) => {
         'react-dom': path.resolve(__dirname, './node_modules/react-dom'),
         'react-router-dom': path.resolve(__dirname, './node_modules/react-router-dom'),
         'react-bootstrap': path.resolve(__dirname, './node_modules/react-bootstrap'),
-        'react-toastify': path.resolve(__dirname, './node_modules/react-toastify')
+        'react-toastify': path.resolve(__dirname, './node_modules/react-toastify'),
+        'jspdf-autotable': path.resolve(__dirname, './node_modules/jspdf-autotable')
       },
     },
     plugins: [
