@@ -5,6 +5,7 @@
 
 [build.environment]
   NODE_VERSION = "18"
+  PYTHON_VERSION = "3.9.18"
 
 [dev]
   command = "cd apps/frontend && npm run dev"
@@ -16,7 +17,7 @@
   status = 200
 
 [context.production.environment]
-  VITE_API_URL = "https://api.astrobalendar.com"  # Replace with your actual API URL
+  VITE_API_URL = "https://akuraastrology.netlify.app"  # Replace with your actual API URL
 
 [context.production]
   command = "cd apps/frontend && npm run build"
