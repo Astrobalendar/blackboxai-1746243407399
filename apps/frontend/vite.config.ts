@@ -13,6 +13,11 @@ export default defineConfig(({ mode }) => {
     resolve: {
       alias: {
         '@': path.resolve(__dirname, './src'),
+        'react': path.resolve(__dirname, './node_modules/react'),
+        'react-dom': path.resolve(__dirname, './node_modules/react-dom'),
+        'react-router-dom': path.resolve(__dirname, './node_modules/react-router-dom'),
+        'react-bootstrap': path.resolve(__dirname, './node_modules/react-bootstrap'),
+        'react-toastify': path.resolve(__dirname, './node_modules/react-toastify')
       },
     },
     plugins: [
@@ -21,7 +26,12 @@ export default defineConfig(({ mode }) => {
     build: {
       outDir: 'dist',
       emptyOutDir: true,
-      sourcemap: true
+      sourcemap: true,
+      rollupOptions: {
+        input: {
+          main: path.resolve(__dirname, 'index.html')
+        }
+      }
     }
   };
 });
