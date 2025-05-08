@@ -1,5 +1,7 @@
 import React, { useState, ChangeEvent, FormEvent } from 'react';
-import axios from 'axios';
+import { PredictionInput, PredictionResult } from '@shared/types/prediction';
+import { getPrediction } from '@shared/api/predict';
+import { formatPredictionSummary } from '@shared/utils/format';
 
 const PredictionForm: React.FC = () => {
   const [formData, setFormData] = useState({
@@ -24,8 +26,9 @@ const PredictionForm: React.FC = () => {
     setResult(null);
 
     try {
-      const res = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/predict`, formData);
-      setResult(res.data);
+      const baseURL = import.meta.env.VITE_BACKEND_URL;
+      const prediction = await getPrediction(formData, baseURL);
+      setResult(prediction);
     } catch (error) {
       setError('Error fetching prediction. Please try again.');
       console.error(error);

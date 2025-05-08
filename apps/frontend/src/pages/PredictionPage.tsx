@@ -1,9 +1,9 @@
 import React, { FunctionComponent } from "react";
-import { PredictionResponse } from '../services/api';
+import { PredictionResult as PredictionResultType } from '@shared/types/prediction';
 import PredictionResult from "../components/PredictionResult";
 
 interface PredictionPageProps {
-  prediction: PredictionResponse | null;
+  prediction: PredictionResultType | null;
 }
 
 const PredictionPage: FunctionComponent<PredictionPageProps> = ({ prediction }) => {

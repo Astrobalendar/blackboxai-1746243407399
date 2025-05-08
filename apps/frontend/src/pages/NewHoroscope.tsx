@@ -4,7 +4,8 @@ import { useNavigate } from 'react-router-dom';
 import BirthDataForm from '../components/BirthDataForm';
 import PredictionResult from '../components/PredictionResult';
 import { Button, Card, Container, Row, Col } from 'react-bootstrap';
-import { AstrologicalPrediction } from '../types/astrology';
+import { PredictionInput } from '@shared/types/prediction';
+import { getPrediction } from '@shared/api/predict';
 import { logError } from '../services/errorLogger';
 
 const NewHoroscope: React.FC = () => {
@@ -19,7 +20,7 @@ const NewHoroscope: React.FC = () => {
     longitude: '',
     timeZone: '',
   });
-  const [prediction, setPrediction] = useState<AstrologicalPrediction | null>(null);
+  const [prediction, setPrediction] = useState<import('@shared/types/prediction').PredictionResult | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showExport, setShowExport] = useState(false);

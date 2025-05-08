@@ -12,7 +12,8 @@ export default defineConfig(({ mode }) => {
     base: './',
     resolve: {
       alias: {
-        '@': path.resolve(__dirname, './src')
+        '@': path.resolve(__dirname, './src'),
+        '@shared': path.resolve(__dirname, '../../shared'),
       },
     },
     plugins: [
@@ -23,10 +24,7 @@ export default defineConfig(({ mode }) => {
       emptyOutDir: true,
       sourcemap: true,
       rollupOptions: {
-        input: {
-  
-        },
-
+        input: 'index.html',
       }
     }
   };

@@ -1,4 +1,6 @@
-import { createErrorNotification } from '../components/notifications';
+import { getPrediction } from '@shared/api/predict';
+export { getPrediction };
+export * from '@shared/types/prediction';
 
 export interface PredictionRequest {
   birthData: {
