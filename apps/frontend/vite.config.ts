@@ -12,13 +12,7 @@ export default defineConfig(({ mode }) => {
     base: './',
     resolve: {
       alias: {
-        '@': path.resolve(__dirname, './src'),
-        'react': path.resolve(__dirname, './node_modules/react'),
-        'react-dom': path.resolve(__dirname, './node_modules/react-dom'),
-        'react-router-dom': path.resolve(__dirname, './node_modules/react-router-dom'),
-        'react-bootstrap': path.resolve(__dirname, './node_modules/react-bootstrap'),
-        'react-toastify': path.resolve(__dirname, './node_modules/react-toastify'),
-        'jspdf-autotable': path.resolve(__dirname, './node_modules/jspdf-autotable')
+        '@': path.resolve(__dirname, './src')
       },
     },
     plugins: [
@@ -31,7 +25,8 @@ export default defineConfig(({ mode }) => {
       rollupOptions: {
         input: {
           main: path.resolve(__dirname, 'index.html')
-        }
+        },
+        external: ['jspdf-autotable'] // Only if using CDN/global
       }
     }
   };
