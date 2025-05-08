@@ -26,7 +26,7 @@ export default defineConfig(({ mode }) => {
         input: {
           main: path.resolve(__dirname, 'index.html')
         },
-        external: ['jspdf-autotable'] // Only if using CDN/global
+
       }
     }
   };
