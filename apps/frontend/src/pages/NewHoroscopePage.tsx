@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import HeaderNav from "../components/HeaderNav";
 import NewHoroscope from "../components/NewHoroscope";
 import HoroscopeView from "../components/HoroscopeView";
 
@@ -20,7 +19,6 @@ const NewHoroscopePage: React.FC<NewHoroscopePageProps> = ({ onPrediction }) => 
 
   return (
     <div className="flex flex-col min-h-screen">
-      <HeaderNav />
       <main className="flex-1 p-6">
         {!horoscopeData ? (
           <NewHoroscope onPrediction={handlePrediction} />

@@ -7,6 +7,14 @@ interface PredictionPageProps {
 }
 
 const PredictionPage: FunctionComponent<PredictionPageProps> = ({ prediction }) => {
+  const handleBack = () => {
+    window.history.back();
+  };
+
+  const handleError = (error: string) => {
+    console.error('Prediction error:', error);
+  };
+
   if (!prediction) {
     return (
       <div className="flex justify-center items-center min-h-screen bg-gradient-to-r from-purple-700 via-purple-500 to-blue-500 p-4">
@@ -31,7 +39,12 @@ const PredictionPage: FunctionComponent<PredictionPageProps> = ({ prediction }) 
 
   return (
     <div className="flex justify-center items-center min-h-screen bg-gradient-to-r from-purple-700 via-purple-500 to-blue-500 p-4">
-      <PredictionResult data={prediction.data} onBack={() => window.history.back()} />
+      <PredictionResult 
+        prediction={prediction.data}
+        showExport={true}
+        onBack={handleBack}
+        onError={handleError}
+      />
     </div>
   );
 };
