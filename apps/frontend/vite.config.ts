@@ -23,12 +23,18 @@ export default defineConfig(({ mode }) => {
       emptyOutDir: true,
       sourcemap: true,
       rollupOptions: {
-        external: ['react', 'react-dom', 'react-router-dom'],
+        external: [
+          'react',
+          'react-dom',
+          'react-router-dom',
+          'react-bootstrap'
+        ],
         output: {
           globals: {
             react: 'React',
             'react-dom': 'ReactDOM',
-            'react-router-dom': 'ReactRouterDOM'
+            'react-router-dom': 'ReactRouterDOM',
+            'react-bootstrap': 'ReactBootstrap'
           }
         }
       }
