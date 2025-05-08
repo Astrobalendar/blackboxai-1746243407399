@@ -21,38 +21,34 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo): void {
-    const errorDetails = {
+    // Log full error details
+    console.error("🔥 FULL ERROR:", {
+      error: error,
       message: error.message,
       stack: error.stack,
       componentStack: errorInfo.componentStack,
-      timestamp: new Date().toISOString()
-    };
-
-    console.error("❌ ErrorBoundary caught an error:", {
-      error: error,
-      errorDetails,
-      componentStack: errorInfo.componentStack,
-      timestamp: errorDetails.timestamp,
-      // Add more context
-      routePath: window.location.pathname,
-      routeParams: new URLSearchParams(window.location.search).toString()
+      timestamp: new Date().toISOString(),
+      location: window.location.href,
+      route: window.location.pathname,
+      params: new URLSearchParams(window.location.search).toString(),
+      userAgent: navigator.userAgent
     });
 
-    // Log to console for debugging
-    console.error("❌ Detailed Error Info:", {
-      error: error,
+    // Log error info separately
+    console.error("🧠 ERROR INFO:", {
       errorInfo,
       componentStack: errorInfo.componentStack,
-      message: error.message,
-      stack: error.stack,
-      location: window.location.href
+      fileName: errorInfo.componentStack?.split('\n')[0]?.split('(')[1]?.split(':')[0]
     });
 
     if (this.props.onError) {
       this.props.onError(error, errorInfo);
     }
 
-    this.setState({ errorInfo: errorDetails.message });
+    this.setState({
+      hasError: true,
+      errorInfo: `Error: ${error.message}\nStack: ${error.stack || 'No stack trace available'}`
+    });
   }
 
   render() {
