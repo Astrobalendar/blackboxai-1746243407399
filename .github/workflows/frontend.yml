@@ -1,0 +1,38 @@
+name: Frontend CI (Netlify Preview)
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'apps/frontend/**'
+      - '.github/workflows/frontend.yml'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Install dependencies
+        working-directory: apps/frontend
+        run: npm ci
+
+      - name: Lint
+        working-directory: apps/frontend
+        run: npm run lint --if-present
+
+      - name: Build
+        working-directory: apps/frontend
+        run: npm run build
+
+      # Optional: Trigger Netlify build hook (set NETLIFY_BUILD_HOOK in repo secrets)
+      - name: Trigger Netlify build
+        if: ${{ secrets.NETLIFY_BUILD_HOOK != '' }}
+        run: |
+          curl -X POST -d '{}' "$NETLIFY_BUILD_HOOK"

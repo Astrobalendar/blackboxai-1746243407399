@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Button, Form, FormLabel, FormControl, FormText } from 'react-bootstrap';
 import { locationData } from '@/lib/locationData';
-import { AstrologicalPrediction } from '@/types/astrology';
+import { PredictionResult } from '@shared/types/prediction';
 
 interface BirthData {
   name: string;

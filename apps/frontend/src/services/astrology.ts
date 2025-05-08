@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { AstrologicalPrediction } from '../types/astrology';
+import { PredictionResult } from '@shared/types/prediction';
 
 const API_URL = process.env.REACT_APP_ASTROLOGY_API_URL || 'http://localhost:3001';
 
@@ -13,7 +13,7 @@ interface PredictionRequest {
   timeZone: string;
 }
 
-export const getAstrologicalPrediction = async (data: PredictionRequest): Promise<AstrologicalPrediction> => {
+export const getAstrologicalPrediction = async (data: PredictionRequest): Promise<PredictionResult> => {
   try {
     const response = await axios.post(`${API_URL}/prediction`, data, {
       timeout: 30000, // 30 second timeout
