@@ -67,31 +67,35 @@ const NewHoroscope: React.FC<NewHoroscopeProps> = ({ onPrediction }) => {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold mb-8">New Horoscope</h1>
-      <BirthDataForm
-        onSubmit={handleBirthDataSubmit}
-        loading={loading}
-        error={error}
-      />
-      {result && (
-        <div className="mt-8">
-          <h2 className="text-xl font-semibold mb-4">Prediction Result</h2>
-          <pre className="bg-gray-800 p-4 rounded-md whitespace-pre-wrap">
-            {result}
-          </pre>
-          <button
-            onClick={() => {
-              const doc = new jsPDF();
-              doc.text(result, 10, 10);
-              doc.save('horoscope_prediction.pdf');
-            }}
-            className="mt-4 bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600 transition-colors"
-          >
-            Download PDF
-          </button>
+    <div className="container mx-auto px-4 py-8 bg-gradient-to-b from-purple-900 to-black rounded-lg shadow-2xl">
+      <div className="p-8">
+        <h1 className="text-4xl font-bold text-white mb-8 text-center">New Horoscope</h1>
+        <div className="bg-purple-800 rounded-lg p-6">
+          <BirthDataForm
+            onSubmit={handleBirthDataSubmit}
+            loading={loading}
+            error={error}
+          />
         </div>
-      )}
+        {result && (
+          <div className="mt-8">
+            <h2 className="text-2xl font-semibold text-white mb-4 text-center">Prediction Result</h2>
+            <div className="bg-purple-800 rounded-lg p-6">
+              <pre className="text-white bg-purple-900/50 p-4 rounded-md whitespace-pre-wrap overflow-auto max-h-[400px]">
+                {result}
+              </pre>
+              <div className="flex justify-center mt-4">
+                <button
+                  onClick={handleExport}
+                  className="bg-purple-400 text-white px-6 py-3 rounded-lg hover:bg-purple-500 transition-all duration-300 shadow-lg hover:shadow-purple-500/50"
+                >
+                  Export PDF
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 };

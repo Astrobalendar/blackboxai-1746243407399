@@ -136,90 +136,114 @@ const BirthDataForm: React.FC<BirthDataFormProps> = ({ onSubmit, loading, error 
   };
 
   return (
-    <Form onSubmit={handleSubmit} className="birth-data-form">
-      {error && (
-        <div className="alert alert-danger mb-4">
-          {error}
+    <div className="space-y-8">
+      <div className="space-y-6">
+        <div className="space-y-2">
+          <label className="block text-white text-lg font-semibold">Name</label>
+          <input
+            type="text"
+            name="name"
+            value={formData.name}
+            onChange={handleInputChange}
+            placeholder="Enter your name"
+            className="w-full px-4 py-3 rounded-lg bg-purple-900/50 text-white border border-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-400"
+          />
+          <p className="text-purple-400 text-sm mt-1">
+            Please enter your full name
+          </p>
+          {errors.name && (
+            <p className="text-red-500 text-sm mt-1">
+              {errors.name}
+            </p>
+          )}
         </div>
-      )}
 
-      <div className="mb-3">
-        <FormLabel>Full Name</FormLabel>
-        <FormControl
-          type="text"
-          name="name"
-          value={formData.name}
-          onChange={handleInputChange}
-          isInvalid={!!errors.name}
-        />
-        <div className="invalid-feedback" style={{ display: errors.name ? 'block' : 'none' }}>
-          {errors.name}
+        <div className="space-y-2">
+          <label className="block text-white text-lg font-semibold">Date of Birth</label>
+          <input
+            type="text"
+            name="dateOfBirth"
+            value={formData.dateOfBirth}
+            onChange={handleInputChange}
+            placeholder="DD/MM/YYYY"
+            className="w-full px-4 py-3 rounded-lg bg-purple-900/50 text-white border border-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-400"
+          />
+          <p className="text-purple-400 text-sm mt-1">
+            Enter your date of birth (e.g., 01/01/2000)
+          </p>
+          {errors.dateOfBirth && (
+            <p className="text-red-500 text-sm mt-1">
+              {errors.dateOfBirth}
+            </p>
+          )}
         </div>
-      </div>
 
-      <div className="mb-3">
-        <FormLabel>Date of Birth</FormLabel>
-        <FormControl
-          type="text"
-          name="dateOfBirth"
-          value={formData.dateOfBirth}
-          onChange={handleInputChange}
-          isInvalid={!!errors.dateOfBirth}
-          placeholder="DD/MM/YYYY"
-        />
-        <FormText className="text-muted">
-          Please enter your date of birth in DD/MM/YYYY format
-        </FormText>
-        <div className="invalid-feedback" style={{ display: errors.dateOfBirth ? 'block' : 'none' }}>
-          {errors.dateOfBirth}
+        <div className="space-y-2">
+          <label className="block text-white text-lg font-semibold">Time of Birth</label>
+          <input
+            type="text"
+            name="timeOfBirth"
+            value={formData.timeOfBirth}
+            onChange={handleInputChange}
+            placeholder="HH:MM"
+            className="w-full px-4 py-3 rounded-lg bg-purple-900/50 text-white border border-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-400"
+          />
+          <p className="text-purple-400 text-sm mt-1">
+            Enter your time of birth (e.g., 12:30)
+          </p>
+          {errors.timeOfBirth && (
+            <p className="text-red-500 text-sm mt-1">
+              {errors.timeOfBirth}
+            </p>
+          )}
         </div>
-      </div>
 
-      <div className="mb-3">
-        <FormLabel>Time of Birth</FormLabel>
-        <FormControl
-          type="text"
-          name="timeOfBirth"
-          value={formData.timeOfBirth}
-          onChange={handleInputChange}
-          isInvalid={!!errors.timeOfBirth}
-          placeholder="HH:MM"
-        />
-        <FormText className="text-muted">
-          Please enter your time of birth in HH:MM format
-        </FormText>
-        <div className="invalid-feedback" style={{ display: errors.timeOfBirth ? 'block' : 'none' }}>
-          {errors.timeOfBirth}
+        <div className="space-y-2">
+          <label className="block text-white text-lg font-semibold">Place of Birth</label>
+          <input
+            type="text"
+            name="placeOfBirth"
+            value={formData.placeOfBirth}
+            onChange={handleInputChange}
+            placeholder="Enter your place of birth"
+            className="w-full px-4 py-3 rounded-lg bg-purple-900/50 text-white border border-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-400"
+          />
+          <p className="text-purple-400 text-sm mt-1">
+            Enter your place of birth
+          </p>
+          {errors.placeOfBirth && (
+            <p className="text-red-500 text-sm mt-1">
+              {errors.placeOfBirth}
+            </p>
+          )}
         </div>
-      </div>
 
-      <div className="mb-3">
-        <FormLabel>Place of Birth</FormLabel>
-        <FormControl
-          type="text"
-          name="placeOfBirth"
-          value={formData.placeOfBirth}
-          onChange={handleInputChange}
-          isInvalid={!!errors.placeOfBirth}
-        />
-        <FormText className="text-muted">
-          Enter your place of birth (city, country)
-        </FormText>
-        <div className="invalid-feedback" style={{ display: errors.placeOfBirth ? 'block' : 'none' }}>
-          {errors.placeOfBirth}
-        </div>
-      </div>
-
-      <div className="form-actions">
-        <Button
-          type="submit"
-          variant="primary"
+        <button
+          type="button"
+          onClick={handleSubmit}
           disabled={loading}
+          className="w-full bg-purple-400 text-white px-6 py-3 rounded-lg hover:bg-purple-500 transition-all duration-300 shadow-lg hover:shadow-purple-500/50 disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {loading ? 'Generating Prediction...' : 'Generate Prediction'}
-        </Button>
+          {loading ? (
+            <span className="flex items-center justify-center">
+              <svg className="animate-spin h-5 w-5 mr-3" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+              </svg>
+              Loading...
+            </span>
+          ) : (
+            'Get Prediction'
+          )}
+        </button>
+
+        {error && (
+          <p className="text-red-500 text-center mt-4">
+            {error}
+          </p>
+        )}
       </div>
-    </Form>
+    </div>
   );
 };
 
