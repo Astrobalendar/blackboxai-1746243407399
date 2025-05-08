@@ -49,6 +49,6 @@
     "postcss": "^8.4.35",
     "tailwindcss": "^3.4.17",
     "to-regex-range": "^5.0.1",
-    "vite": "^5.0.12"
+    "vite": "^6.3.5"
   }
 }
