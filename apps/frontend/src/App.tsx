@@ -27,39 +27,37 @@ function App() {
 
   return (
     <ErrorBoundary>
-      <BrowserRouter basename={process.env.PUBLIC_URL || ''}>
-        <div className="min-h-screen bg-gradient-to-b from-purple-900 via-black to-black text-white font-sans">
-          <HeaderNav />
+      <div className="min-h-screen bg-gradient-to-b from-purple-900 via-black to-black text-white font-sans">
+        <HeaderNav />
 
-          <main className="p-4">
-            <Routes>
-              <Route path="/" element={<Home />} />
-              <Route path="/calendar" element={<Calendar />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/prediction" element={<PredictionPage prediction={predictionResult} />} />
-              <Route path="/chat" element={<ChatPage />} />
-              <Route path="/new-horoscope" element={<NewHoroscopePage />} />
-              <Route path="/test-prediction" element={<TestPrediction />} />
-              <Route path="/birth-data" element={<NewHoroscopePage />} />
-              <Route
-                path="*"
-                element={
-                  <div className="text-center py-8 text-red-500">
-                    <h2>404 - Page Not Found</h2>
-                    <Link to="/" className="text-blue-400 hover:text-blue-300">
-                      Go back to home
-                    </Link>
-                  </div>
-                }
-              />
-            </Routes>
-          </main>
+        <main className="p-4">
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/calendar" element={<Calendar />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/prediction" element={<PredictionPage prediction={predictionResult} />} />
+            <Route path="/chat" element={<ChatPage />} />
+            <Route path="/new-horoscope" element={<NewHoroscopePage />} />
+            <Route path="/test-prediction" element={<TestPrediction />} />
+            <Route path="/birth-data" element={<NewHoroscopePage />} />
+            <Route
+              path="*"
+              element={
+                <div className="text-center py-8 text-red-500">
+                  <h2>404 - Page Not Found</h2>
+                  <Link to="/" className="text-blue-400 hover:text-blue-300">
+                    Go back to home
+                  </Link>
+                </div>
+              }
+            />
+          </Routes>
+        </main>
 
-          <footer className="text-center text-xs text-gray-400 py-6">
-            2025 AstroBalendar | Privacy | Terms | Contact
-          </footer>
-        </div>
-      </BrowserRouter>
+        <footer className="text-center text-xs text-gray-400 py-6">
+          2025 AstroBalendar | Privacy | Terms | Contact
+        </footer>
+      </div>
     </ErrorBoundary>
   );
 }
