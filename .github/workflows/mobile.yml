@@ -1,0 +1,38 @@
+name: Mobile CI (Expo EAS Scaffold)
+
+on:
+  push:
+    paths:
+      - 'apps/mobile/**'
+      - '.github/workflows/mobile.yml'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+
+      - name: Install Yarn
+        run: npm install -g yarn
+
+      - name: Install dependencies
+        working-directory: apps/mobile
+        run: yarn install --frozen-lockfile || npm ci
+
+      - name: Lint
+        working-directory: apps/mobile
+        run: yarn lint --if-present || npm run lint --if-present
+
+      - name: Typecheck
+        working-directory: apps/mobile
+        run: yarn tsc --noEmit || npx tsc --noEmit
+
+      # Placeholder for EAS build step
+      # - name: Expo EAS Build
+      #   run: eas build --platform all

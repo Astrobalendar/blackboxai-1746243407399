@@ -14,33 +14,47 @@ interface PredictionResultProps {
 }
 
 const PredictionResult: React.FC<PredictionResultProps> = ({ prediction, showExport, onBack, onError }) => {
-  const generatePDF = () => {
+  const [downloading, setDownloading] = React.useState(false);
+
+  declare global {
+  interface Window {
+    posthog?: typeof import('posthog-js');
+  }
+}
+
+const handleDownloadPDF = async () => {
+  // PostHog PDF download event
+  if (typeof window !== 'undefined' && window.posthog) {
+    window.posthog.capture('pdf_downloaded', {
+      source: 'prediction_result',
+      timestamp: new Date().toISOString()
+    });
+  }
+
+    setDownloading(true);
     try {
-      const doc = new jsPDF();
-      doc.setFontSize(16);
-      doc.text('Astrological Prediction', 10, 10);
-      doc.setFontSize(12);
-      
-      let y = 20;
-      
-      // Add prediction summary
-      doc.text(`Summary: ${prediction.summary}`, 10, y);
-      y += 20;
-      
-      // Add details
-      doc.text('Details:', 10, y);
-      y += 10;
-      Object.entries(prediction.details).forEach(([key, value]) => {
-        doc.text(`${key}: ${value}`, 10, y);
-        y += 10;
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/pdf-report`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(prediction),
       });
-      
-      doc.save(`astrological_prediction.pdf`);
-      toast.success('PDF generated successfully');
+      if (!response.ok) throw new Error('Failed to generate PDF');
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'astrobalendar_prediction.pdf';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
     } catch (error) {
-      onError('Failed to generate PDF');
+      onError('PDF download failed');
+    } finally {
+      setDownloading(false);
     }
   };
+
 
   return (
     <div className="prediction-result">
@@ -61,8 +75,8 @@ const PredictionResult: React.FC<PredictionResultProps> = ({ prediction, showExp
 
       {showExport && (
         <div className="export-section">
-          <Button variant="primary" onClick={generatePDF}>
-            Export as PDF
+          <Button variant="primary" onClick={handleDownloadPDF} disabled={downloading}>
+            {downloading ? 'Generating PDF...' : 'Download PDF Report'}
           </Button>
           <Button variant="secondary" onClick={onBack}>
             Back

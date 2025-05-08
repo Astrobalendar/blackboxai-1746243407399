@@ -1,11 +1,19 @@
 // TODO: Root component for React Native Expo app
 import React from 'react';
-import { View, Text } from 'react-native';
+import { NavigationContainer } from '@react-navigation/native';
+import { createStackNavigator } from '@react-navigation/stack';
+import HomeScreen from './HomeScreen';
+import PredictionScreen from './PredictionScreen';
+
+const Stack = createStackNavigator();
 
 export default function App() {
   return (
-    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-      <Text>Welcome to AstroBalendar Mobile App</Text>
-    </View>
+    <NavigationContainer>
+      <Stack.Navigator initialRouteName="Home">
+        <Stack.Screen name="Home" component={HomeScreen} />
+        <Stack.Screen name="Prediction" component={PredictionScreen} />
+      </Stack.Navigator>
+    </NavigationContainer>
   );
 }
