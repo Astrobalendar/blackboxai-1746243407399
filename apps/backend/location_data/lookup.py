@@ -66,10 +66,16 @@ def geocode_with_google(city: str, state: str = None, district: str = None, coun
 
 
 def get_location_info(city: str, state: str = None, district: str = None, country: str = 'India') -> Optional[Dict]:
-    # Try static dataset first
+    # Try static dataset with city+district+state
     static_result = find_location_in_static(city, state, district)
     if static_result:
+        print(f"[Location Lookup] Found with city+district+state: {static_result}")
         return static_result
+    # Try static dataset with city+state only (ignore district)
+    static_result_fallback = find_location_in_static(city, state)
+    if static_result_fallback:
+        print(f"[Location Lookup] Found with city+state (no district): {static_result_fallback}")
+        return static_result_fallback
     # Fallback to Google API
     google_result = geocode_with_google(city, state, district, country)
     return google_result

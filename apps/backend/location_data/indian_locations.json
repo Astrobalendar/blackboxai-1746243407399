@@ -1,4 +1,5 @@
 [
+  {"city": "Sholinghur", "district": "Arcot", "state": "Tamil Nadu", "latitude": 13.1132, "longitude": 79.4182, "timezone": "Asia/Kolkata"},
   {"city": "Sholinghur", "district": "Vellore", "state": "Tamil Nadu", "latitude": 13.1210, "longitude": 79.4182, "timezone": "Asia/Kolkata"},
   {"city": "Arcot", "district": "Vellore", "state": "Tamil Nadu", "latitude": 12.9057, "longitude": 79.3190, "timezone": "Asia/Kolkata"},
   {"city": "Chennai", "district": "Chennai", "state": "Tamil Nadu", "latitude": 13.0827, "longitude": 80.2707, "timezone": "Asia/Kolkata"},
