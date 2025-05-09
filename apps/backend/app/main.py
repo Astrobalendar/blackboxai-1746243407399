@@ -4,6 +4,9 @@ from fastapi.middleware.cors import CORSMiddleware
 app = FastAPI()
 
 allow_origins = [
+    "https://astrobalendar.netlify.app",
+    "https://astrobalendar.com"
+
     "https://akuraastrology.netlify.app",
     "https://stately-gingersnap-b43e3e3.netlify.app"
 ]
