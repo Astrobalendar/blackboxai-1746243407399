@@ -5,4 +5,4 @@ python-jose[cryptography]
 motor
 pytest
 httpx
-openai
+openai>=1.0.0
