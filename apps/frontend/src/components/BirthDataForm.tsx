@@ -7,9 +7,7 @@ interface BirthData {
   name: string;
   dateOfBirth: string;
   timeOfBirth: string;
-  country: string;
   state: string;
-  district: string;
   city: string;
   latitude: string;
   longitude: string;
@@ -27,9 +25,7 @@ const BirthDataForm: React.FC<BirthDataFormProps> = ({ onSubmit, loading, error 
     name: '',
     dateOfBirth: '',
     timeOfBirth: '',
-    country: 'India',
     state: '',
-    district: '',
     city: '',
     latitude: '',
     longitude: '',
@@ -38,27 +34,16 @@ const BirthDataForm: React.FC<BirthDataFormProps> = ({ onSubmit, loading, error 
 
   const [errors, setErrors] = useState<Partial<BirthData>>({});
 
-  // Dynamically compute district options based on selected country and state
-  let districtOptions: string[] = [];
+  // Dynamically compute city options based on selected state
   let cityOptions: string[] = [];
   try {
-    if (formData.country && formData.state) {
-      const countryData = locationData[formData.country] as Record<string, any>;
-      if (countryData && countryData[formData.state]) {
-        const stateData = countryData[formData.state] as Record<string, any>;
-        districtOptions = Object.keys(stateData);
-        // If district is selected and exists, use its cities
-        if (formData.district && stateData[formData.district]) {
-          cityOptions = stateData[formData.district];
-        } else {
-          // Otherwise, gather all cities from all districts in the state
-          cityOptions = Object.values(stateData).flat() as string[];
-        }
-      }
+    const countryData = locationData['India'] as Record<string, any>;
+    if (formData.state && countryData && countryData[formData.state]) {
+      const stateData = countryData[formData.state] as Record<string, any>;
+      cityOptions = Object.values(stateData).flat() as string[];
     }
   } catch (e) {
     cityOptions = [];
-    districtOptions = [];
   }
 
   const statesOfIndia = [
@@ -113,7 +98,7 @@ const BirthDataForm: React.FC<BirthDataFormProps> = ({ onSubmit, loading, error 
     const newErrors: Partial<BirthData> = {};
 
     // Validate required fields
-    const requiredFields = ['name', 'dateOfBirth', 'timeOfBirth', 'country', 'state', 'city'] as const;
+    const requiredFields = ['name', 'dateOfBirth', 'timeOfBirth', 'state', 'city'] as const;
     requiredFields.forEach(field => {
       if (!formData[field]) {
         newErrors[field] = 'This field is required';
@@ -140,9 +125,7 @@ const BirthDataForm: React.FC<BirthDataFormProps> = ({ onSubmit, loading, error 
     if (!formData.latitude || !formData.longitude || !formData.timeZone) {
       try {
         // Combine address fields for lookup
-        const address = [formData.city, formData.district, formData.state, formData.country]
-          .filter(Boolean)
-          .join(', ').toLowerCase();
+        const address = [formData.city, formData.state].filter(Boolean).join(', ').toLowerCase();
         const mockLocationData: Record<string, { latitude: string; longitude: string; timeZone: string }> = {
           'sholinghur, tamil nadu, india': { latitude: '13.1210', longitude: '79.4182', timeZone: 'Asia/Kolkata' },
           'arcot, tamil nadu, india': { latitude: '12.9057', longitude: '79.3190', timeZone: 'Asia/Kolkata' },
@@ -238,18 +221,7 @@ const BirthDataForm: React.FC<BirthDataFormProps> = ({ onSubmit, loading, error 
           )}
         </div>
 
-        <div className="space-y-2">
-          <label className="block text-white text-lg font-semibold">Country</label>
-          <input
-            type="text"
-            name="country"
-            value={formData.country}
-            onChange={handleInputChange}
-            placeholder="Country"
-            className="w-full px-4 py-3 rounded-lg bg-purple-900/50 text-white border border-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-400"
-            readOnly
-          />
-        </div>
+
         <div className="space-y-2">
           <label className="block text-white text-lg font-semibold">State</label>
           <select
@@ -264,22 +236,7 @@ const BirthDataForm: React.FC<BirthDataFormProps> = ({ onSubmit, loading, error 
             ))}
           </select>
         </div>
-        <div className="space-y-2">
-          <label className="block text-white text-lg font-semibold">District (optional)</label>
-          <select
-            name="district"
-            value={formData.district}
-            onChange={handleInputChange}
-            className="w-full px-4 py-3 rounded-lg bg-purple-900/50 text-white border border-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-400"
-            aria-label="District or Region"
-            disabled={!formData.state || !districtOptions.length}
-          >
-            <option value="">{!formData.state ? 'Select state first' : districtOptions.length ? 'Select district/region' : 'No districts available'}</option>
-            {districtOptions.map(district => (
-              <option key={district} value={district}>{district}</option>
-            ))}
-          </select>
-        </div>
+
         <div className="space-y-2">
           <label className="block text-white text-lg font-semibold">City / Town / Village</label>
           <select
