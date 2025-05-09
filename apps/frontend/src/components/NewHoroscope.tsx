@@ -1,4 +1,6 @@
 import React, { useState } from "react";
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import jsPDF from "jspdf";
 import { fetchPrediction } from "../services/api";
 import BirthDataForm from './BirthDataForm';
@@ -67,32 +69,18 @@ const NewHoroscope: React.FC<NewHoroscopeProps> = ({ onPrediction }) => {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8 bg-gradient-to-b from-purple-900 to-black rounded-lg shadow-2xl">
-      <div className="p-8">
-        <h1 className="text-4xl font-bold text-white mb-8 text-center">New Horoscope</h1>
-        <div className="bg-purple-800 rounded-lg p-6">
-          <BirthDataForm
-            onSubmit={handleBirthDataSubmit}
-            loading={loading}
-            error={error}
-          />
+    <div className="new-horoscope space-y-8">
+      <BirthDataForm onSubmit={handleBirthDataSubmit} loading={loading} error={error} />
+      {result && (
+        <div className="result-section mt-6">
+          <h3 className="text-lg font-bold mb-2">Prediction Result</h3>
+          <pre className="bg-gray-800 text-white rounded-lg p-4 overflow-x-auto whitespace-pre-wrap">
+            {result}
+          </pre>
+          <button onClick={handleExport} className="mt-4 px-4 py-2 bg-purple-500 text-white rounded hover:bg-purple-600">Export as PDF</button>
         </div>
-        {result && (
-          <div className="mt-8">
-            <h2 className="text-2xl font-semibold text-white mb-4 text-center">Prediction Result</h2>
-            <div className="bg-purple-800 rounded-lg p-6">
-              <pre className="text-white bg-purple-900/50 p-4 rounded-md whitespace-pre-wrap overflow-auto max-h-[400px]">
-                {result}
-              </pre>
-              <div className="flex justify-center mt-4">
-                <button
-                  onClick={handleExport}
-                  className="bg-purple-400 text-white px-6 py-3 rounded-lg hover:bg-purple-500 transition-all duration-300 shadow-lg hover:shadow-purple-500/50"
-                >
-                  Export PDF
-                </button>
-              </div>
-            </div>
+      )}
+      <ToastContainer position="top-right" autoClose={4000} hideProgressBar={false} newestOnTop closeOnClick rtl={false} pauseOnFocusLoss draggable pauseOnHover />
           </div>
         )}
       </div>

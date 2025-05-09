@@ -1,4 +1,5 @@
 import { getPrediction } from '@shared/api/predict';
+import { toast } from 'react-toastify';
 export { getPrediction };
 export * from '@shared/types/prediction';
 
@@ -35,11 +36,8 @@ export const fetchPrediction = async (formData: PredictionRequest): Promise<Pred
     return data;
   } catch (error) {
     console.error("Prediction error:", error);
-    createErrorNotification({
-      title: "Prediction Error",
-      message: "Failed to fetch prediction",
-      details: error instanceof Error ? error.message : "Unknown error occurred"
-    });
+    toast.error('Prediction error: ' + (error instanceof Error ? error.message : 'Unknown error occurred'));
     throw error;
   }
 };
+
