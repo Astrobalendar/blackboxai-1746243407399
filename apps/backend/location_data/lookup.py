@@ -16,14 +16,22 @@ def load_indian_locations():
 
 def find_location_in_static(city: str, state: str = None, district: str = None) -> Optional[Dict]:
     locations = load_indian_locations()
-    city_lower = city.strip().lower()
+    city_norm = city.strip().lower()
+    state_norm = state.strip().lower() if state else None
+    district_norm = district.strip().lower() if district else None
+    print(f"[Location Lookup] Searching for city='{city_norm}', state='{state_norm}', district='{district_norm}'")
     for loc in locations:
-        if loc['city'].strip().lower() == city_lower:
-            if state and loc['state'].strip().lower() != state.strip().lower():
+        loc_city = loc['city'].strip().lower()
+        loc_state = loc['state'].strip().lower()
+        loc_district = loc['district'].strip().lower() if 'district' in loc else None
+        if loc_city == city_norm:
+            if state_norm and loc_state != state_norm:
                 continue
-            if district and loc['district'].strip().lower() != district.strip().lower():
+            if district_norm and loc_district != district_norm:
                 continue
+            print(f"[Location Lookup] Found location: {loc}")
             return loc
+    print(f"[Location Lookup] No match found for city='{city_norm}', state='{state_norm}', district='{district_norm}'")
     return None
 
 
