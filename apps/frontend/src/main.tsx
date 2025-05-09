@@ -2,11 +2,11 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import React from 'react';
 import posthog from 'posthog-js';
 
-posthog.init('PH_KEY', {
-  api_host: 'https://app.posthog.com',
-  autocapture: true,
-  disable_session_recording: false
-});
+// posthog.init('PH_KEY', {
+  // api_host: 'https://app.posthog.com',
+  // autocapture: true,
+  // disable_session_recording: false
+// });
 // To anonymize users, avoid calling posthog.identify()
 
 import ReactDOM from 'react-dom/client';
