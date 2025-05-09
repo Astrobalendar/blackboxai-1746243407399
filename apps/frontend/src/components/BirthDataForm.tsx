@@ -7,7 +7,10 @@ interface BirthData {
   name: string;
   dateOfBirth: string;
   timeOfBirth: string;
-  placeOfBirth: string;
+  country: string;
+  state: string;
+  district: string;
+  city: string;
   latitude: string;
   longitude: string;
   timeZone: string;
@@ -24,13 +27,25 @@ const BirthDataForm: React.FC<BirthDataFormProps> = ({ onSubmit, loading, error 
     name: '',
     dateOfBirth: '',
     timeOfBirth: '',
-    placeOfBirth: '',
+    country: 'India',
+    state: '',
+    district: '',
+    city: '',
     latitude: '',
     longitude: '',
     timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
   });
 
   const [errors, setErrors] = useState<Partial<BirthData>>({});
+
+  const statesOfIndia = [
+    '', 'Andhra Pradesh', 'Arunachal Pradesh', 'Assam', 'Bihar', 'Chhattisgarh', 'Goa', 'Gujarat',
+    'Haryana', 'Himachal Pradesh', 'Jharkhand', 'Karnataka', 'Kerala', 'Madhya Pradesh',
+    'Maharashtra', 'Manipur', 'Meghalaya', 'Mizoram', 'Nagaland', 'Odisha', 'Punjab',
+    'Rajasthan', 'Sikkim', 'Tamil Nadu', 'Telangana', 'Tripura', 'Uttar Pradesh',
+    'Uttarakhand', 'West Bengal', 'Andaman and Nicobar Islands', 'Chandigarh', 'Dadra and Nagar Haveli and Daman and Diu',
+    'Delhi', 'Jammu and Kashmir', 'Ladakh', 'Lakshadweep', 'Puducherry'
+  ];
 
   const validateDate = (date: string): boolean => {
     const regex = /^(\d{2})\/(\d{2})\/(\d{4})$/;
@@ -54,7 +69,7 @@ const BirthDataForm: React.FC<BirthDataFormProps> = ({ onSubmit, loading, error 
     return hours >= 0 && hours <= 23 && minutes >= 0 && minutes <= 59;
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
@@ -75,7 +90,7 @@ const BirthDataForm: React.FC<BirthDataFormProps> = ({ onSubmit, loading, error 
     const newErrors: Partial<BirthData> = {};
 
     // Validate required fields
-    const requiredFields = ['name', 'dateOfBirth', 'timeOfBirth', 'placeOfBirth'] as const;
+    const requiredFields = ['name', 'dateOfBirth', 'timeOfBirth', 'country', 'state', 'city'] as const;
     requiredFields.forEach(field => {
       if (!formData[field]) {
         newErrors[field] = 'This field is required';
@@ -101,19 +116,21 @@ const BirthDataForm: React.FC<BirthDataFormProps> = ({ onSubmit, loading, error 
     // If location data is missing, try to get it using geocoding
     if (!formData.latitude || !formData.longitude || !formData.timeZone) {
       try {
-        // Simple mock geocoding - in production, use a real geocoding service
-        const place = formData.placeOfBirth.toLowerCase();
+        // Combine address fields for lookup
+        const address = [formData.city, formData.district, formData.state, formData.country]
+          .filter(Boolean)
+          .join(', ').toLowerCase();
         const mockLocationData: Record<string, { latitude: string; longitude: string; timeZone: string }> = {
-          'sholinghur': { latitude: '13.1210', longitude: '79.4182', timeZone: 'Asia/Kolkata' },
-          'chennai': { latitude: '13.0827', longitude: '80.2707', timeZone: 'Asia/Kolkata' },
-          'bangalore': { latitude: '12.9716', longitude: '77.5946', timeZone: 'Asia/Kolkata' },
-          'mumbai': { latitude: '19.0760', longitude: '72.8777', timeZone: 'Asia/Kolkata' },
-          'delhi': { latitude: '28.7041', longitude: '77.1025', timeZone: 'Asia/Kolkata' },
-          'kolkata': { latitude: '22.5726', longitude: '88.3639', timeZone: 'Asia/Kolkata' },
-          'hyderabad': { latitude: '17.3850', longitude: '78.4867', timeZone: 'Asia/Kolkata' }
+          'sholinghur, tamil nadu, india': { latitude: '13.1210', longitude: '79.4182', timeZone: 'Asia/Kolkata' },
+          'arcot, tamil nadu, india': { latitude: '12.9057', longitude: '79.3190', timeZone: 'Asia/Kolkata' },
+          'chennai, tamil nadu, india': { latitude: '13.0827', longitude: '80.2707', timeZone: 'Asia/Kolkata' },
+          'bangalore, karnataka, india': { latitude: '12.9716', longitude: '77.5946', timeZone: 'Asia/Kolkata' },
+          'mumbai, maharashtra, india': { latitude: '19.0760', longitude: '72.8777', timeZone: 'Asia/Kolkata' },
+          'delhi, delhi, india': { latitude: '28.7041', longitude: '77.1025', timeZone: 'Asia/Kolkata' },
+          'kolkata, west bengal, india': { latitude: '22.5726', longitude: '88.3639', timeZone: 'Asia/Kolkata' },
+          'hyderabad, telangana, india': { latitude: '17.3850', longitude: '78.4867', timeZone: 'Asia/Kolkata' }
         };
-
-        const location = mockLocationData[place];
+        const location = mockLocationData[address];
         if (location) {
           setFormData(prev => ({
             ...prev,
@@ -126,7 +143,7 @@ const BirthDataForm: React.FC<BirthDataFormProps> = ({ onSubmit, loading, error 
         }
       } catch (error) {
         console.error('Error getting location data:', error);
-        newErrors.placeOfBirth = 'Could not find location data';
+        newErrors.city = 'Could not find location data';
         setErrors(newErrors);
         return;
       }
@@ -199,21 +216,58 @@ const BirthDataForm: React.FC<BirthDataFormProps> = ({ onSubmit, loading, error 
         </div>
 
         <div className="space-y-2">
-          <label className="block text-white text-lg font-semibold">Place of Birth</label>
+          <label className="block text-white text-lg font-semibold">Country</label>
           <input
             type="text"
-            name="placeOfBirth"
-            value={formData.placeOfBirth}
+            name="country"
+            value={formData.country}
             onChange={handleInputChange}
-            placeholder="Enter your place of birth"
+            placeholder="Country"
+            className="w-full px-4 py-3 rounded-lg bg-purple-900/50 text-white border border-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-400"
+            readOnly
+          />
+        </div>
+        <div className="space-y-2">
+          <label className="block text-white text-lg font-semibold">State</label>
+          <select
+            name="state"
+            value={formData.state}
+            onChange={handleInputChange}
+            className="w-full px-4 py-3 rounded-lg bg-purple-900/50 text-white border border-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-400"
+            aria-label="State of Birth"
+          >
+            {statesOfIndia.map(state => (
+              <option key={state} value={state}>{state}</option>
+            ))}
+          </select>
+        </div>
+        <div className="space-y-2">
+          <label className="block text-white text-lg font-semibold">District (optional)</label>
+          <input
+            type="text"
+            name="district"
+            value={formData.district}
+            onChange={handleInputChange}
+            placeholder="District/Region"
+            className="w-full px-4 py-3 rounded-lg bg-purple-900/50 text-white border border-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-400"
+          />
+        </div>
+        <div className="space-y-2">
+          <label className="block text-white text-lg font-semibold">City / Town / Village</label>
+          <input
+            type="text"
+            name="city"
+            value={formData.city}
+            onChange={handleInputChange}
+            placeholder="City, Town, or Village"
             className="w-full px-4 py-3 rounded-lg bg-purple-900/50 text-white border border-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-400"
           />
           <p className="text-purple-400 text-sm mt-1">
-            Enter your place of birth
+            Enter your city, town, or village (e.g., Sholinghur)
           </p>
-          {errors.placeOfBirth && (
+          {errors.city && (
             <p className="text-red-500 text-sm mt-1">
-              {errors.placeOfBirth}
+              {errors.city}
             </p>
           )}
         </div>
