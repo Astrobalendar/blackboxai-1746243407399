@@ -97,11 +97,11 @@ class User(BaseModel):
     email: str
 
 @app.post("/users")
-    user_id = create_user(user.model_dump())
+async def register_user(user: User):
     existing_user = get_user_by_email(user.email)
     if existing_user:
         raise HTTPException(status_code=400, detail="User already exists")
-    user_id = create_user(user.dict())
+    user_id = create_user(user.model_dump())
     return {"user_id": str(user_id)}
 
 @app.get("/users/{email}")
