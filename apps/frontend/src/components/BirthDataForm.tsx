@@ -22,12 +22,13 @@ interface BirthDataFormProps {
   onSubmit: (data: BirthData) => void;
   loading: boolean;
   error: string | null;
+  initialData?: Partial<BirthData>;
 }
 
-const BirthDataForm: React.FC<BirthDataFormProps> = ({ onSubmit, loading, error }) => {
+const BirthDataForm: React.FC<BirthDataFormProps> = ({ onSubmit, loading, error, initialData }) => {
   const [formData, setFormData] = useState<BirthData>({
     name: '',
-    dateOfBirth: '', // Will store as ISO string
+    dateOfBirth: '',
     timeOfBirth: '',
     state: '',
     district: '',
@@ -35,9 +36,22 @@ const BirthDataForm: React.FC<BirthDataFormProps> = ({ onSubmit, loading, error 
     latitude: '',
     longitude: '',
     timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+    ...initialData,
   });
   // For react-datepicker value
-  const [datePickerValue, setDatePickerValue] = useState<Date | null>(null);
+  const [datePickerValue, setDatePickerValue] = useState<Date | null>(
+    initialData && initialData.dateOfBirth ? new Date(initialData.dateOfBirth) : null
+  );
+
+  // Update form if initialData changes
+  React.useEffect(() => {
+    if (initialData) {
+      setFormData(prev => ({ ...prev, ...initialData }));
+      if (initialData.dateOfBirth) {
+        setDatePickerValue(new Date(initialData.dateOfBirth));
+      }
+    }
+  }, [initialData]);
 
   const [errors, setErrors] = useState<Partial<BirthData>>({});
 
