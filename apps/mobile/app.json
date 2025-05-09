@@ -4,11 +4,20 @@
     "slug": "astrobalendar",
     "version": "1.0.0",
     "orientation": "portrait",
-    "platforms": ["ios", "android"],
+    "platforms": [
+      "ios",
+      "android"
+    ],
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "extra": {
       "apiUrl": "https://astrobalendar-backend.onrender.com"
+    },
+    "android": {
+      "package": "com.astrobalendar.astrobalendar"
+    },
+    "ios": {
+      "bundleIdentifier": "com.astrobalendar.astrobalendar"
     }
   }
 }

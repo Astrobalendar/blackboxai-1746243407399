@@ -1,0 +1,12 @@
+{
+  "expo": {
+    "extra": {
+      "eas": {
+        "projectId": "fdd82096-c080-4257-a1da-ece36559afa6"
+      }
+    },
+    "android": {
+      "package": "astrobalendar.com"
+    }
+  }
+}
