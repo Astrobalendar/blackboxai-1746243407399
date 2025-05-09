@@ -176,7 +176,7 @@ const BirthDataForm: React.FC<BirthDataFormProps> = ({ onSubmit, loading, error 
             timeZone: location.timeZone
           }));
         } else {
-          throw new Error('Location not found');
+          throw new Error('Missing or invalid location');
         }
       } catch (error) {
         console.error('Error getting location data:', error);
@@ -189,8 +189,12 @@ const BirthDataForm: React.FC<BirthDataFormProps> = ({ onSubmit, loading, error 
     // Convert date to ISO string for backend
     const submitData = {
       ...formData,
-      dateOfBirth: datePickerValue ? dayjs(datePickerValue).format('YYYY-MM-DD') : formData.dateOfBirth
+      dateOfBirth: datePickerValue ? dayjs(datePickerValue).format('YYYY-MM-DD') : formData.dateOfBirth,
+      latitude: formData.latitude,
+      longitude: formData.longitude,
+      timeZone: formData.timeZone
     };
+    console.log('Submitting birth data:', submitData);
     onSubmit(submitData);
   };
 
