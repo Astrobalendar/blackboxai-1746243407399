@@ -9,6 +9,7 @@ import StudentDashboard from './pages/dashboard/StudentDashboard';
 import Home from "./pages/Home";
 import Calendar from "./pages/Calendar";
 import Login from "./pages/Login";
+import Signup from "./pages/Signup";
 import PredictionPage from "./pages/PredictionPage";
 import ChatPage from "./pages/ChatPage";
 import NewHoroscopePage from "./pages/NewHoroscopePage";
