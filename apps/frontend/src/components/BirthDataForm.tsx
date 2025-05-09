@@ -151,8 +151,11 @@ const BirthDataForm: React.FC<BirthDataFormProps> = ({ onSubmit, loading, error 
     // If location data is missing, try to get it using geocoding
     if (!formData.latitude || !formData.longitude || !formData.timeZone) {
       try {
-        // Combine address fields for lookup
-        const address = `${formData.city.toLowerCase()}, ${formData.state.toLowerCase()}, india`;
+        // Normalize all address parts
+        const city = formData.city.trim().toLowerCase();
+        const state = formData.state.trim().toLowerCase();
+        const district = formData.district.trim().toLowerCase();
+        const address = `${city}, ${state}, india`;
         const mockLocationData: Record<string, { latitude: string; longitude: string; timeZone: string }> = {
           'sholinghur, tamil nadu, india': { latitude: '13.1132', longitude: '79.4182', timeZone: 'Asia/Kolkata' },
           'sholinghur, arcot, tamil nadu, india': { latitude: '13.1132', longitude: '79.4182', timeZone: 'Asia/Kolkata' },
@@ -164,10 +167,13 @@ const BirthDataForm: React.FC<BirthDataFormProps> = ({ onSubmit, loading, error 
         };
         // Try with city+state only, fallback to city+district+state if needed
         let location = mockLocationData[address];
+        let triedKeys = [address];
         if (!location && formData.district) {
-          const districtAddress = `${formData.city.toLowerCase()}, ${formData.district.toLowerCase()}, ${formData.state.toLowerCase()}, india`;
+          const districtAddress = `${city}, ${district}, ${state}, india`;
           location = mockLocationData[districtAddress];
+          triedKeys.push(districtAddress);
         }
+        console.log('Location lookup keys tried:', triedKeys);
         if (location) {
           setFormData(prev => ({
             ...prev,
