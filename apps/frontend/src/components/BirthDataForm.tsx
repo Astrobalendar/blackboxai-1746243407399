@@ -1,10 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import dayjs from 'dayjs';
 import { Button, Form, FormLabel, FormControl, FormText } from 'react-bootstrap';
 import { locationData } from '@/lib/locationData';
 import { PredictionResult } from '@shared/types/prediction';
+import GooglePlacesAutocomplete from './GooglePlacesAutocomplete';
+
+const GOOGLE_MAPS_API_KEY = process.env.REACT_APP_GOOGLE_MAPS_API_KEY || '';
+
 
 interface BirthData {
   name: string;
@@ -26,7 +30,8 @@ interface BirthDataFormProps {
 }
 
 const BirthDataForm: React.FC<BirthDataFormProps> = ({ onSubmit, loading, error, initialData }) => {
-  const [formData, setFormData] = useState<BirthData>({
+  // Add locationName for Firestore
+  const [formData, setFormData] = useState<any>({
     name: '',
     dateOfBirth: '',
     timeOfBirth: '',
@@ -36,6 +41,7 @@ const BirthDataForm: React.FC<BirthDataFormProps> = ({ onSubmit, loading, error,
     latitude: '',
     longitude: '',
     timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+    locationName: '',
     ...initialData,
   });
   // For react-datepicker value
@@ -54,6 +60,18 @@ const BirthDataForm: React.FC<BirthDataFormProps> = ({ onSubmit, loading, error,
   }, [initialData]);
 
   const [errors, setErrors] = useState<Partial<BirthData>>({});
+  const [locationLoading, setLocationLoading] = useState(false);
+  const [showFallbackAlert, setShowFallbackAlert] = useState(false);
+  const [cityAutocompleteUsed, setCityAutocompleteUsed] = useState(false);
+  const [lastLocations, setLastLocations] = useState<any[]>(() => {
+    try {
+      return JSON.parse(localStorage.getItem('astrobalendar_last_locations') || '[]');
+    } catch {
+      return [];
+    }
+  });
+  const cityInputRef = useRef<HTMLInputElement>(null);
+
 
   // Dynamically compute city options based on selected state
   let districtOptions: string[] = [];
@@ -111,7 +129,7 @@ const BirthDataForm: React.FC<BirthDataFormProps> = ({ onSubmit, loading, error,
     }));
 
     // Clear error for the changed field
-    setErrors(prev => ({
+    setErrors((prev: typeof errors) => ({
       ...prev,
       [name]: ''
     }));
@@ -126,7 +144,7 @@ const BirthDataForm: React.FC<BirthDataFormProps> = ({ onSubmit, loading, error,
         ...prev,
         dateOfBirth: dayjs(date).format('DD/MM/YYYY')
       }));
-      setErrors(prev => ({ ...prev, dateOfBirth: '' }));
+      setErrors((prev: typeof errors) => ({ ...prev, dateOfBirth: '' }));
     } else {
       setFormData(prev => ({ ...prev, dateOfBirth: '' }));
     }
@@ -219,7 +237,7 @@ const BirthDataForm: React.FC<BirthDataFormProps> = ({ onSubmit, loading, error,
   };
 
   return (
-    <div className="space-y-8">
+    <form className="space-y-8" onSubmit={handleSubmit}>
       <div className="space-y-6">
         <div className="space-y-2">
           <label className="block text-white text-lg font-semibold">Name</label>
@@ -231,38 +249,41 @@ const BirthDataForm: React.FC<BirthDataFormProps> = ({ onSubmit, loading, error,
             placeholder="Enter your name"
             className="w-full px-4 py-3 rounded-lg bg-purple-900/50 text-white border border-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-400"
           />
-          <p className="text-purple-400 text-sm mt-1">
-            Please enter your full name
-          </p>
-          {errors.name && (
-            <p className="text-red-500 text-sm mt-1">
-              {errors.name}
-            </p>
-          )}
+          <p className="text-purple-400 text-sm mt-1">Please enter your full name</p>
+          {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name}</p>}
         </div>
 
         <div className="space-y-2">
           <label className="block text-white text-lg font-semibold">Date of Birth</label>
-          <DatePicker
-            selected={datePickerValue}
-            onChange={handleDateChange}
-            dateFormat="dd/MM/yyyy"
-            placeholderText="DD/MM/YYYY"
-            className="w-full px-4 py-3 rounded-lg bg-purple-900/50 text-white border border-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-400"
-            showMonthDropdown
-            showYearDropdown
-            dropdownMode="select"
-            maxDate={new Date()}
-            isClearable
-          />
-          <p className="text-purple-400 text-sm mt-1">
-            Enter your date of birth (DD/MM/YYYY)
+          <div className="relative flex items-center">
+            <span className="absolute left-3 text-purple-300" title="Calendar">
+              <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                <rect x="3" y="4" width="18" height="18" rx="2" />
+                <path d="M16 2v4M8 2v4M3 10h18" />
+              </svg>
+            </span>
+            <DatePicker
+              selected={datePickerValue}
+              onChange={handleDateChange}
+              dateFormat="dd-MM-yyyy"
+              placeholderText="DD-MM-YYYY"
+              className="w-full px-4 py-3 pl-10 rounded-lg bg-purple-900/50 text-white border border-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-400"
+              showMonthDropdown
+              showYearDropdown
+              dropdownMode="select"
+              maxDate={new Date()}
+              isClearable
+              onBlur={() => {
+                if (!datePickerValue) setErrors((e) => ({ ...e, dateOfBirth: 'Date is required' }));
+                else setErrors((e) => ({ ...e, dateOfBirth: '' }));
+              }}
+              customInput={<input type="text" pattern="\d{2}-\d{2}-\d{4}" />}
+            />
+          </div>
+          <p className="text-purple-400 text-sm mt-1" title="Please select date of birth">
+            Please select date of birth
           </p>
-          {errors.dateOfBirth && (
-            <p className="text-red-500 text-sm mt-1">
-              {errors.dateOfBirth}
-            </p>
-          )}
+          {errors.dateOfBirth && <p className="text-red-500 text-sm mt-1">{errors.dateOfBirth}</p>}
         </div>
 
         <div className="space-y-2">
@@ -276,13 +297,13 @@ const BirthDataForm: React.FC<BirthDataFormProps> = ({ onSubmit, loading, error,
             required
           >
             <option value="">Select state</option>
-            {statesOfIndia.map(state => (
-              <option key={state} value={state}>{state}</option>
+            {statesOfIndia.map((state) => (
+              <option key={state} value={state}>
+                {state}
+              </option>
             ))}
           </select>
-          {errors.state && (
-            <p className="text-red-500 text-sm mt-1">{errors.state}</p>
-          )}
+          {errors.state && <p className="text-red-500 text-sm mt-1">{errors.state}</p>}
         </div>
 
         <div className="space-y-2">
@@ -297,79 +318,103 @@ const BirthDataForm: React.FC<BirthDataFormProps> = ({ onSubmit, loading, error,
             disabled={!formData.state}
           >
             <option value="">{!formData.state ? 'Select state first' : 'Select district'}</option>
-            {districtOptions.map(district => (
-              <option key={district} value={district}>{district}</option>
+            {districtOptions.map((district) => (
+              <option key={district} value={district}>
+                {district}
+              </option>
             ))}
           </select>
-          {errors.district && (
-            <p className="text-red-500 text-sm mt-1">{errors.district}</p>
-          )}
+          {errors.district && <p className="text-red-500 text-sm mt-1">{errors.district}</p>}
         </div>
 
         <div className="space-y-2">
           <label className="block text-white text-lg font-semibold">City / Town / Village</label>
-          <select
-            name="city"
-            value={formData.city}
-            onChange={handleInputChange}
-            className="w-full px-4 py-3 rounded-lg bg-purple-900/50 text-white border border-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-400"
-            aria-label="City / Town / Village"
-            required
-            disabled={!formData.district}
-          >
-            <option value="">{!formData.district ? 'Select district first' : cityOptions.length ? 'Select city/town/village' : 'No cities available'}</option>
-            {cityOptions.map(city => (
-              <option key={city} value={city}>{city}</option>
-            ))}
-          </select>
-          {errors.city && (
-            <p className="text-red-500 text-sm mt-1">{errors.city}</p>
+          {GOOGLE_MAPS_API_KEY ? (
+            <GooglePlacesAutocomplete
+              apiKey={GOOGLE_MAPS_API_KEY}
+              onSelect={(loc) => {
+                setFormData((prev) => ({
+                  ...prev,
+                  city: loc.locationName,
+                  locationName: loc.locationName,
+                  latitude: loc.latitude,
+                  longitude: loc.longitude,
+                  timeZone: loc.timeZone,
+                }));
+                setCityAutocompleteUsed(true);
+                setShowFallbackAlert(false);
+                // Cache last 3 locations
+                const updated = [loc, ...lastLocations.filter((l) => l.locationName !== loc.locationName)].slice(0, 3);
+                setLastLocations(updated);
+                localStorage.setItem('astrobalendar_last_locations', JSON.stringify(updated));
+              }}
+              defaultValue={formData.city || (lastLocations[0]?.locationName || '')}
+              onLoading={setLocationLoading}
+              placeholder="Start typing a city name (e.g., Chennai, Delhi)"
+            />
+          ) : (
+            <select
+              name="city"
+              value={formData.city}
+              onChange={handleInputChange}
+              className="w-full px-4 py-3 rounded-lg bg-purple-900/50 text-white border border-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-400"
+              aria-label="City / Town / Village"
+              required
+              disabled={!formData.district}
+            >
+              <option value="">{!formData.district ? 'Select district first' : cityOptions.length ? 'Select city/town/village' : 'No cities available'}</option>
+              {cityOptions.map((city) => (
+                <option key={city} value={city}>
+                  {city}
+                </option>
+              ))}
+            </select>
           )}
+          {errors.city && <p className="text-red-500 text-sm mt-1">{errors.city}</p>}
         </div>
 
         <div className="space-y-2">
           <label className="block text-white text-lg font-semibold">Time of Birth</label>
-          <input
-            type="time"
-            name="timeOfBirth"
-            value={formData.timeOfBirth}
-            onChange={handleInputChange}
-            className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-400 text-black"
-            aria-label="Time of Birth"
-            title="Enter your time of birth"
-            placeholder="HH:MM"
-          />
-          {errors.timeOfBirth && (
-            <p className="text-red-500 text-sm mt-1">{errors.timeOfBirth}</p>
-          )}
+          <div className="relative flex items-center">
+            <span className="absolute left-3 text-purple-300" title="Clock">
+              <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="10" />
+                <path d="M12 6v6l4 2" />
+              </svg>
+            </span>
+            <input
+              type="time"
+              name="timeOfBirth"
+              value={formData.timeOfBirth}
+              onChange={handleInputChange}
+              className="w-full px-4 py-2 pl-10 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-400 text-black"
+              aria-label="Time of Birth"
+              title="Enter time in 24-hour format (e.g., 16:30 for 4:30 PM)"
+              placeholder="HH:mm"
+              step="60"
+              pattern="^([01]?[0-9]|2[0-3]):[0-5][0-9]$"
+              onBlur={(e) => {
+                if (!e.target.value) setErrors((er) => ({ ...er, timeOfBirth: 'Time is required' }));
+                else if (!/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/.test(e.target.value)) setErrors((er) => ({ ...er, timeOfBirth: 'Enter time in 24-hour format (e.g., 16:30)' }));
+                else setErrors((er) => ({ ...er, timeOfBirth: '' }));
+              }}
+            />
+          </div>
+          <p className="text-purple-400 text-sm mt-1" title="Enter time in 24-hour format (e.g., 16:30 for 4:30 PM)">
+            Enter time in 24-hour format (e.g., 16:30 for 4:30 PM)
+          </p>
+          {errors.timeOfBirth && <p className="text-red-500 text-sm mt-1">{errors.timeOfBirth}</p>}
         </div>
 
         <button
-          type="button"
-          onClick={handleSubmit}
-          disabled={loading}
+          type="submit"
+          disabled={false}
           className="w-full bg-purple-400 text-white px-6 py-3 rounded-lg hover:bg-purple-500 transition-all duration-300 shadow-lg hover:shadow-purple-500/50 disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {loading ? (
-            <span className="flex items-center justify-center">
-              <svg className="animate-spin h-5 w-5 mr-3" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-              </svg>
-              Loading...
-            </span>
-          ) : (
-            'Get Prediction'
-          )}
+          Get Prediction
         </button>
-
-        {error && (
-          <p className="text-red-500 text-center mt-4">
-            {error}
-          </p>
-        )}
       </div>
-    </div>
+    </form>
   );
 };
 

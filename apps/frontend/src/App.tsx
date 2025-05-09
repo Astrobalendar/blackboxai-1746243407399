@@ -42,14 +42,37 @@ function App() {
               <Route path="/" element={<Home />} />
               <Route path="/calendar" element={<Calendar />} />
               <Route path="/login" element={<Login />} />
+              <Route path="/signup" element={<Signup />} />
+              <Route path="/role-selection" element={<RoleSelection />} />
               <Route path="/prediction" element={<PredictionPage prediction={predictionResult} />} />
               <Route path="/chat" element={<ChatPage />} />
-              <Route path="/new-horoscope" element={<NewHoroscopePage />} />
               <Route path="/test-prediction" element={<TestPrediction />} />
-              <Route path="/birth-data" element={<PrivateRoute><NewHoroscopePage /></PrivateRoute>} />
-              <Route path="/dashboard/astrologer" element={<PrivateRoute><RoleRoute role="astrologer"><AstrologerDashboard /></RoleRoute></PrivateRoute>} />
-              <Route path="/dashboard/client" element={<PrivateRoute><RoleRoute role="client"><ClientDashboard /></RoleRoute></PrivateRoute>} />
-              <Route path="/dashboard/student" element={<PrivateRoute><RoleRoute role="student"><StudentDashboard /></RoleRoute></PrivateRoute>} />
+              <Route path="/new-horoscope" element={
+                <PrivateRoute>
+                  <NewHoroscopePage />
+                </PrivateRoute>
+              } />
+              <Route path="/dashboard/astrologer" element={
+                <PrivateRoute>
+                  <RoleRoute role="astrologer">
+                    <AstrologerDashboard />
+                  </RoleRoute>
+                </PrivateRoute>
+              } />
+              <Route path="/dashboard/student" element={
+                <PrivateRoute>
+                  <RoleRoute role="student">
+                    <StudentDashboard />
+                  </RoleRoute>
+                </PrivateRoute>
+              } />
+              <Route path="/dashboard/client" element={
+                <PrivateRoute>
+                  <RoleRoute role="client">
+                    <ClientDashboard />
+                  </RoleRoute>
+                </PrivateRoute>
+              } />
               <Route
                 path="*"
                 element={
