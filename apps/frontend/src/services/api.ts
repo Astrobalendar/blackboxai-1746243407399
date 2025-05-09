@@ -13,9 +13,12 @@ export interface PredictionRequest {
 }
 
 export interface PredictionResponse {
-  success: boolean;
-  data?: any;
+  prediction?: any;
+  prediction_id?: string;
   error?: string;
+  success?: boolean;
+  data?: any;
+  predictionId?: string;
 }
 
 export const fetchPrediction = async (formData: PredictionRequest): Promise<PredictionResponse> => {

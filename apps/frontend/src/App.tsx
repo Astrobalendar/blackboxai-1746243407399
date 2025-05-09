@@ -2,6 +2,10 @@ import React, { useState } from "react";
 import { BrowserRouter, Routes, Route, Link } from "react-router-dom";
 import { AuthProvider } from './context/AuthProvider';
 import PrivateRoute from './components/PrivateRoute';
+import RoleRoute from './components/RoleRoute';
+import AstrologerDashboard from './pages/dashboard/AstrologerDashboard';
+import ClientDashboard from './pages/dashboard/ClientDashboard';
+import StudentDashboard from './pages/dashboard/StudentDashboard';
 import Home from "./pages/Home";
 import Calendar from "./pages/Calendar";
 import Login from "./pages/Login";
@@ -43,6 +47,9 @@ function App() {
               <Route path="/new-horoscope" element={<NewHoroscopePage />} />
               <Route path="/test-prediction" element={<TestPrediction />} />
               <Route path="/birth-data" element={<PrivateRoute><NewHoroscopePage /></PrivateRoute>} />
+              <Route path="/dashboard/astrologer" element={<PrivateRoute><RoleRoute role="astrologer"><AstrologerDashboard /></RoleRoute></PrivateRoute>} />
+              <Route path="/dashboard/client" element={<PrivateRoute><RoleRoute role="client"><ClientDashboard /></RoleRoute></PrivateRoute>} />
+              <Route path="/dashboard/student" element={<PrivateRoute><RoleRoute role="student"><StudentDashboard /></RoleRoute></PrivateRoute>} />
               <Route
                 path="*"
                 element={
