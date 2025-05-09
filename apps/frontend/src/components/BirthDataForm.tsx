@@ -331,8 +331,16 @@ const BirthDataForm: React.FC<BirthDataFormProps> = ({ onSubmit, loading, error,
           <label className="block text-white text-lg font-semibold">Time of Birth</label>
           <input
             type="time"
-              {errors.timeOfBirth}
-            </p>
+            name="timeOfBirth"
+            value={formData.timeOfBirth}
+            onChange={handleInputChange}
+            className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-400 text-black"
+            aria-label="Time of Birth"
+            title="Enter your time of birth"
+            placeholder="HH:MM"
+          />
+          {errors.timeOfBirth && (
+            <p className="text-red-500 text-sm mt-1">{errors.timeOfBirth}</p>
           )}
         </div>
 
