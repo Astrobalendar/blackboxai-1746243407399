@@ -8,6 +8,7 @@ interface BirthData {
   dateOfBirth: string;
   timeOfBirth: string;
   state: string;
+  district: string;
   city: string;
   latitude: string;
   longitude: string;
@@ -26,6 +27,7 @@ const BirthDataForm: React.FC<BirthDataFormProps> = ({ onSubmit, loading, error 
     dateOfBirth: '',
     timeOfBirth: '',
     state: '',
+    district: '',
     city: '',
     latitude: '',
     longitude: '',
@@ -35,14 +37,19 @@ const BirthDataForm: React.FC<BirthDataFormProps> = ({ onSubmit, loading, error 
   const [errors, setErrors] = useState<Partial<BirthData>>({});
 
   // Dynamically compute city options based on selected state
+  let districtOptions: string[] = [];
   let cityOptions: string[] = [];
   try {
     const countryData = locationData['India'] as Record<string, any>;
     if (formData.state && countryData && countryData[formData.state]) {
       const stateData = countryData[formData.state] as Record<string, any>;
-      cityOptions = Object.values(stateData).flat() as string[];
+      districtOptions = Object.keys(stateData);
+      if (formData.district && stateData[formData.district]) {
+        cityOptions = stateData[formData.district];
+      }
     }
   } catch (e) {
+    districtOptions = [];
     cityOptions = [];
   }
 
@@ -98,7 +105,7 @@ const BirthDataForm: React.FC<BirthDataFormProps> = ({ onSubmit, loading, error 
     const newErrors: Partial<BirthData> = {};
 
     // Validate required fields
-    const requiredFields = ['name', 'dateOfBirth', 'timeOfBirth', 'state', 'city'] as const;
+    const requiredFields = ['name', 'dateOfBirth', 'timeOfBirth', 'state', 'district', 'city'] as const;
     requiredFields.forEach(field => {
       if (!formData[field]) {
         newErrors[field] = 'This field is required';
@@ -202,6 +209,68 @@ const BirthDataForm: React.FC<BirthDataFormProps> = ({ onSubmit, loading, error 
         </div>
 
         <div className="space-y-2">
+          <label className="block text-white text-lg font-semibold">State</label>
+          <select
+            name="state"
+            value={formData.state}
+            onChange={handleInputChange}
+            className="w-full px-4 py-3 rounded-lg bg-purple-900/50 text-white border border-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-400"
+            aria-label="State"
+            required
+          >
+            <option value="">Select state</option>
+            {statesOfIndia.map(state => (
+              <option key={state} value={state}>{state}</option>
+            ))}
+          </select>
+          {errors.state && (
+            <p className="text-red-500 text-sm mt-1">{errors.state}</p>
+          )}
+        </div>
+
+        <div className="space-y-2">
+          <label className="block text-white text-lg font-semibold">District</label>
+          <select
+            name="district"
+            value={formData.district}
+            onChange={handleInputChange}
+            className="w-full px-4 py-3 rounded-lg bg-purple-900/50 text-white border border-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-400"
+            aria-label="District"
+            required
+            disabled={!formData.state}
+          >
+            <option value="">{!formData.state ? 'Select state first' : 'Select district'}</option>
+            {districtOptions.map(district => (
+              <option key={district} value={district}>{district}</option>
+            ))}
+          </select>
+          {errors.district && (
+            <p className="text-red-500 text-sm mt-1">{errors.district}</p>
+          )}
+        </div>
+
+        <div className="space-y-2">
+          <label className="block text-white text-lg font-semibold">City / Town / Village</label>
+          <select
+            name="city"
+            value={formData.city}
+            onChange={handleInputChange}
+            className="w-full px-4 py-3 rounded-lg bg-purple-900/50 text-white border border-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-400"
+            aria-label="City / Town / Village"
+            required
+            disabled={!formData.district}
+          >
+            <option value="">{!formData.district ? 'Select district first' : cityOptions.length ? 'Select city/town/village' : 'No cities available'}</option>
+            {cityOptions.map(city => (
+              <option key={city} value={city}>{city}</option>
+            ))}
+          </select>
+          {errors.city && (
+            <p className="text-red-500 text-sm mt-1">{errors.city}</p>
+          )}
+        </div>
+
+        <div className="space-y-2">
           <label className="block text-white text-lg font-semibold">Time of Birth</label>
           <input
             type="text"
@@ -212,52 +281,11 @@ const BirthDataForm: React.FC<BirthDataFormProps> = ({ onSubmit, loading, error 
             className="w-full px-4 py-3 rounded-lg bg-purple-900/50 text-white border border-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-400"
           />
           <p className="text-purple-400 text-sm mt-1">
-            Enter your time of birth (e.g., 12:30)
+            Enter your time of birth (e.g., 12:00)
           </p>
           {errors.timeOfBirth && (
             <p className="text-red-500 text-sm mt-1">
               {errors.timeOfBirth}
-            </p>
-          )}
-        </div>
-
-
-        <div className="space-y-2">
-          <label className="block text-white text-lg font-semibold">State</label>
-          <select
-            name="state"
-            value={formData.state}
-            onChange={handleInputChange}
-            className="w-full px-4 py-3 rounded-lg bg-purple-900/50 text-white border border-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-400"
-            aria-label="State of Birth"
-          >
-            {statesOfIndia.map(state => (
-              <option key={state} value={state}>{state}</option>
-            ))}
-          </select>
-        </div>
-
-        <div className="space-y-2">
-          <label className="block text-white text-lg font-semibold">City / Town / Village</label>
-          <select
-            name="city"
-            value={formData.city}
-            onChange={handleInputChange}
-            className="w-full px-4 py-3 rounded-lg bg-purple-900/50 text-white border border-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-400"
-            aria-label="City, Town, or Village"
-            disabled={!formData.state || !cityOptions.length}
-          >
-            <option value="">{!formData.state ? 'Select state first' : cityOptions.length ? 'Select city/town/village' : 'No cities available'}</option>
-            {cityOptions.map(city => (
-              <option key={city} value={city}>{city}</option>
-            ))}
-          </select>
-          <p className="text-purple-400 text-sm mt-1">
-            Select your city, town, or village (e.g., Sholinghur)
-          </p>
-          {errors.city && (
-            <p className="text-red-500 text-sm mt-1">
-              {errors.city}
             </p>
           )}
         </div>
