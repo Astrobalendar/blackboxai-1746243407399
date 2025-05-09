@@ -1,4 +1,7 @@
 import React, { useState } from 'react';
+import DatePicker from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css';
+import dayjs from 'dayjs';
 import { Button, Form, FormLabel, FormControl, FormText } from 'react-bootstrap';
 import { locationData } from '@/lib/locationData';
 import { PredictionResult } from '@shared/types/prediction';
@@ -24,7 +27,7 @@ interface BirthDataFormProps {
 const BirthDataForm: React.FC<BirthDataFormProps> = ({ onSubmit, loading, error }) => {
   const [formData, setFormData] = useState<BirthData>({
     name: '',
-    dateOfBirth: '',
+    dateOfBirth: '', // Will store as ISO string
     timeOfBirth: '',
     state: '',
     district: '',
@@ -33,6 +36,8 @@ const BirthDataForm: React.FC<BirthDataFormProps> = ({ onSubmit, loading, error 
     longitude: '',
     timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
   });
+  // For react-datepicker value
+  const [datePickerValue, setDatePickerValue] = useState<Date | null>(null);
 
   const [errors, setErrors] = useState<Partial<BirthData>>({});
 
@@ -98,6 +103,21 @@ const BirthDataForm: React.FC<BirthDataFormProps> = ({ onSubmit, loading, error 
     }));
   };
 
+  // Date picker change handler
+  const handleDateChange = (date: Date | null) => {
+    setDatePickerValue(date);
+    if (date) {
+      // Store as DD/MM/YYYY for display, ISO for backend
+      setFormData(prev => ({
+        ...prev,
+        dateOfBirth: dayjs(date).format('DD/MM/YYYY')
+      }));
+      setErrors(prev => ({ ...prev, dateOfBirth: '' }));
+    } else {
+      setFormData(prev => ({ ...prev, dateOfBirth: '' }));
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrors({});
@@ -113,7 +133,7 @@ const BirthDataForm: React.FC<BirthDataFormProps> = ({ onSubmit, loading, error 
     });
 
     // Validate date format
-    if (formData.dateOfBirth && !validateDate(formData.dateOfBirth)) {
+    if (!datePickerValue || !validateDate(formData.dateOfBirth)) {
       newErrors.dateOfBirth = 'Please enter a valid date (DD/MM/YYYY)';
     }
 
@@ -132,18 +152,22 @@ const BirthDataForm: React.FC<BirthDataFormProps> = ({ onSubmit, loading, error 
     if (!formData.latitude || !formData.longitude || !formData.timeZone) {
       try {
         // Combine address fields for lookup
-        const address = [formData.city, formData.state].filter(Boolean).join(', ').toLowerCase();
+        const address = `${formData.city.toLowerCase()}, ${formData.state.toLowerCase()}, india`;
         const mockLocationData: Record<string, { latitude: string; longitude: string; timeZone: string }> = {
-          'sholinghur, tamil nadu, india': { latitude: '13.1210', longitude: '79.4182', timeZone: 'Asia/Kolkata' },
-          'arcot, tamil nadu, india': { latitude: '12.9057', longitude: '79.3190', timeZone: 'Asia/Kolkata' },
-          'chennai, tamil nadu, india': { latitude: '13.0827', longitude: '80.2707', timeZone: 'Asia/Kolkata' },
-          'bangalore, karnataka, india': { latitude: '12.9716', longitude: '77.5946', timeZone: 'Asia/Kolkata' },
+          'sholinghur, tamil nadu, india': { latitude: '13.1132', longitude: '79.4182', timeZone: 'Asia/Kolkata' },
+          'sholinghur, arcot, tamil nadu, india': { latitude: '13.1132', longitude: '79.4182', timeZone: 'Asia/Kolkata' },
+          'sholinghur, vellore, tamil nadu, india': { latitude: '13.1210', longitude: '79.4182', timeZone: 'Asia/Kolkata' },
           'mumbai, maharashtra, india': { latitude: '19.0760', longitude: '72.8777', timeZone: 'Asia/Kolkata' },
           'delhi, delhi, india': { latitude: '28.7041', longitude: '77.1025', timeZone: 'Asia/Kolkata' },
           'kolkata, west bengal, india': { latitude: '22.5726', longitude: '88.3639', timeZone: 'Asia/Kolkata' },
           'hyderabad, telangana, india': { latitude: '17.3850', longitude: '78.4867', timeZone: 'Asia/Kolkata' }
         };
-        const location = mockLocationData[address];
+        // Try with city+state only, fallback to city+district+state if needed
+        let location = mockLocationData[address];
+        if (!location && formData.district) {
+          const districtAddress = `${formData.city.toLowerCase()}, ${formData.district.toLowerCase()}, ${formData.state.toLowerCase()}, india`;
+          location = mockLocationData[districtAddress];
+        }
         if (location) {
           setFormData(prev => ({
             ...prev,
@@ -162,7 +186,12 @@ const BirthDataForm: React.FC<BirthDataFormProps> = ({ onSubmit, loading, error 
       }
     }
 
-    onSubmit(formData);
+    // Convert date to ISO string for backend
+    const submitData = {
+      ...formData,
+      dateOfBirth: datePickerValue ? dayjs(datePickerValue).format('YYYY-MM-DD') : formData.dateOfBirth
+    };
+    onSubmit(submitData);
   };
 
   return (
@@ -190,16 +219,20 @@ const BirthDataForm: React.FC<BirthDataFormProps> = ({ onSubmit, loading, error 
 
         <div className="space-y-2">
           <label className="block text-white text-lg font-semibold">Date of Birth</label>
-          <input
-            type="text"
-            name="dateOfBirth"
-            value={formData.dateOfBirth}
-            onChange={handleInputChange}
-            placeholder="DD/MM/YYYY"
+          <DatePicker
+            selected={datePickerValue}
+            onChange={handleDateChange}
+            dateFormat="dd/MM/yyyy"
+            placeholderText="DD/MM/YYYY"
             className="w-full px-4 py-3 rounded-lg bg-purple-900/50 text-white border border-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-400"
+            showMonthDropdown
+            showYearDropdown
+            dropdownMode="select"
+            maxDate={new Date()}
+            isClearable
           />
           <p className="text-purple-400 text-sm mt-1">
-            Enter your date of birth (e.g., 01/01/2000)
+            Enter your date of birth (DD/MM/YYYY)
           </p>
           {errors.dateOfBirth && (
             <p className="text-red-500 text-sm mt-1">
@@ -273,15 +306,15 @@ const BirthDataForm: React.FC<BirthDataFormProps> = ({ onSubmit, loading, error 
         <div className="space-y-2">
           <label className="block text-white text-lg font-semibold">Time of Birth</label>
           <input
-            type="text"
+            type="time"
             name="timeOfBirth"
             value={formData.timeOfBirth}
             onChange={handleInputChange}
-            placeholder="HH:MM"
+            step="60"
             className="w-full px-4 py-3 rounded-lg bg-purple-900/50 text-white border border-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-400"
           />
           <p className="text-purple-400 text-sm mt-1">
-            Enter your time of birth (e.g., 12:00)
+            Enter your time of birth (24-hour format, e.g., 12:00)
           </p>
           {errors.timeOfBirth && (
             <p className="text-red-500 text-sm mt-1">
