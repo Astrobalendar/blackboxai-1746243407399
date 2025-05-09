@@ -7,6 +7,7 @@ import { Button, Card, Container, Row, Col } from 'react-bootstrap';
 import { PredictionInput } from '@shared/types/prediction';
 import { getPrediction } from '@shared/api/predict';
 import { logError } from '../services/errorLogger';
+import { createErrorNotification } from '../components/notifications';
 
 const NewHoroscope: React.FC = () => {
   const navigate = useNavigate();
