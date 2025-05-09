@@ -5,10 +5,10 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse
 # Removed unused asyncio import
 
-from db.mongo import db, check_db_connection
-from db.db_ops import create_user, get_user_by_email, create_event, get_events_by_user
+from apps.backend.db.mongo import db, check_db_connection
+from apps.backend.db.db_ops import create_user, get_user_by_email, create_event, get_events_by_user
 from bson.objectid import ObjectId
-from api import chat
+from apps.backend.api import chat
 
 app = FastAPI()
 
@@ -116,7 +116,6 @@ class Event(BaseModel):
     user_id: str
     title: str
     date: str
-    event_data = event.model_dump()
 
 @app.post("/events")
 async def add_event(event: Event):
