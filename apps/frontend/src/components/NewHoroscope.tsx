@@ -19,8 +19,9 @@ interface NewHoroscopeProps {
 }
 
 const NewHoroscope: React.FC<NewHoroscopeProps> = ({ onPrediction }) => {
-  const { user } = useAuth();
+  const { user, userRole } = useAuth();
   const [result, setResult] = useState<string | null>(null);
+  const [predictionId, setPredictionId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [editMode, setEditMode] = useState(false);
@@ -50,11 +51,16 @@ const NewHoroscope: React.FC<NewHoroscopeProps> = ({ onPrediction }) => {
         setPrefilledData(formData);
         setEditMode(false);
       }
-      const response = await fetchPrediction({
-        ...formData
-      });
-      if (response.success) {
+      const response = await fetchPrediction(formData, user, userRole);
+      if (response.prediction || response.prediction_id) {
+        setResult(JSON.stringify(response.prediction, null, 2));
+        setPredictionId(response.prediction_id || response.predictionId || null);
+        if (onPrediction) {
+          onPrediction(response.prediction);
+        }
+      } else if (response.success) {
         setResult(JSON.stringify(response.data, null, 2));
+        setPredictionId(response.predictionId || null);
         if (onPrediction) {
           onPrediction(response.data);
         }
@@ -79,6 +85,9 @@ const NewHoroscope: React.FC<NewHoroscopeProps> = ({ onPrediction }) => {
     doc.text(`Location: ${birthData.city || ''}, ${birthData.district || ''}, ${birthData.state || ''}`, 10, 50);
     doc.text("Prediction Result:", 10, 60);
     doc.text(result || "No result", 10, 70);
+    if (predictionId) {
+      doc.text(`Prediction ID: ${predictionId}`, 10, 80);
+    }
     doc.save("horoscope.pdf");
   };
 
@@ -109,6 +118,11 @@ const NewHoroscope: React.FC<NewHoroscopeProps> = ({ onPrediction }) => {
           <pre className="bg-gray-800 text-white rounded-lg p-4 overflow-x-auto whitespace-pre-wrap">
             {result}
           </pre>
+          {predictionId && (
+            <div className="mb-4">
+              <strong>Prediction ID:</strong> {predictionId}
+            </div>
+          )}
           <button onClick={handleExport} className="mt-4 px-4 py-2 bg-purple-500 text-white rounded hover:bg-purple-600">Export as PDF</button>
         </div>
       )}
