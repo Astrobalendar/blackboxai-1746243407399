@@ -1,0 +1,13 @@
+[
+  {"city": "Sholinghur", "district": "Vellore", "state": "Tamil Nadu", "latitude": 13.1210, "longitude": 79.4182, "timezone": "Asia/Kolkata"},
+  {"city": "Arcot", "district": "Vellore", "state": "Tamil Nadu", "latitude": 12.9057, "longitude": 79.3190, "timezone": "Asia/Kolkata"},
+  {"city": "Chennai", "district": "Chennai", "state": "Tamil Nadu", "latitude": 13.0827, "longitude": 80.2707, "timezone": "Asia/Kolkata"},
+  {"city": "Tambaram", "district": "Chennai", "state": "Tamil Nadu", "latitude": 12.9242, "longitude": 80.1275, "timezone": "Asia/Kolkata"},
+  {"city": "Gudiyattam", "district": "Vellore", "state": "Tamil Nadu", "latitude": 12.9451, "longitude": 78.8724, "timezone": "Asia/Kolkata"},
+  {"city": "Kochi", "district": "Ernakulam", "state": "Kerala", "latitude": 9.9312, "longitude": 76.2673, "timezone": "Asia/Kolkata"},
+  {"city": "Mumbai", "district": "Mumbai", "state": "Maharashtra", "latitude": 19.0760, "longitude": 72.8777, "timezone": "Asia/Kolkata"},
+  {"city": "Delhi", "district": "Delhi", "state": "Delhi", "latitude": 28.7041, "longitude": 77.1025, "timezone": "Asia/Kolkata"},
+  {"city": "Bangalore", "district": "Bangalore Urban", "state": "Karnataka", "latitude": 12.9716, "longitude": 77.5946, "timezone": "Asia/Kolkata"},
+  {"city": "Hyderabad", "district": "Hyderabad", "state": "Telangana", "latitude": 17.3850, "longitude": 78.4867, "timezone": "Asia/Kolkata"},
+  {"city": "Kolkata", "district": "Kolkata", "state": "West Bengal", "latitude": 22.5726, "longitude": 88.3639, "timezone": "Asia/Kolkata"}
+]
