@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 import { BrowserRouter, Routes, Route, Link } from "react-router-dom";
+import { AuthProvider } from './context/AuthProvider';
+import PrivateRoute from './components/PrivateRoute';
 import Home from "./pages/Home";
 import Calendar from "./pages/Calendar";
 import Login from "./pages/Login";
@@ -31,27 +33,29 @@ function App() {
         <HeaderNav />
 
         <main className="p-4">
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/calendar" element={<Calendar />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/prediction" element={<PredictionPage prediction={predictionResult} />} />
-            <Route path="/chat" element={<ChatPage />} />
-            <Route path="/new-horoscope" element={<NewHoroscopePage />} />
-            <Route path="/test-prediction" element={<TestPrediction />} />
-            <Route path="/birth-data" element={<NewHoroscopePage />} />
-            <Route
-              path="*"
-              element={
-                <div className="text-center py-8 text-red-500">
-                  <h2>404 - Page Not Found</h2>
-                  <Link to="/" className="text-blue-400 hover:text-blue-300">
-                    Go back to home
-                  </Link>
-                </div>
-              }
-            />
-          </Routes>
+          <AuthProvider>
+            <Routes>
+              <Route path="/" element={<Home />} />
+              <Route path="/calendar" element={<Calendar />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/prediction" element={<PredictionPage prediction={predictionResult} />} />
+              <Route path="/chat" element={<ChatPage />} />
+              <Route path="/new-horoscope" element={<NewHoroscopePage />} />
+              <Route path="/test-prediction" element={<TestPrediction />} />
+              <Route path="/birth-data" element={<PrivateRoute><NewHoroscopePage /></PrivateRoute>} />
+              <Route
+                path="*"
+                element={
+                  <div className="text-center py-8 text-red-500">
+                    <h2>404 - Page Not Found</h2>
+                    <Link to="/" className="text-blue-400 hover:text-blue-300">
+                      Go back to home
+                    </Link>
+                  </div>
+                }
+              />
+            </Routes>
+          </AuthProvider>
         </main>
 
         <footer className="text-center text-xs text-gray-400 py-6">
