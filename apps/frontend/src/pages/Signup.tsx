@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
 import { doc, setDoc } from 'firebase/firestore';
 import { auth, db } from '../firebase';
+import '../styles/global.css';
 
 const roles = [
   { value: 'astrologer', label: 'Astrologer' },
@@ -90,13 +91,7 @@ const Signup: React.FC = () => {
           />
         </label>
         <br />
-        <label>
-          Role:
-          <select value={role} onChange={e => setRole(e.target.value)} required>
-            {roles.map(r => <option key={r} value={r}>{r.charAt(0).toUpperCase() + r.slice(1)}</option>)}
-          </select>
-        </label>
-        <br />
+
         <label>
           Phone (optional):
           <input
@@ -116,7 +111,7 @@ const Signup: React.FC = () => {
         </label>
         <br />
         <button type="submit">Sign Up</button>
-        {error && <div style={{ color: 'red' }}>{error}</div>}
+        {error && <div className="error-message">{error}</div>}
       </form>
     </div>
   );

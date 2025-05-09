@@ -31,7 +31,7 @@ const Login: React.FC = () => {
   return (
     <div>
       <h2>Sign in to AstroBalendar</h2>
-      <button onClick={handleGoogleSignIn} style={{ padding: '10px 20px', fontSize: '16px' }}>
+      <button onClick={handleGoogleSignIn} className="google-signin-btn">
         Sign in with Google
       </button>
     </div>

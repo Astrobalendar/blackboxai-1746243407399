@@ -1,0 +1,19 @@
+.google-signin-btn {
+  padding: 10px 20px;
+  font-size: 16px;
+  background: #fff;
+  color: #333;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.google-signin-btn:hover {
+  background: #f5f5f5;
+}
+
+.error-message {
+  color: red;
+  margin-top: 0.5rem;
+  font-size: 1rem;
+}
