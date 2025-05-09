@@ -1,30 +1,55 @@
-import 'bootstrap/dist/css/bootstrap.min.css';
-import React from 'react';
-import posthog from 'posthog-js';
+from fastapi import FastAPI, Request
+from fastapi.middleware.cors import CORSMiddleware
 
-// posthog.init('PH_KEY', {
-  // api_host: 'https://app.posthog.com',
-  // autocapture: true,
-  // disable_session_recording: false
-// });
-// To anonymize users, avoid calling posthog.identify()
+app = FastAPI()
 
-import ReactDOM from 'react-dom/client';
-import { BrowserRouter, Route, Routes } from "react-router-dom";
-import PredictionTabs from "./components/PredictionTabs"; // Correct the path
-import App from "./App";
-import ErrorBoundary from "./components/ErrorBoundary";
-import "./index.css"; // ✅ TailwindCSS
+allow_origins = [
+    "https://astrobalendar.netlify.app",
+    "https://astrobalendar.com"
 
-ReactDOM.createRoot(document.getElementById("root")!).render(
-  <React.StrictMode>
-    <ErrorBoundary>
-      <BrowserRouter>
-        <Routes>
-          <Route path="/prediction/tabs" element={<PredictionTabs />} />
-          <Route path="/*" element={<App />} />
-        </Routes>
-      </BrowserRouter>
-    </ErrorBoundary>
-  </React.StrictMode>
-);
+    "https://akuraastrology.netlify.app",
+    "https://stately-gingersnap-b43e3e3.netlify.app"
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=allow_origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+@app.get("/")
+def root():
+    return {"message": "API running"}
+
+@app.get("/health")
+def health_check():
+    return {"status": "ok"}
+
+@app.post("/api/predict")
+async def predict(request: Request):
+    data = await request.json()
+    
+    # Simulate KP Astrology logic
+    prediction_result = {
+        "ascendant": "Aries 15°",
+        "moon_sign": "Cancer",
+        "dasa": "Mars",
+        "bhukti": "Venus",
+        "antara": "Mercury",
+        "sub_lord": "Saturn",
+        "sub_sub_lord": "Jupiter",
+        "ruling_planets": ["Mars", "Venus", "Saturn"],
+    }
+
+    match_status = (
+        "match"
+        if prediction_result["sub_sub_lord"] in prediction_result["ruling_planets"]
+        else "needs_correction"
+    )
+
+    return {
+        "prediction": prediction_result,
+        "match_status": match_status,
+    }
