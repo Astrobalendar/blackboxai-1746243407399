@@ -38,6 +38,29 @@ const BirthDataForm: React.FC<BirthDataFormProps> = ({ onSubmit, loading, error 
 
   const [errors, setErrors] = useState<Partial<BirthData>>({});
 
+  // Dynamically compute district options based on selected country and state
+  let districtOptions: string[] = [];
+  let cityOptions: string[] = [];
+  try {
+    if (formData.country && formData.state) {
+      const countryData = locationData[formData.country] as Record<string, any>;
+      if (countryData && countryData[formData.state]) {
+        const stateData = countryData[formData.state] as Record<string, any>;
+        districtOptions = Object.keys(stateData);
+        // If district is selected and exists, use its cities
+        if (formData.district && stateData[formData.district]) {
+          cityOptions = stateData[formData.district];
+        } else {
+          // Otherwise, gather all cities from all districts in the state
+          cityOptions = Object.values(stateData).flat() as string[];
+        }
+      }
+    }
+  } catch (e) {
+    cityOptions = [];
+    districtOptions = [];
+  }
+
   const statesOfIndia = [
     '', 'Andhra Pradesh', 'Arunachal Pradesh', 'Assam', 'Bihar', 'Chhattisgarh', 'Goa', 'Gujarat',
     'Haryana', 'Himachal Pradesh', 'Jharkhand', 'Karnataka', 'Kerala', 'Madhya Pradesh',
@@ -243,27 +266,37 @@ const BirthDataForm: React.FC<BirthDataFormProps> = ({ onSubmit, loading, error 
         </div>
         <div className="space-y-2">
           <label className="block text-white text-lg font-semibold">District (optional)</label>
-          <input
-            type="text"
+          <select
             name="district"
             value={formData.district}
             onChange={handleInputChange}
-            placeholder="District/Region"
             className="w-full px-4 py-3 rounded-lg bg-purple-900/50 text-white border border-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-400"
-          />
+            aria-label="District or Region"
+            disabled={!formData.state || !districtOptions.length}
+          >
+            <option value="">{!formData.state ? 'Select state first' : districtOptions.length ? 'Select district/region' : 'No districts available'}</option>
+            {districtOptions.map(district => (
+              <option key={district} value={district}>{district}</option>
+            ))}
+          </select>
         </div>
         <div className="space-y-2">
           <label className="block text-white text-lg font-semibold">City / Town / Village</label>
-          <input
-            type="text"
+          <select
             name="city"
             value={formData.city}
             onChange={handleInputChange}
-            placeholder="City, Town, or Village"
             className="w-full px-4 py-3 rounded-lg bg-purple-900/50 text-white border border-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-400"
-          />
+            aria-label="City, Town, or Village"
+            disabled={!formData.state || !cityOptions.length}
+          >
+            <option value="">{!formData.state ? 'Select state first' : cityOptions.length ? 'Select city/town/village' : 'No cities available'}</option>
+            {cityOptions.map(city => (
+              <option key={city} value={city}>{city}</option>
+            ))}
+          </select>
           <p className="text-purple-400 text-sm mt-1">
-            Enter your city, town, or village (e.g., Sholinghur)
+            Select your city, town, or village (e.g., Sholinghur)
           </p>
           {errors.city && (
             <p className="text-red-500 text-sm mt-1">
