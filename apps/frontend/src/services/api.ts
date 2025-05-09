@@ -29,7 +29,17 @@ export const fetchPrediction = async (formData: PredictionRequest): Promise<Pred
     });
 
     if (!res.ok) {
-      throw new Error(`API call failed with status: ${res.status}`);
+      let backendError = '';
+      try {
+        const errJson = await res.json();
+        backendError = errJson.detail || JSON.stringify(errJson);
+        console.error('Backend error:', backendError);
+        toast.error(`Prediction failed: ${backendError}`);
+      } catch (err) {
+        backendError = 'Unknown backend error';
+        toast.error(`Prediction failed: ${res.status}`);
+      }
+      throw new Error(`API call failed with status: ${res.status} - ${backendError}`);
     }
 
     const data = await res.json();
