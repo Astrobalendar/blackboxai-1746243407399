@@ -6,10 +6,13 @@ import { useEffect, useState } from 'react';
 import { db } from '../firebase';
 import { doc, getDoc } from 'firebase/firestore';
 
+import { useLocation } from 'react-router-dom';
+
 const PrivateRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user, userRole, loading } = useAuth();
   const [checking, setChecking] = useState(true);
   const [isVerified, setIsVerified] = useState<boolean | null>(null);
+  const location = useLocation();
 
   useEffect(() => {
     const checkVerification = async () => {
@@ -29,7 +32,8 @@ const PrivateRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => 
   if (loading || checking) return <div>Loading...</div>;
   if (!user) return <Navigate to="/login" />;
   if (!userRole) return <Navigate to="/role-selection" />;
-  if (!isVerified) return <Navigate to="/birthdata" />;
+  // Allow access to /birthdata for logged-in users even if not verified
+  if (!isVerified && location.pathname !== '/birthdata') return <Navigate to="/birthdata" />;
   return <>{children}</>;
 };
 
