@@ -8,21 +8,16 @@ const BirthDataEntry: React.FC = () => {
   const navigate = useNavigate();
   const user = auth.currentUser;
   const [form, setForm] = useState({
-    firstName: '',
-    middleName: '',
-    lastName: '',
+    fullName: '',
     gender: '',
     dob: '', // Date of Birth
     tob: '', // Time of Birth
+    pob: '', // Place of Birth (autocomplete)
+    latitude: '',
+    longitude: '',
     mobile: '',
     email: user?.email || '',
     address: '',
-    country: 'India',
-    state: '',
-    district: '',
-    city: '',
-    latitude: '',
-    longitude: '',
   });
   const [otpSent, setOtpSent] = useState(false);
   const [otp, setOtp] = useState('');
@@ -51,6 +46,9 @@ const BirthDataEntry: React.FC = () => {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
+
+  // Placeholder for Google Places Autocomplete integration for POB
+  // To be implemented: when a place is selected, auto-fill latitude/longitude
 
   const handleSendOtp = async () => {
     setLoading(true);
@@ -136,10 +134,8 @@ const BirthDataEntry: React.FC = () => {
           {/* Personal Details Section */}
           <div>
             <h3 className="text-lg font-bold mb-4 text-yellow-800">Personal Details</h3>
-            <div className="flex gap-4 mb-4">
-              <input name="firstName" placeholder="First Name" value={form.firstName} onChange={handleChange} required className="flex-1 px-4 py-3 rounded-lg border border-yellow-200 focus:outline-yellow-500" />
-              <input name="middleName" placeholder="Middle Name" value={form.middleName} onChange={handleChange} className="flex-1 px-4 py-3 rounded-lg border border-yellow-200 focus:outline-yellow-500" />
-              <input name="lastName" placeholder="Last Name" value={form.lastName} onChange={handleChange} required className="flex-1 px-4 py-3 rounded-lg border border-yellow-200 focus:outline-yellow-500" />
+            <div className="mb-4">
+              <input name="fullName" placeholder="Full Name" value={form.fullName} onChange={handleChange} required className="w-full px-4 py-3 rounded-lg border border-yellow-200 focus:outline-yellow-500" />
             </div>
             <div className="flex gap-4 mb-4">
               <select name="gender" value={form.gender} onChange={handleChange} required className="flex-1 px-4 py-3 rounded-lg border border-yellow-200 focus:outline-yellow-500" title="Gender">
@@ -157,31 +153,11 @@ const BirthDataEntry: React.FC = () => {
               <input name="dob" type="date" placeholder="Date of Birth" value={form.dob} onChange={handleChange} required className="flex-1 px-4 py-3 rounded-lg border border-yellow-200 focus:outline-yellow-500" />
               <input name="tob" type="time" placeholder="Time of Birth" value={form.tob} onChange={handleChange} required className="flex-1 px-4 py-3 rounded-lg border border-yellow-200 focus:outline-yellow-500" />
             </div>
-            <div className="flex gap-4 mb-4">
-              <div className="flex-1 flex flex-col">
-                <label htmlFor="country" className="sr-only">Country</label>
-                <select id="country" name="country" value={form.country} onChange={handleSelectChange} required className="px-4 py-3 rounded-lg border border-yellow-200 focus:outline-yellow-500" title="Country">
-                  <option value="India">India</option>
-                </select>
-              </div>
-              <div className="flex-1 flex flex-col">
-                <label htmlFor="state" className="sr-only">State</label>
-                <select id="state" name="state" value={form.state} onChange={handleSelectChange} required className="px-4 py-3 rounded-lg border border-yellow-200 focus:outline-yellow-500" title="State">
-                  <option value="Tamil Nadu">Tamil Nadu</option>
-                </select>
-              </div>
-              <div className="flex-1 flex flex-col">
-                <label htmlFor="district" className="sr-only">District</label>
-                <select id="district" name="district" value={form.district} onChange={handleSelectChange} required className="px-4 py-3 rounded-lg border border-yellow-200 focus:outline-yellow-500" title="District">
-                  <option value="Ranipet">Ranipet</option>
-                </select>
-              </div>
-              <div className="flex-1 flex flex-col">
-                <label htmlFor="city" className="sr-only">City</label>
-                <select id="city" name="city" value={form.city} onChange={handleSelectChange} required className="px-4 py-3 rounded-lg border border-yellow-200 focus:outline-yellow-500" title="City">
-                  <option value="Sholinghur">Sholinghur</option>
-                </select>
-              </div>
+            {/* Place of Birth Autocomplete */}
+            <div className="mb-4">
+              <input name="pob" placeholder="Place of Birth (City, Town, Village, etc.)" value={form.pob} onChange={handleChange} required className="w-full px-4 py-3 rounded-lg border border-yellow-200 focus:outline-yellow-500" />
+              {/* TODO: Integrate Google Places Autocomplete here for global place search */}
+              {/* TODO: Integrate Map Picker here for selecting/filling coordinates */}
             </div>
             <div className="flex gap-4 mb-4">
               <input name="latitude" placeholder="Latitude" value={form.latitude} onChange={handleChange} required className="flex-1 px-4 py-3 rounded-lg border border-yellow-200 focus:outline-yellow-500" />
