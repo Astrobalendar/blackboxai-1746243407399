@@ -121,43 +121,53 @@ const BirthDataEntry: React.FC = () => {
   };
 
   return (
-    <div className="birthdata-entry-container">
-      <h2>Enter Your Birth Data</h2>
-      <form onSubmit={handleSubmit}>
-        <input name="firstName" placeholder="First Name" value={form.firstName} onChange={handleChange} required />
-        <input name="middleName" placeholder="Middle Name" value={form.middleName} onChange={handleChange} />
-        <input name="lastName" placeholder="Last Name" value={form.lastName} onChange={handleChange} required />
-        <input name="mobile" placeholder="Mobile Number" value={form.mobile} onChange={handleChange} required maxLength={10} />
-        {!otpVerified && (
-          <>
-            {!otpSent ? (
-              <button type="button" disabled={loading} onClick={handleSendOtp}>Send OTP</button>
-            ) : (
-              <>
-                <input name="otp" placeholder="Enter OTP" value={otp} onChange={e => setOtp(e.target.value)} required />
-                <button type="button" disabled={loading} onClick={handleVerifyOtp}>Verify OTP</button>
-              </>
+    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-yellow-100 via-yellow-50 to-yellow-200 py-8 px-2">
+      <div className="w-full max-w-lg bg-white rounded-xl shadow-xl py-10 px-6 md:px-10">
+        <h2 className="text-3xl font-extrabold text-yellow-900 mb-6 text-center">Enter Your Birth Data</h2>
+        <form onSubmit={handleSubmit} className="flex flex-col gap-6">
+          <div className="flex gap-4">
+            <input name="firstName" placeholder="First Name" value={form.firstName} onChange={handleChange} required className="flex-1 px-4 py-3 rounded-lg border border-yellow-200 focus:outline-yellow-500" />
+            <input name="middleName" placeholder="Middle Name" value={form.middleName} onChange={handleChange} className="flex-1 px-4 py-3 rounded-lg border border-yellow-200 focus:outline-yellow-500" />
+            <input name="lastName" placeholder="Last Name" value={form.lastName} onChange={handleChange} required className="flex-1 px-4 py-3 rounded-lg border border-yellow-200 focus:outline-yellow-500" />
+          </div>
+          <div className="flex gap-4">
+            <input name="mobile" placeholder="Mobile Number" value={form.mobile} onChange={handleChange} required maxLength={10} className="flex-1 px-4 py-3 rounded-lg border border-yellow-200 focus:outline-yellow-500" />
+            {!otpVerified && (
+              <div className="flex flex-col gap-2 flex-1">
+                {!otpSent ? (
+                  <button type="button" disabled={loading} onClick={handleSendOtp} className="w-full bg-yellow-400 hover:bg-yellow-500 text-yellow-900 font-bold py-3 rounded-xl shadow transition">Send OTP</button>
+                ) : (
+                  <div className="flex gap-2">
+                    <input name="otp" placeholder="Enter OTP" value={otp} onChange={e => setOtp(e.target.value)} required className="flex-1 px-4 py-3 rounded-lg border border-yellow-200 focus:outline-yellow-500" />
+                    <button type="button" disabled={loading} onClick={handleVerifyOtp} className="bg-yellow-400 hover:bg-yellow-500 text-yellow-900 font-bold py-3 px-4 rounded-xl shadow transition">Verify OTP</button>
+                  </div>
+                )}
+                <div id="recaptcha-container"></div>
+              </div>
             )}
-            <div id="recaptcha-container"></div>
-          </>
-        )}
-        <input name="email" placeholder="Email" value={form.email} disabled readOnly />
-        {!emailVerified && (
-          <>
-            <button type="button" onClick={handleEmailVerification} disabled={loading}>Send Email Verification</button>
-            <button type="button" onClick={checkEmailVerified} disabled={loading}>I have verified my email</button>
-          </>
-        )}
-        <input name="address" placeholder="Full Address" value={form.address} onChange={handleChange} required />
-        <input name="city" placeholder="City" value={form.city} onChange={handleChange} required />
-        <input name="district" placeholder="District" value={form.district} onChange={handleChange} required />
-        <input name="state" placeholder="State" value={form.state} onChange={handleChange} required />
-        <input name="country" placeholder="Country" value={form.country} onChange={handleChange} required />
-        <input name="latitude" placeholder="Latitude" value={form.latitude} onChange={handleChange} required />
-        <input name="longitude" placeholder="Longitude" value={form.longitude} onChange={handleChange} required />
-        {error && <div className="error">{error}</div>}
-        <button type="submit" disabled={loading || !otpVerified || !emailVerified}>Submit</button>
-      </form>
+          </div>
+          <input name="email" placeholder="Email" value={form.email} disabled readOnly className="px-4 py-3 rounded-lg border border-yellow-200 bg-yellow-50 text-yellow-900" />
+          {!emailVerified && (
+            <div className="flex gap-2">
+              <button type="button" onClick={handleEmailVerification} disabled={loading} className="flex-1 bg-yellow-400 hover:bg-yellow-500 text-yellow-900 font-bold py-3 rounded-xl shadow transition">Send Email Verification</button>
+              <button type="button" onClick={checkEmailVerified} disabled={loading} className="flex-1 bg-yellow-100 hover:bg-yellow-200 text-yellow-900 font-bold py-3 rounded-xl shadow transition">I have verified my email</button>
+            </div>
+          )}
+          <input name="address" placeholder="Full Address" value={form.address} onChange={handleChange} required className="px-4 py-3 rounded-lg border border-yellow-200 focus:outline-yellow-500" />
+          <div className="flex gap-4">
+            <input name="city" placeholder="City" value={form.city} onChange={handleChange} required className="flex-1 px-4 py-3 rounded-lg border border-yellow-200 focus:outline-yellow-500" />
+            <input name="district" placeholder="District" value={form.district} onChange={handleChange} required className="flex-1 px-4 py-3 rounded-lg border border-yellow-200 focus:outline-yellow-500" />
+            <input name="state" placeholder="State" value={form.state} onChange={handleChange} required className="flex-1 px-4 py-3 rounded-lg border border-yellow-200 focus:outline-yellow-500" />
+          </div>
+          <div className="flex gap-4">
+            <input name="country" placeholder="Country" value={form.country} onChange={handleChange} required className="flex-1 px-4 py-3 rounded-lg border border-yellow-200 focus:outline-yellow-500" />
+            <input name="latitude" placeholder="Latitude" value={form.latitude} onChange={handleChange} required className="flex-1 px-4 py-3 rounded-lg border border-yellow-200 focus:outline-yellow-500" />
+            <input name="longitude" placeholder="Longitude" value={form.longitude} onChange={handleChange} required className="flex-1 px-4 py-3 rounded-lg border border-yellow-200 focus:outline-yellow-500" />
+          </div>
+          {error && <div className="bg-red-100 text-red-800 rounded-lg px-4 py-3 text-center font-semibold">{error}</div>}
+          <button type="submit" disabled={loading || !otpVerified || !emailVerified} className="w-full bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-3 rounded-xl shadow transition mt-2">Submit</button>
+        </form>
+      </div>
     </div>
   );
 };
