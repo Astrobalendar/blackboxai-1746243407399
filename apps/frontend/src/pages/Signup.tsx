@@ -53,9 +53,7 @@ const Signup: React.FC = () => {
         }, { merge: true });
         // Show welcome and redirect
         alert(`Welcome ${user.displayName}! Your AstroBalendar ID is ${uniqueId}`);
-        if (role === 'astrologer') navigate('/dashboard/astrologer');
-        else if (role === 'student') navigate('/dashboard/student');
-        else navigate('/dashboard/client');
+        navigate('/birthdata');
         return;
       }
       // Normal email/password signup
