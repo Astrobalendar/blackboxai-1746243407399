@@ -32,8 +32,18 @@ const PrivateRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => 
   if (loading || checking) return <div>Loading...</div>;
   if (!user) return <Navigate to="/login" />;
   if (!userRole) return <Navigate to="/role-selection" />;
-  // Allow access to /birthdata for logged-in users even if not verified
-  if (!isVerified && location.pathname !== '/birthdata') return <Navigate to="/birthdata" />;
+  // If not verified, only allow access to /birthdata
+  if (!isVerified && location.pathname !== '/birthdata') {
+    return <Navigate to="/birthdata" />;
+  }
+  // If verified, prevent access to /birthdata and redirect to dashboard
+  if (isVerified && location.pathname === '/birthdata') {
+    // Redirect based on userRole if available
+    if (userRole === 'astrologer') return <Navigate to="/dashboard/astrologer" />;
+    if (userRole === 'student') return <Navigate to="/dashboard/student" />;
+    // Default to client dashboard
+    return <Navigate to="/dashboard/client" />;
+  }
   return <>{children}</>;
 };
 

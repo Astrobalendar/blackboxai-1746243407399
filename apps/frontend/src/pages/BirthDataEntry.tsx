@@ -28,6 +28,11 @@ const BirthDataEntry: React.FC = () => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
+  // Handle select changes for dropdowns
+  const handleSelectChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
+  };
+
   useEffect(() => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
@@ -155,18 +160,30 @@ const BirthDataEntry: React.FC = () => {
           )}
           <input name="address" placeholder="Full Address" value={form.address} onChange={handleChange} required className="px-4 py-3 rounded-lg border border-yellow-200 focus:outline-yellow-500" />
           <div className="flex gap-4">
-            <select name="country" value={form.country} onChange={handleChange} required className="flex-1 px-4 py-3 rounded-lg border border-yellow-200 focus:outline-yellow-500">
-              <option value="India">India</option>
-            </select>
-            <select name="state" value={form.state} onChange={handleChange} required className="flex-1 px-4 py-3 rounded-lg border border-yellow-200 focus:outline-yellow-500">
-              <option value="Tamil Nadu">Tamil Nadu</option>
-            </select>
-            <select name="district" value={form.district} onChange={handleChange} required className="flex-1 px-4 py-3 rounded-lg border border-yellow-200 focus:outline-yellow-500">
-              <option value="Ranipet">Ranipet</option>
-            </select>
-            <select name="city" value={form.city} onChange={handleChange} required className="flex-1 px-4 py-3 rounded-lg border border-yellow-200 focus:outline-yellow-500">
-              <option value="Sholinghur">Sholinghur</option>
-            </select>
+            <div className="flex-1 flex flex-col">
+              <label htmlFor="country" className="sr-only">Country</label>
+              <select id="country" name="country" value={form.country} onChange={handleSelectChange} required className="px-4 py-3 rounded-lg border border-yellow-200 focus:outline-yellow-500" title="Country">
+                <option value="India">India</option>
+              </select>
+            </div>
+            <div className="flex-1 flex flex-col">
+              <label htmlFor="state" className="sr-only">State</label>
+              <select id="state" name="state" value={form.state} onChange={handleSelectChange} required className="px-4 py-3 rounded-lg border border-yellow-200 focus:outline-yellow-500" title="State">
+                <option value="Tamil Nadu">Tamil Nadu</option>
+              </select>
+            </div>
+            <div className="flex-1 flex flex-col">
+              <label htmlFor="district" className="sr-only">District</label>
+              <select id="district" name="district" value={form.district} onChange={handleSelectChange} required className="px-4 py-3 rounded-lg border border-yellow-200 focus:outline-yellow-500" title="District">
+                <option value="Ranipet">Ranipet</option>
+              </select>
+            </div>
+            <div className="flex-1 flex flex-col">
+              <label htmlFor="city" className="sr-only">City</label>
+              <select id="city" name="city" value={form.city} onChange={handleSelectChange} required className="px-4 py-3 rounded-lg border border-yellow-200 focus:outline-yellow-500" title="City">
+                <option value="Sholinghur">Sholinghur</option>
+              </select>
+            </div>
           </div>
           <div className="flex gap-4">
             <input name="latitude" placeholder="Latitude" value={form.latitude} onChange={handleChange} required className="flex-1 px-4 py-3 rounded-lg border border-yellow-200 focus:outline-yellow-500" />
