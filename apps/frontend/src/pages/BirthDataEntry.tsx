@@ -1,0 +1,165 @@
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { auth, db } from '../firebase';
+import { doc, setDoc, getDoc } from 'firebase/firestore';
+import { RecaptchaVerifier, signInWithPhoneNumber } from 'firebase/auth';
+
+const BirthDataEntry: React.FC = () => {
+  const navigate = useNavigate();
+  const user = auth.currentUser;
+  const [form, setForm] = useState({
+    firstName: '',
+    middleName: '',
+    lastName: '',
+    mobile: '',
+    address: '',
+    city: '',
+    district: '',
+    state: '',
+    country: 'India',
+    latitude: '',
+    longitude: '',
+    email: user?.email || '',
+  });
+  const [otpSent, setOtpSent] = useState(false);
+  const [otp, setOtp] = useState('');
+  const [otpVerified, setOtpVerified] = useState(false);
+  const [emailVerified, setEmailVerified] = useState(user?.emailVerified || false);
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          setForm((prev) => ({ ...prev, latitude: pos.coords.latitude.toString(), longitude: pos.coords.longitude.toString() }));
+        },
+        () => {},
+        { enableHighAccuracy: true }
+      );
+    }
+  }, []);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
+  };
+
+  const handleSendOtp = async () => {
+    setLoading(true);
+    setError('');
+    try {
+      if (!window.recaptchaVerifier) {
+        window.recaptchaVerifier = new RecaptchaVerifier('recaptcha-container', { size: 'invisible' }, auth);
+      }
+      const confirmation = await signInWithPhoneNumber(auth, '+91' + form.mobile, window.recaptchaVerifier);
+      window.confirmationResult = confirmation;
+      setOtpSent(true);
+    } catch (err: any) {
+      setError(err.message);
+    }
+    setLoading(false);
+  };
+
+  const handleVerifyOtp = async () => {
+    setLoading(true);
+    setError('');
+    try {
+      await window.confirmationResult.confirm(otp);
+      setOtpVerified(true);
+    } catch (err: any) {
+      setError('Invalid OTP. Try again.');
+    }
+    setLoading(false);
+  };
+
+  const handleEmailVerification = async () => {
+    if (!user) return;
+    setLoading(true);
+    setError('');
+    try {
+      await user.sendEmailVerification();
+      alert('Verification email sent. Please check your inbox.');
+    } catch (err: any) {
+      setError('Failed to send verification email.');
+    }
+    setLoading(false);
+  };
+
+  const checkEmailVerified = async () => {
+    if (!user) return;
+    await user.reload();
+    setEmailVerified(user.emailVerified);
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    setLoading(true);
+    if (!otpVerified) {
+      setError('Please verify your mobile number.');
+      setLoading(false);
+      return;
+    }
+    if (!emailVerified) {
+      setError('Please verify your email address.');
+      setLoading(false);
+      return;
+    }
+    try {
+      await setDoc(doc(db, 'birthdata', user!.uid), {
+        ...form,
+        uid: user!.uid,
+        createdAt: new Date().toISOString(),
+      });
+      // Mark user as verified
+      await setDoc(doc(db, 'users', user!.uid), { verified: true }, { merge: true });
+      navigate(`/dashboard`);
+    } catch (err: any) {
+      setError('Failed to save birth data.');
+    }
+    setLoading(false);
+  };
+
+  return (
+    <div className="birthdata-entry-container">
+      <h2>Enter Your Birth Data</h2>
+      <form onSubmit={handleSubmit}>
+        <input name="firstName" placeholder="First Name" value={form.firstName} onChange={handleChange} required />
+        <input name="middleName" placeholder="Middle Name" value={form.middleName} onChange={handleChange} />
+        <input name="lastName" placeholder="Last Name" value={form.lastName} onChange={handleChange} required />
+        <input name="mobile" placeholder="Mobile Number" value={form.mobile} onChange={handleChange} required maxLength={10} />
+        {!otpVerified && (
+          <>
+            {!otpSent ? (
+              <button type="button" disabled={loading} onClick={handleSendOtp}>Send OTP</button>
+            ) : (
+              <>
+                <input name="otp" placeholder="Enter OTP" value={otp} onChange={e => setOtp(e.target.value)} required />
+                <button type="button" disabled={loading} onClick={handleVerifyOtp}>Verify OTP</button>
+              </>
+            )}
+            <div id="recaptcha-container"></div>
+          </>
+        )}
+        <input name="email" placeholder="Email" value={form.email} disabled readOnly />
+        {!emailVerified && (
+          <>
+            <button type="button" onClick={handleEmailVerification} disabled={loading}>Send Email Verification</button>
+            <button type="button" onClick={checkEmailVerified} disabled={loading}>I have verified my email</button>
+          </>
+        )}
+        <input name="address" placeholder="Full Address" value={form.address} onChange={handleChange} required />
+        <input name="city" placeholder="City" value={form.city} onChange={handleChange} required />
+        <input name="district" placeholder="District" value={form.district} onChange={handleChange} required />
+        <input name="state" placeholder="State" value={form.state} onChange={handleChange} required />
+        <input name="country" placeholder="Country" value={form.country} onChange={handleChange} required />
+        <input name="latitude" placeholder="Latitude" value={form.latitude} onChange={handleChange} required />
+        <input name="longitude" placeholder="Longitude" value={form.longitude} onChange={handleChange} required />
+        {error && <div className="error">{error}</div>}
+        <button type="submit" disabled={loading || !otpVerified || !emailVerified}>Submit</button>
+      </form>
+    </div>
+  );
+};
+
+export default BirthDataEntry;
