@@ -7,7 +7,8 @@ import { locationData } from '@/lib/locationData';
 import { PredictionResult } from '@shared/types/prediction';
 import GooglePlacesAutocomplete from './GooglePlacesAutocomplete';
 
-const GOOGLE_MAPS_API_KEY = process.env.REACT_APP_GOOGLE_MAPS_API_KEY || '';
+const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || '';
+
 
 interface BirthData {
   name: string;
@@ -38,8 +39,8 @@ const BirthDataForm: React.FC<BirthDataFormProps> = ({ onSubmit, loading, error,
     state: '',
     district: '',
     city: '',
-    latitude: undefined,
-    longitude: undefined,
+    latitude: undefined as number | undefined,
+    longitude: undefined as number | undefined,
     locationName: '',
     timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
     ...initialData,
@@ -227,25 +228,27 @@ const BirthDataForm: React.FC<BirthDataFormProps> = ({ onSubmit, loading, error,
   };
 
   return (
-    <form className="space-y-8" onSubmit={handleSubmit} aria-label="Birth Data Form" title="Birth Data Form">
-      <div className="space-y-6">
+    <form className="max-w-lg mx-auto mt-8 bg-purple-950 bg-opacity-90 rounded-2xl shadow-2xl p-8 space-y-8 border border-purple-800" onSubmit={handleSubmit} aria-label="Birth Data Form" title="Birth Data Form">
+      <h2 className="text-3xl text-white font-bold mb-6 text-center drop-shadow-lg tracking-wide">Enter Your Birth Data</h2>
+      <div className="space-y-8">
         <div className="space-y-2">
-          <label className="block text-white text-lg font-semibold" title="Name">Name</label>
+          <label className="block text-white text-lg font-bold tracking-wide" title="Name">Name</label>
           <input
             type="text"
             name="name"
             value={formData.name}
             onChange={handleInputChange}
             placeholder="Enter your name"
-            className="w-full px-4 py-3 rounded-lg bg-purple-900/50 text-white border border-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-400"
+            className="w-full px-4 py-3 rounded-lg bg-purple-900/70 text-white placeholder-purple-300 border border-purple-700 focus:outline-none focus:ring-2 focus:ring-yellow-400 text-lg"
             aria-label="Name"
+            autoComplete="off"
           />
-          <p className="text-purple-400 text-sm mt-1">Please enter your full name</p>
+          <p className="text-purple-300 text-sm mt-1">Please enter your full name</p>
           {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name}</p>}
         </div>
 
         <div className="space-y-2">
-          <label className="block text-white text-lg font-semibold" title="Date of Birth">Date of Birth</label>
+          <label className="block text-white text-lg font-bold tracking-wide" title="Date of Birth">Date of Birth</label>
           <div className="relative flex items-center">
             <span className="absolute left-3 text-purple-300" title="Calendar">
               <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
@@ -258,7 +261,7 @@ const BirthDataForm: React.FC<BirthDataFormProps> = ({ onSubmit, loading, error,
               onChange={handleDateChange}
               dateFormat="dd-MM-yyyy"
               placeholderText="DD-MM-YYYY"
-              className="w-full px-4 py-3 pl-10 rounded-lg bg-purple-900/50 text-white border border-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-400"
+              className="w-full px-4 py-3 pl-10 rounded-lg bg-purple-900/70 text-white placeholder-purple-300 border border-purple-700 focus:outline-none focus:ring-2 focus:ring-yellow-400 text-lg"
               showMonthDropdown
               showYearDropdown
               dropdownMode="select"
@@ -275,18 +278,19 @@ const BirthDataForm: React.FC<BirthDataFormProps> = ({ onSubmit, loading, error,
                   aria-label="Date of Birth"
                   title="Date of Birth"
                   placeholder="DD-MM-YYYY"
+                  className="w-full px-4 py-3 rounded-lg bg-purple-900/70 text-white placeholder-purple-300 border border-purple-700 focus:outline-none focus:ring-2 focus:ring-yellow-400 text-lg"
                 />
               }
             />
           </div>
-          <p className="text-purple-400 text-sm mt-1" title="Please select date of birth">
+          <p className="text-purple-300 text-sm mt-1" title="Please select date of birth">
             Please select date of birth
           </p>
           {errors.dateOfBirth && <p className="text-red-500 text-sm mt-1">{errors.dateOfBirth}</p>}
         </div>
 
         <div className="space-y-2">
-          <label className="block text-white text-lg font-semibold">State</label>
+          <label className="block text-white text-lg font-bold tracking-wide">State</label>
           <select
             name="state"
             value={formData.state}
@@ -306,7 +310,7 @@ const BirthDataForm: React.FC<BirthDataFormProps> = ({ onSubmit, loading, error,
         </div>
 
         <div className="space-y-2">
-          <label className="block text-white text-lg font-semibold">District</label>
+          <label className="block text-white text-lg font-bold tracking-wide">District</label>
           <select
             name="district"
             value={formData.district}
@@ -327,7 +331,7 @@ const BirthDataForm: React.FC<BirthDataFormProps> = ({ onSubmit, loading, error,
         </div>
 
         <div className="space-y-2">
-          <label className="block text-white text-lg font-semibold">City / Town / Village</label>
+          <label className="block text-white text-lg font-bold tracking-wide">City / Town / Village</label>
           {GOOGLE_MAPS_API_KEY ? (
             <GooglePlacesAutocomplete
               apiKey={GOOGLE_MAPS_API_KEY}
@@ -373,7 +377,7 @@ const BirthDataForm: React.FC<BirthDataFormProps> = ({ onSubmit, loading, error,
         </div>
 
         <div className="space-y-2">
-          <label className="block text-white text-lg font-semibold">Time of Birth</label>
+          <label className="block text-white text-lg font-bold tracking-wide">Time of Birth</label>
           <div className="relative flex items-center">
             <span className="absolute left-3 text-purple-300" title="Clock">
               <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
@@ -386,7 +390,7 @@ const BirthDataForm: React.FC<BirthDataFormProps> = ({ onSubmit, loading, error,
               name="timeOfBirth"
               value={formData.timeOfBirth}
               onChange={handleInputChange}
-              className="w-full px-4 py-2 pl-10 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-400 text-black"
+              className="w-full px-4 py-2 pl-10 rounded-lg border border-purple-700 focus:outline-none focus:ring-2 focus:ring-yellow-400 text-white bg-purple-900/70 placeholder-purple-300 text-lg"
               aria-label="Time of Birth"
               title="Enter time in 24-hour format (e.g., 16:30 for 4:30 PM)"
               placeholder="HH:mm"
@@ -407,10 +411,10 @@ const BirthDataForm: React.FC<BirthDataFormProps> = ({ onSubmit, loading, error,
 
         <button
           type="submit"
-          disabled={false}
-          className="w-full bg-purple-400 text-white px-6 py-3 rounded-lg hover:bg-purple-500 transition-all duration-300 shadow-lg hover:shadow-purple-500/50 disabled:opacity-50 disabled:cursor-not-allowed"
+          disabled={loading}
+          className="w-full bg-yellow-500 text-purple-900 font-bold px-6 py-3 rounded-lg hover:bg-yellow-400 transition-all duration-300 shadow-lg hover:shadow-yellow-500/50 disabled:opacity-50 disabled:cursor-not-allowed text-lg tracking-wide"
         >
-          Get Prediction
+          {loading ? 'Loading...' : 'Get Prediction'}
         </button>
       </div>
     </form>
