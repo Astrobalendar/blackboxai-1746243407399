@@ -3,6 +3,9 @@ import React from 'react';
 const Home = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-yellow-100 via-yellow-50 to-yellow-200 text-yellow-900">
+      <header className="w-full bg-yellow-500 shadow-lg py-4 px-0 flex items-center justify-center fixed top-0 left-0 z-50">
+        <div className="text-2xl font-bold text-yellow-900 tracking-wide">AstroBalendar</div>
+      </header>
       <main className="mt-20 w-full px-[6mm]">
         {/* Welcome message */}
         <section className="w-full flex flex-col items-center mb-8">
