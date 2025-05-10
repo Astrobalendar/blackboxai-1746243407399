@@ -155,12 +155,20 @@ const BirthDataEntry: React.FC = () => {
           )}
           <input name="address" placeholder="Full Address" value={form.address} onChange={handleChange} required className="px-4 py-3 rounded-lg border border-yellow-200 focus:outline-yellow-500" />
           <div className="flex gap-4">
-            <input name="city" placeholder="City" value={form.city} onChange={handleChange} required className="flex-1 px-4 py-3 rounded-lg border border-yellow-200 focus:outline-yellow-500" />
-            <input name="district" placeholder="District" value={form.district} onChange={handleChange} required className="flex-1 px-4 py-3 rounded-lg border border-yellow-200 focus:outline-yellow-500" />
-            <input name="state" placeholder="State" value={form.state} onChange={handleChange} required className="flex-1 px-4 py-3 rounded-lg border border-yellow-200 focus:outline-yellow-500" />
+            <select name="country" value={form.country} onChange={handleChange} required className="flex-1 px-4 py-3 rounded-lg border border-yellow-200 focus:outline-yellow-500">
+              <option value="India">India</option>
+            </select>
+            <select name="state" value={form.state} onChange={handleChange} required className="flex-1 px-4 py-3 rounded-lg border border-yellow-200 focus:outline-yellow-500">
+              <option value="Tamil Nadu">Tamil Nadu</option>
+            </select>
+            <select name="district" value={form.district} onChange={handleChange} required className="flex-1 px-4 py-3 rounded-lg border border-yellow-200 focus:outline-yellow-500">
+              <option value="Ranipet">Ranipet</option>
+            </select>
+            <select name="city" value={form.city} onChange={handleChange} required className="flex-1 px-4 py-3 rounded-lg border border-yellow-200 focus:outline-yellow-500">
+              <option value="Sholinghur">Sholinghur</option>
+            </select>
           </div>
           <div className="flex gap-4">
-            <input name="country" placeholder="Country" value={form.country} onChange={handleChange} required className="flex-1 px-4 py-3 rounded-lg border border-yellow-200 focus:outline-yellow-500" />
             <input name="latitude" placeholder="Latitude" value={form.latitude} onChange={handleChange} required className="flex-1 px-4 py-3 rounded-lg border border-yellow-200 focus:outline-yellow-500" />
             <input name="longitude" placeholder="Longitude" value={form.longitude} onChange={handleChange} required className="flex-1 px-4 py-3 rounded-lg border border-yellow-200 focus:outline-yellow-500" />
           </div>
