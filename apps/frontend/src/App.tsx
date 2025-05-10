@@ -21,18 +21,14 @@ import HeaderNav from "./components/HeaderNav";
 import BirthDataEntry from './pages/BirthDataEntry';
 import { ErrorBoundary } from "./components/ErrorBoundary";
 
-interface PredictionResponse {
-  success: boolean;
-  data?: any;
-  error?: string;
-}
+import { PredictionResult } from '../../../../../shared/types/prediction';
 
 interface PredictionPageProps {
-  prediction: PredictionResponse | null;
+  prediction: PredictionResult | null;
 }
 
 function App() {
-  const [predictionResult, setPredictionResult] = useState<PredictionResponse | null>(null);
+  const [predictionResult, setPredictionResult] = useState<PredictionResult | null>(null);
 
   return (
     <ErrorBoundary>

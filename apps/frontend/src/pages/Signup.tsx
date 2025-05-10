@@ -12,7 +12,7 @@ const roles = [
 ];
 
 const Signup: React.FC = () => {
-  const location = useLocation() as any;
+  const location = useLocation();
   const [displayName, setDisplayName] = useState(location.state?.displayName || '');
   const [email, setEmail] = useState(location.state?.email || '');
   const [password, setPassword] = useState('');
