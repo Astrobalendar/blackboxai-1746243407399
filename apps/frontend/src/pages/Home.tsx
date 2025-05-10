@@ -6,7 +6,7 @@ const Home = () => {
       <header className="w-full bg-yellow-500 shadow-lg py-4 px-0 flex items-center justify-center fixed top-0 left-0 z-50">
         <div className="text-2xl font-bold text-yellow-900 tracking-wide">AstroBalendar</div>
       </header>
-      <main className="mt-20 w-full px-[6mm]">
+      <main className="mt-20 w-full">
         {/* Welcome message */}
         <section className="w-full flex flex-col items-center mb-8">
           <h1 className="text-5xl font-extrabold tracking-wide text-yellow-900 drop-shadow-sm mb-2">AstroBalendar</h1>
