@@ -3,7 +3,7 @@ import { Button } from 'react-bootstrap';
 import { toast } from 'react-toastify';
 import { jsPDF } from 'jspdf';
 import 'jspdf-autotable';
-import { PredictionResult as PredictionResultType } from '@shared/types/prediction';
+import { PredictionResult as PredictionResultType } from '../../../../shared/types/prediction';
 import { formatPredictionSummary } from '@shared/utils/format';
 
 interface PredictionResultProps {
@@ -25,6 +25,7 @@ const PredictionResult: React.FC<PredictionResultProps> = ({ prediction, showExp
     posthog?: typeof import('posthog-js');
   }
 }
+
 
 const handleDownloadPDF = async () => {
   // PostHog PDF download event
@@ -148,14 +149,14 @@ const handleDownloadPDF = async () => {
       <div className="mb-3">
         <strong>Details:</strong>
         <ul>
-          {Object.entries(prediction.details).map(([key, value]) => (
+          {prediction.details && Object.entries(prediction.details).map(([key, value]) => (
             <li key={key}><strong>{key}:</strong> {value}</li>
           ))}
         </ul>
       </div>
       {/* D1 Chart Preview for PDF export */}
       <div style={{ display: includeChart ? 'block' : 'none' }} ref={chartRef} className="mb-3">
-        <RasiChart data={prediction.rasiChartData || []} />
+        <RasiChart data={(prediction as any).rasiChartData || []} />
       </div>
       {showExport && (
         <div className="export-section">

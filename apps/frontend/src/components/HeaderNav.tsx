@@ -22,7 +22,7 @@ const HeaderNav: React.FC = () => {
           setFullName(firebaseUser.displayName || firebaseUser.email);
         }
       } else {
-        setFullName("");
+        setFullName(null);
       }
     });
     return () => unsubscribe();

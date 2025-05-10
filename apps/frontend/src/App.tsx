@@ -21,7 +21,7 @@ import HeaderNav from "./components/HeaderNav";
 import BirthDataEntry from './pages/BirthDataEntry';
 import { ErrorBoundary } from "./components/ErrorBoundary";
 
-import { PredictionResult } from '../../../../../shared/types/prediction';
+import { PredictionResult } from '../../../../shared/types/prediction';
 
 interface PredictionPageProps {
   prediction: PredictionResult | null;
@@ -32,10 +32,12 @@ function App() {
 
   return (
     <ErrorBoundary>
-      <div className="min-h-screen bg-gradient-to-b from-purple-900 via-black to-black text-white font-sans">
+      <div className="min-h-screen bg-gradient-to-br from-yellow-200 via-yellow-100 to-yellow-300 text-yellow-900 font-sans flex flex-col">
+        <div className="flex-1 w-full max-w-7xl mx-auto px-4 py-6">
+
         <HeaderNav />
 
-        <main className="p-4">
+        <main className="p-0">
           <AuthProvider>
             <Routes>
               <Route path="/birthdata" element={
@@ -96,6 +98,7 @@ function App() {
           2025 AstroBalendar | Privacy | Terms | Contact
         </footer>
       </div>
+    </div>
     </ErrorBoundary>
   );
 }
