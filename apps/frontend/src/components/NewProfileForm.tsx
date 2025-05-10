@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { doc, setDoc, serverTimestamp } from "firebase/firestore";
-import { db, auth } from "../lib/firebase";
+import { db, auth } from "../firebase";
 
 interface ProfileData {
   name: string;

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
-import { auth } from "../lib/firebase";
+import { auth } from "../firebase";
 import { saveProfile, loadProfile } from "../lib/firebaseProfileService";
 import RasiChart from "./charts/RasiChart";
 import NavamsaChart from "./charts/NavamsaChart";

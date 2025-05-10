@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { collection, getDocs, deleteDoc, doc } from "firebase/firestore";
-import { db, auth } from "../lib/firebase";
+import { db, auth } from "../firebase";
 
 interface Profile {
   id: string;
