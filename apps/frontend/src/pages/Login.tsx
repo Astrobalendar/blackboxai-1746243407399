@@ -44,20 +44,48 @@ const Login: React.FC = () => {
     );
   }
 
-  return (
-    <div>
-      <h2>Sign in to AstroBalendar</h2>
-      <button onClick={handleGoogleSignIn} className="google-signin-btn">
-        Sign in with Google
+  const [loading, setLoading] = React.useState(false);
+const [errorMsg, setErrorMsg] = React.useState<string | null>(null);
+
+return (
+  <div style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #6b21a8 0%, #111827 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+    <div style={{ background: '#fff', borderRadius: 14, boxShadow: '0 4px 24px rgba(0,0,0,0.12)', padding: 36, maxWidth: 400, width: '100%' }}>
+      <h2 style={{ marginBottom: 28, textAlign: 'center', color: '#6b21a8', fontWeight: 800, fontSize: 28 }}>Sign in to AstroBalendar</h2>
+      <button
+        onClick={async () => {
+          setLoading(true);
+          setErrorMsg(null);
+          try {
+            await handleGoogleSignIn();
+          } catch (e: any) {
+            setErrorMsg('Google sign-in failed. Please try again.');
+          } finally {
+            setLoading(false);
+          }
+        }}
+        style={{
+          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
+          background: '#fff', color: '#222', border: '1.5px solid #a78bfa', borderRadius: 8,
+          padding: '12px 0', fontWeight: 700, fontSize: 17, width: '100%', marginBottom: 18, boxShadow: '0 2px 6px rgba(107,33,168,0.08)', cursor: 'pointer', transition: 'background 0.2s',
+        }}
+        disabled={loading}
+      >
+        <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google logo" style={{ width: 22, height: 22 }} />
+        {loading ? 'Signing in...' : 'Sign in with Google'}
       </button>
-      <div className="signup-link-area">
-        <span>Don't have an account? </span>
-        <button onClick={() => navigate('/signup')} className="signup-btn">
-          Sign up
-        </button>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 14 }}>
+        <span style={{ color: '#555', fontWeight: 500 }}>Don't have an account?</span>
+        <button
+          onClick={() => navigate('/signup')}
+          style={{ color: '#6b21a8', background: 'none', border: 'none', fontWeight: 700, marginLeft: 8, cursor: 'pointer', fontSize: 16 }}
+        >Sign up</button>
       </div>
+      {errorMsg && (
+        <div style={{ color: '#b91c1c', background: '#fee2e2', borderRadius: 6, padding: 10, marginTop: 8, textAlign: 'center', fontWeight: 700 }}>{errorMsg}</div>
+      )}
     </div>
-  );
+  </div>
+);
 };
 
 export default Login;

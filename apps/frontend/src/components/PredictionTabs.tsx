@@ -255,7 +255,7 @@ const PredictionTabs: React.FC = () => {
   };
 
   const content: Record<string, JSX.Element> = {
-    "Birth Data": <BirthDataForm onSubmit={handleFormSubmit} />,
+    "Birth Data": <BirthDataForm onSubmit={handleFormSubmit} loading={loading} error={error} />,
     "Rasi/Navamsam": (
       <div id="tab-content" style={{ display: "flex", flexWrap: "wrap", gap: "16px" }}>
         {chartData.rasi.length ? (
@@ -295,7 +295,7 @@ const PredictionTabs: React.FC = () => {
   };
 
   if (!birthData) {
-    return <BirthDataForm onSubmit={handleFormSubmit} />;
+    return <BirthDataForm onSubmit={handleFormSubmit} loading={loading} error={error} />;
   }
 
   return (

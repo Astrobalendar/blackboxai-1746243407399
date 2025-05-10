@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import dayjs from 'dayjs';
@@ -9,7 +9,6 @@ import GooglePlacesAutocomplete from './GooglePlacesAutocomplete';
 
 const GOOGLE_MAPS_API_KEY = process.env.REACT_APP_GOOGLE_MAPS_API_KEY || '';
 
-
 interface BirthData {
   name: string;
   dateOfBirth: string;
@@ -17,8 +16,9 @@ interface BirthData {
   state: string;
   district: string;
   city: string;
-  latitude: string;
-  longitude: string;
+  latitude?: number;
+  longitude?: number;
+  locationName?: string;
   timeZone: string;
 }
 
@@ -31,17 +31,17 @@ interface BirthDataFormProps {
 
 const BirthDataForm: React.FC<BirthDataFormProps> = ({ onSubmit, loading, error, initialData }) => {
   // Add locationName for Firestore
-  const [formData, setFormData] = useState<any>({
+  const [formData, setFormData] = useState<BirthData>({
     name: '',
     dateOfBirth: '',
     timeOfBirth: '',
     state: '',
     district: '',
     city: '',
-    latitude: '',
-    longitude: '',
-    timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+    latitude: undefined,
+    longitude: undefined,
     locationName: '',
+    timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
     ...initialData,
   });
   // For react-datepicker value
@@ -50,9 +50,9 @@ const BirthDataForm: React.FC<BirthDataFormProps> = ({ onSubmit, loading, error,
   );
 
   // Update form if initialData changes
-  React.useEffect(() => {
+  useEffect(() => {
     if (initialData) {
-      setFormData(prev => ({ ...prev, ...initialData }));
+      setFormData((prev: BirthData) => ({ ...prev, ...initialData }));
       if (initialData.dateOfBirth) {
         setDatePickerValue(new Date(initialData.dateOfBirth));
       }
@@ -71,7 +71,6 @@ const BirthDataForm: React.FC<BirthDataFormProps> = ({ onSubmit, loading, error,
     }
   });
   const cityInputRef = useRef<HTMLInputElement>(null);
-
 
   // Dynamically compute city options based on selected state
   let districtOptions: string[] = [];
@@ -123,16 +122,10 @@ const BirthDataForm: React.FC<BirthDataFormProps> = ({ onSubmit, loading, error,
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
+    setFormData((prev: BirthData) => ({ ...prev, [name]: value }));
 
     // Clear error for the changed field
-    setErrors((prev: typeof errors) => ({
-      ...prev,
-      [name]: ''
-    }));
+    setErrors((prev: Partial<BirthData>) => ({ ...prev, [name]: '' }));
   };
 
   // Date picker change handler
@@ -140,13 +133,10 @@ const BirthDataForm: React.FC<BirthDataFormProps> = ({ onSubmit, loading, error,
     setDatePickerValue(date);
     if (date) {
       // Store as DD/MM/YYYY for display, ISO for backend
-      setFormData(prev => ({
-        ...prev,
-        dateOfBirth: dayjs(date).format('DD/MM/YYYY')
-      }));
-      setErrors((prev: typeof errors) => ({ ...prev, dateOfBirth: '' }));
+      setFormData((prev: BirthData) => ({ ...prev, dateOfBirth: dayjs(date).format('DD/MM/YYYY') }));
+      setErrors((prev: Partial<BirthData>) => ({ ...prev, dateOfBirth: '' }));
     } else {
-      setFormData(prev => ({ ...prev, dateOfBirth: '' }));
+      setFormData((prev: BirthData) => ({ ...prev, dateOfBirth: '' }));
     }
   };
 
@@ -158,7 +148,7 @@ const BirthDataForm: React.FC<BirthDataFormProps> = ({ onSubmit, loading, error,
 
     // Validate required fields
     const requiredFields = ['name', 'dateOfBirth', 'timeOfBirth', 'state', 'district', 'city'] as const;
-    requiredFields.forEach(field => {
+    requiredFields.forEach((field) => {
       if (!formData[field]) {
         newErrors[field] = 'This field is required';
       }
@@ -207,10 +197,10 @@ const BirthDataForm: React.FC<BirthDataFormProps> = ({ onSubmit, loading, error,
         }
         console.log('Location lookup keys tried:', triedKeys);
         if (location) {
-          setFormData(prev => ({
+          setFormData((prev: BirthData) => ({
             ...prev,
-            latitude: location.latitude,
-            longitude: location.longitude,
+            latitude: Number(location.latitude),
+            longitude: Number(location.longitude),
             timeZone: location.timeZone
           }));
         } else {
@@ -237,10 +227,10 @@ const BirthDataForm: React.FC<BirthDataFormProps> = ({ onSubmit, loading, error,
   };
 
   return (
-    <form className="space-y-8" onSubmit={handleSubmit}>
+    <form className="space-y-8" onSubmit={handleSubmit} aria-label="Birth Data Form" title="Birth Data Form">
       <div className="space-y-6">
         <div className="space-y-2">
-          <label className="block text-white text-lg font-semibold">Name</label>
+          <label className="block text-white text-lg font-semibold" title="Name">Name</label>
           <input
             type="text"
             name="name"
@@ -248,13 +238,14 @@ const BirthDataForm: React.FC<BirthDataFormProps> = ({ onSubmit, loading, error,
             onChange={handleInputChange}
             placeholder="Enter your name"
             className="w-full px-4 py-3 rounded-lg bg-purple-900/50 text-white border border-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-400"
+            aria-label="Name"
           />
           <p className="text-purple-400 text-sm mt-1">Please enter your full name</p>
           {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name}</p>}
         </div>
 
         <div className="space-y-2">
-          <label className="block text-white text-lg font-semibold">Date of Birth</label>
+          <label className="block text-white text-lg font-semibold" title="Date of Birth">Date of Birth</label>
           <div className="relative flex items-center">
             <span className="absolute left-3 text-purple-300" title="Calendar">
               <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
@@ -273,11 +264,19 @@ const BirthDataForm: React.FC<BirthDataFormProps> = ({ onSubmit, loading, error,
               dropdownMode="select"
               maxDate={new Date()}
               isClearable
-              onBlur={() => {
-                if (!datePickerValue) setErrors((e) => ({ ...e, dateOfBirth: 'Date is required' }));
-                else setErrors((e) => ({ ...e, dateOfBirth: '' }));
-              }}
-              customInput={<input type="text" pattern="\d{2}-\d{2}-\d{4}" />}
+              customInput={
+                <input
+                  type="text"
+                  pattern="\d{2}-\d{2}-\d{4}"
+                  onBlur={() => {
+                    if (!datePickerValue) setErrors((e) => ({ ...e, dateOfBirth: 'Date is required' }));
+                    else setErrors((prev: Partial<BirthData>) => ({ ...prev, dateOfBirth: '' }));
+                  }}
+                  aria-label="Date of Birth"
+                  title="Date of Birth"
+                  placeholder="DD-MM-YYYY"
+                />
+              }
             />
           </div>
           <p className="text-purple-400 text-sm mt-1" title="Please select date of birth">
@@ -333,7 +332,7 @@ const BirthDataForm: React.FC<BirthDataFormProps> = ({ onSubmit, loading, error,
             <GooglePlacesAutocomplete
               apiKey={GOOGLE_MAPS_API_KEY}
               onSelect={(loc) => {
-                setFormData((prev) => ({
+                setFormData((prev: BirthData) => ({
                   ...prev,
                   city: loc.locationName,
                   locationName: loc.locationName,

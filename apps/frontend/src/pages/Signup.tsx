@@ -20,6 +20,7 @@ const Signup: React.FC = () => {
   const [phone, setPhone] = useState('');
   const [photoURL, setPhotoURL] = useState(location.state?.photoURL || '');
   const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const isGoogleFlow = !!location.state;
 
@@ -71,6 +72,46 @@ const Signup: React.FC = () => {
     <div className="signup-bg" style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #6b21a8 0%, #111827 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
       <div className="signup-card" style={{ background: '#fff', borderRadius: 12, boxShadow: '0 4px 24px rgba(0,0,0,0.12)', padding: 32, maxWidth: 400, width: '100%' }}>
         <h2 style={{ marginBottom: 24, textAlign: 'center', color: '#6b21a8', fontWeight: 800, fontSize: 28 }}>Create Your AstroBalendar Account</h2>
+{location.state?.photoURL && (
+  <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 16 }}>
+    <img src={location.state.photoURL} alt="Google profile" style={{ width: 64, height: 64, borderRadius: '50%', boxShadow: '0 2px 8px #a78bfa33' }} />
+  </div>
+)}
+{location.state?.displayName && (
+  <div style={{ textAlign: 'center', fontWeight: 700, color: '#6b21a8', marginBottom: 10, fontSize: 18 }}>
+    {location.state.displayName}
+  </div>
+)}
+{!location.state && (
+  <button
+    type="button"
+    style={{
+      display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
+      background: '#fff', color: '#222', border: '1.5px solid #a78bfa', borderRadius: 8,
+      padding: '12px 0', fontWeight: 700, fontSize: 17, width: '100%', marginBottom: 18, boxShadow: '0 2px 6px rgba(107,33,168,0.08)', cursor: 'pointer', transition: 'background 0.2s',
+    }}
+    onClick={async () => {
+      setError('');
+      setLoading(true);
+      try {
+        const { GoogleAuthProvider, signInWithPopup } = await import('firebase/auth');
+        const provider = new GoogleAuthProvider();
+        const result = await signInWithPopup(auth, provider);
+        const user = result.user;
+        // Redirect to signup with Google profile info
+        navigate('/signup', { state: { email: user.email, displayName: user.displayName, photoURL: user.photoURL } });
+      } catch (e: any) {
+        setError('Google sign-up failed. Please try again.');
+      } finally {
+        setLoading(false);
+      }
+    }}
+    disabled={loading}
+  >
+    <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google logo" style={{ width: 22, height: 22 }} />
+    {loading ? 'Signing up...' : 'Sign up with Google'}
+  </button>
+)}
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 22 }}>
           <label style={{ fontWeight: 700, color: '#222', fontSize: 18 }}>Name
             <input
