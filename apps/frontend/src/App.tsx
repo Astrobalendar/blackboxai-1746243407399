@@ -18,6 +18,7 @@ import NewHoroscopePage from "./pages/NewHoroscopePage";
 import { fetchPrediction } from "./services/api";
 import TestPrediction from "./pages/TestPrediction";
 import HeaderNav from "./components/HeaderNav";
+import BirthDataEntry from './pages/BirthDataEntry';
 import { ErrorBoundary } from "./components/ErrorBoundary";
 
 interface PredictionResponse {
@@ -41,6 +42,11 @@ function App() {
         <main className="p-4">
           <AuthProvider>
             <Routes>
+              <Route path="/birthdata" element={
+                <PrivateRoute>
+                  <BirthDataEntry />
+                </PrivateRoute>
+              } />
               <Route path="/" element={<Home />} />
               <Route path="/calendar" element={<Calendar />} />
               <Route path="/login" element={<Login />} />

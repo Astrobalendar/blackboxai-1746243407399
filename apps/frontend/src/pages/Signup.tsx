@@ -34,14 +34,25 @@ const Signup: React.FC = () => {
           setError('No signed-in user found.');
           return;
         }
+        // Generate unique user ID
+        function genUserId(role: string, name: string) {
+          const prefix = role === 'astrologer' ? 'AS' : role === 'student' ? 'ST' : 'CL';
+          const namePart = (name || user.displayName || '').replace(/[^a-zA-Z]/g, '').substring(0, 3).toUpperCase();
+          const rand = Math.floor(1000 + Math.random() * 9000);
+          return `${prefix}${namePart}${rand}`;
+        }
+        const uniqueId = genUserId(role, user.displayName);
         await setDoc(doc(db, 'users', user.uid), {
           displayName: user.displayName,
           email: user.email,
           role,
           photoURL: user.photoURL,
           createdAt: new Date().toISOString(),
+          uniqueId,
+          multipleHoroscopeAccess: role === 'astrologer',
         }, { merge: true });
-        // Redirect based on role
+        // Show welcome and redirect
+        alert(`Welcome ${user.displayName}! Your AstroBalendar ID is ${uniqueId}`);
         if (role === 'astrologer') navigate('/dashboard/astrologer');
         else if (role === 'student') navigate('/dashboard/student');
         else navigate('/dashboard/client');
@@ -51,6 +62,14 @@ const Signup: React.FC = () => {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
       await updateProfile(user, { displayName, photoURL });
+      // Generate unique user ID
+      function genUserId(role: string, name: string) {
+        const prefix = role === 'astrologer' ? 'AS' : role === 'student' ? 'ST' : 'CL';
+        const namePart = (name || '').replace(/[^a-zA-Z]/g, '').substring(0, 3).toUpperCase();
+        const rand = Math.floor(1000 + Math.random() * 9000);
+        return `${prefix}${namePart}${rand}`;
+      }
+      const uniqueId = genUserId(role, displayName);
       await setDoc(doc(db, 'users', user.uid), {
         displayName,
         email,
@@ -58,11 +77,12 @@ const Signup: React.FC = () => {
         phone,
         photoURL,
         createdAt: new Date().toISOString(),
+        uniqueId,
+        multipleHoroscopeAccess: role === 'astrologer',
+        verified: false, // Add verified field
       });
-      // Redirect based on role
-      if (role === 'astrologer') navigate('/dashboard/astrologer');
-      else if (role === 'student') navigate('/dashboard/student');
-      else navigate('/dashboard/client');
+      // After signup, redirect to birth data entry for all roles
+      navigate('/birthdata');
     } catch (err: any) {
       setError(err.message);
     }
