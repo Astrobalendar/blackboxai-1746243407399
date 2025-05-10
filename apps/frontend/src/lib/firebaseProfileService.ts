@@ -1,5 +1,5 @@
 import { doc, setDoc, getDoc } from "firebase/firestore";
-import { auth, db } from "./firebase";
+import { auth, db } from "../firebase";
 
 export const saveProfile = async (data: any) => {
   const user = auth.currentUser;
