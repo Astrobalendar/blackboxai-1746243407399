@@ -27,6 +27,7 @@ interface PredictionPageProps {
   prediction: PredictionResult | null;
 }
 
+// NOTE: App is wrapped in ErrorBoundary and AuthProvider for robust error handling.
 function App() {
   const [predictionResult, setPredictionResult] = useState<PredictionResult | null>(null);
 

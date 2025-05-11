@@ -6,6 +6,11 @@ import { doc, getDoc } from 'firebase/firestore';
 import { useAuth } from '../context/AuthProvider';
 
 const Login: React.FC = () => {
+  // Debug: log mount and user state
+  React.useEffect(() => {
+    console.log("Login.tsx mounted");
+    console.log("user from useAuth:", user);
+  }, [user]);
   const navigate = useNavigate();
   const { user } = useAuth();
 
@@ -34,6 +39,11 @@ const Login: React.FC = () => {
       console.error(error);
     }
   };
+
+  if (user && typeof user !== "object") {
+    console.error("User is malformed:", user);
+    return <div>There was a problem with your session. Please refresh.</div>;
+  }
 
   if (user) {
     return (
