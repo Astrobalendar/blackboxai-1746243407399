@@ -2,8 +2,10 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { auth, db } from '../firebase';
 import { doc, setDoc, getDoc } from 'firebase/firestore';
-import { RecaptchaVerifier, signInWithPhoneNumber } from 'firebase/auth';
 import { GoogleMap, LoadScript, Autocomplete } from '@react-google-maps/api';
+
+// Google Maps libraries constant for LoadScript (prevents reload warning)
+const GOOGLE_MAPS_LIBRARIES = ["places"];
 
 const BirthDataEntry: React.FC = () => {
   const navigate = useNavigate();
@@ -76,20 +78,6 @@ const BirthDataEntry: React.FC = () => {
     try {
       // Ensure recaptchaVerifier is initialized only once
       // Ensure the recaptcha-container div exists
-      if (!document.getElementById('recaptcha-container')) {
-        const recaptchaDiv = document.createElement('div');
-        recaptchaDiv.id = 'recaptcha-container';
-        recaptchaDiv.style.display = 'none';
-        document.body.appendChild(recaptchaDiv);
-      }
-      if (!window.recaptchaVerifier) {
-        window.recaptchaVerifier = new RecaptchaVerifier('recaptcha-container', { size: 'invisible' }, auth);
-        await window.recaptchaVerifier.render();
-      }
-      // Ensure we always use the imported 'auth' instance
-      const confirmation = await signInWithPhoneNumber(auth, '+91' + form.mobile, window.recaptchaVerifier);
-      window.confirmationResult = confirmation;
-      setOtpSent(true);
     } catch (err: any) {
       setError(err.message || 'Failed to send OTP.');
     }
