@@ -3,7 +3,7 @@ import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import dayjs from 'dayjs';
 import { Button, Form, FormLabel, FormControl, FormText } from 'react-bootstrap';
-import { locationData } from '@/lib/locationData';
+// import { locationData } from '@/lib/locationData'; // Removed: now using backend API for locations
 import { PredictionResult } from '@shared/types/prediction';
 import GooglePlacesAutocomplete from './GooglePlacesAutocomplete';
 
@@ -11,14 +11,15 @@ const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || '';
 
 
 interface BirthData {
-  name: string;
+  fullName: string;
   dateOfBirth: string;
   timeOfBirth: string;
   state: string;
-  district: string;
   city: string;
   latitude?: number;
   longitude?: number;
+  email?: string;
+  mobile?: string;
   locationName?: string;
   timeZone: string;
 }
@@ -37,10 +38,11 @@ const BirthDataForm: React.FC<BirthDataFormProps> = ({ onSubmit, loading, error,
     dateOfBirth: '',
     timeOfBirth: '',
     state: '',
-    district: '',
     city: '',
-    latitude: undefined as number | undefined,
-    longitude: undefined as number | undefined,
+    latitude: undefined,
+    longitude: undefined,
+    email: '',
+    mobile: '',
     locationName: '',
     timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
     ...initialData,
@@ -49,6 +51,9 @@ const BirthDataForm: React.FC<BirthDataFormProps> = ({ onSubmit, loading, error,
   const [datePickerValue, setDatePickerValue] = useState<Date | null>(
     initialData && initialData.dateOfBirth ? new Date(initialData.dateOfBirth) : null
   );
+
+  // Remove lastLocations/localStorage logic (deprecated)
+
 
   // Update form if initialData changes
   useEffect(() => {
@@ -73,12 +78,19 @@ const BirthDataForm: React.FC<BirthDataFormProps> = ({ onSubmit, loading, error,
   });
   const cityInputRef = useRef<HTMLInputElement>(null);
 
-  // Dynamically compute city options based on selected state
-  let districtOptions: string[] = [];
-  let cityOptions: string[] = [];
-  try {
-    const countryData = locationData['India'] as Record<string, any>;
-    if (formData.state && countryData && countryData[formData.state]) {
+  // Fetch locations from backend
+  const [locations, setLocations] = useState<any[]>([]);
+  useEffect(() => {
+    fetch('/locations')
+      .then(res => res.json())
+      .then(data => setLocations(data.locations || []))
+      .catch(() => setLocations([]));
+  }, []);
+
+  // Compute city options based on selected state
+  const stateOptions = Array.from(new Set(locations.map(loc => loc.state)));
+  const cityOptions = locations.filter(loc => loc.state === formData.state);
+
       const stateData = countryData[formData.state] as Record<string, any>;
       districtOptions = Object.keys(stateData);
       if (formData.district && stateData[formData.district]) {
@@ -141,31 +153,34 @@ const BirthDataForm: React.FC<BirthDataFormProps> = ({ onSubmit, loading, error,
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setErrors({});
-
-    const newErrors: Partial<BirthData> = {};
-
     // Validate required fields
-    const requiredFields = ['fullName', 'dateOfBirth', 'timeOfBirth', 'state', 'district', 'city'] as const;
-    requiredFields.forEach((field) => {
-      if (!formData[field]) {
-        newErrors[field] = 'This field is required'; // fullName required
-      }
-    });
+    const newErrors: Partial<BirthData> = {};
+    if (!formData.fullName) newErrors.fullName = 'Full name is required';
+    if (!formData.dateOfBirth) newErrors.dateOfBirth = 'Date of birth is required';
+    if (!formData.timeOfBirth) newErrors.timeOfBirth = 'Time of birth is required';
+    if (!formData.state) newErrors.state = 'State is required';
+    if (!formData.city) newErrors.city = 'City is required';
+    if (!formData.email) newErrors.email = 'Email is required';
+    if (!formData.mobile) newErrors.mobile = 'Mobile number is required';
+    setErrors(newErrors);
+    if (Object.keys(newErrors).length > 0) return;
 
-    // Validate date format
-    if (!datePickerValue || !validateDate(formData.dateOfBirth)) {
-      newErrors.dateOfBirth = 'Please enter a valid date (DD/MM/YYYY)';
-    }
-
-    // Validate time format
-    if (formData.timeOfBirth && !validateTime(formData.timeOfBirth)) {
-      newErrors.timeOfBirth = 'Please enter a valid time (HH:MM)';
-    }
-
-    // If there are any errors, show them and return
+    // Fill latitude/longitude from selected city
+    const selectedCity = locations.find(loc => loc.name === formData.city && loc.state === formData.state);
+    const payload = {
+      fullName: formData.fullName,
+      dateOfBirth: formData.dateOfBirth,
+      timeOfBirth: formData.timeOfBirth,
+      state: formData.state,
+      city: formData.city,
+      latitude: selectedCity?.latitude,
+      longitude: selectedCity?.longitude,
+      email: formData.email,
+      mobile: formData.mobile,
+      locationName: formData.city + ', ' + formData.state,
+      timeZone: formData.timeZone,
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
       return;

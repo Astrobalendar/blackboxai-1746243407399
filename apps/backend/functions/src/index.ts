@@ -57,14 +57,21 @@ app.post('/register', async (req, res) => {
   res.json({ success: true });
 });
 
-// Location data (mock for now)
+// Location data (standardized list)
 app.get('/locations', (req, res) => {
-  // TODO: Replace with real location DB or Google Maps API
   res.json({
-    countries: ['India'],
-    states: ['Tamil Nadu', 'Karnataka'],
-    districts: ['Arcot', 'Chennai', 'Bangalore Urban'],
-    cities: ['Vellore', 'Chennai', 'Bangalore']
+    locations: [
+      { name: 'Chennai', state: 'Tamil Nadu', latitude: 13.0827, longitude: 80.2707 },
+      { name: 'Bangalore', state: 'Karnataka', latitude: 12.9716, longitude: 77.5946 },
+      { name: 'Hyderabad', state: 'Telangana', latitude: 17.3850, longitude: 78.4867 },
+      { name: 'Mumbai', state: 'Maharashtra', latitude: 19.0760, longitude: 72.8777 },
+      { name: 'Delhi', state: 'Delhi', latitude: 28.7041, longitude: 77.1025 },
+      { name: 'Kolkata', state: 'West Bengal', latitude: 22.5726, longitude: 88.3639 },
+      { name: 'Pune', state: 'Maharashtra', latitude: 18.5204, longitude: 73.8567 },
+      { name: 'Chandigarh', state: 'Chandigarh', latitude: 30.7333, longitude: 76.7794 },
+      { name: 'Chittoor', state: 'Andhra Pradesh', latitude: 13.2172, longitude: 79.1000 },
+      { name: 'Sholinghur', state: 'Tamil Nadu', latitude: 12.9501, longitude: 80.1636 }
+    ]
   });
 });
 
