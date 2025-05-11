@@ -9,7 +9,7 @@
     "dev": "nodemon --watch src/ --exec 'npm run serve'"
   },
   "engines": {
-    "node": "18"
+    "node": "20"
   },
   "dependencies": {
     "cors": "^2.8.5",

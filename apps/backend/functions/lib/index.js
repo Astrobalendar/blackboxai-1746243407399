@@ -40,6 +40,7 @@ const functions = __importStar(require("firebase-functions"));
 const admin = __importStar(require("firebase-admin"));
 const express_1 = __importDefault(require("express"));
 const cors_1 = __importDefault(require("cors"));
+// NOTE: Function name changed from 'api' to 'astroApi' to avoid Cloud Run name conflict.
 admin.initializeApp();
 const db = admin.firestore();
 const app = (0, express_1.default)();
@@ -97,5 +98,5 @@ app.get('/locations', (req, res) => {
         cities: ['Vellore', 'Chennai', 'Bangalore']
     });
 });
-// Export the Express app as a Firebase Function
-exports.api = functions.https.onRequest(app);
+// Export the Express API as a single Cloud Function
+exports.astroApi = functions.https.onRequest(app);

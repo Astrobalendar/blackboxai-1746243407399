@@ -3,6 +3,8 @@ import * as admin from 'firebase-admin';
 import express from 'express';
 import cors from 'cors';
 
+// NOTE: Function name changed from 'api' to 'astroApi' to avoid Cloud Run name conflict.
+
 admin.initializeApp();
 const db = admin.firestore();
 
@@ -66,5 +68,5 @@ app.get('/locations', (req, res) => {
   });
 });
 
-// Export the Express app as a Firebase Function
-exports.api = functions.https.onRequest(app);
+// Export the Express API as a single Cloud Function
+exports.astroApi = functions.https.onRequest(app);
