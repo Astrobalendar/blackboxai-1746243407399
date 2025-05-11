@@ -166,7 +166,8 @@ const BirthDataEntry: React.FC = () => {
       });
       // Mark user as verified
       await setDoc(doc(db, 'users', user!.uid), { verified: true }, { merge: true });
-      navigate(`/dashboard`);
+      // TODO: Change '/horoscope' to the actual detailed view route if needed
+      navigate('/horoscope');
     } catch (err: any) {
       setError('Failed to save birth data.');
     }
