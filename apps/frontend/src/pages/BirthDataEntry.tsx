@@ -240,18 +240,6 @@ const BirthDataEntry: React.FC = () => {
                 <div className="flex gap-4 mb-4">
                   <input name="mobile" placeholder="Mobile Number" value={form.mobile} onChange={handleChange} required maxLength={10} className="flex-1 px-4 py-3 rounded-lg border border-yellow-200 focus:outline-yellow-500" />
                   {!otpVerified && (
-                    <div className="flex flex-col gap-2 flex-1">
-                      {!otpSent ? (
-                        <button type="button" disabled={loading} onClick={handleSendOtp} className="w-full bg-yellow-400 hover:bg-yellow-500 text-yellow-900 font-bold py-3 rounded-xl shadow transition">Send OTP</button>
-                      ) : (
-                        <div className="flex gap-2">
-                          <input name="otp" placeholder="Enter OTP" value={otp} onChange={e => setOtp(e.target.value)} required className="flex-1 px-4 py-3 rounded-lg border border-yellow-200 focus:outline-yellow-500" />
-                          <button type="button" disabled={loading} onClick={handleVerifyOtp} className="bg-yellow-400 hover:bg-yellow-500 text-yellow-900 font-bold py-3 px-4 rounded-xl shadow transition">Verify OTP</button>
-                        </div>
-                      )}
-                      <div id="recaptcha-container"></div>
-                    </div>
-                  )}
                 </div>
                 {/* Email field and verification buttons */}
                 <input name="email" placeholder="Email" value={form.email} disabled readOnly className="px-4 py-3 rounded-lg border border-yellow-200 bg-yellow-50 text-yellow-900 mb-4" />
