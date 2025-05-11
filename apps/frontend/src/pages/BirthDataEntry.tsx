@@ -25,9 +25,7 @@ const BirthDataEntry: React.FC = () => {
   const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
   const [scriptLoaded, setScriptLoaded] = useState(false);
 
-  const [otpSent, setOtpSent] = useState(false);
-  const [otp, setOtp] = useState('');
-  const [otpVerified, setOtpVerified] = useState(false);
+
   const [emailVerified, setEmailVerified] = useState(user?.emailVerified || false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -139,11 +137,7 @@ const BirthDataEntry: React.FC = () => {
     e.preventDefault();
     setError('');
     setLoading(true);
-    if (!otpVerified) {
-      setError('Please verify your mobile number.');
-      setLoading(false);
-      return;
-    }
+
     // TODO: Email verification suspended. Re-enable this check when ready.
     // if (!emailVerified) {
     //   setError('Please verify your email address.');
