@@ -3,6 +3,7 @@
     "axios": "^1.9.0",
     "expo": "^53.0.8",
     "firebase": "^11.6.1",
+    "firebase-admin": "^13.3.0",
     "html2pdf.js": "^0.10.3"
   },
   "devDependencies": {

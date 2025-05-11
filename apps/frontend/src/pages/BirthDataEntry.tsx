@@ -8,7 +8,7 @@ const BirthDataEntry: React.FC = () => {
   const navigate = useNavigate();
   const user = auth.currentUser;
   const [form, setForm] = useState({
-    fullName: '',
+    fullName: user?.displayName || '',
     gender: '',
     dob: '', // Date of Birth
     tob: '', // Time of Birth

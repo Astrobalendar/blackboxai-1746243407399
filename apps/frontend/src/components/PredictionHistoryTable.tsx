@@ -33,7 +33,7 @@ const PredictionHistoryTable: React.FC<PredictionHistoryTableProps> = ({ data })
           {data.map((entry) => (
             <tr key={entry.prediction_id} className="hover:bg-gray-100">
               <td className="py-2 px-4 border-b">{entry.prediction_id}</td>
-              <td className="py-2 px-4 border-b">{entry.display_name || entry.fullName || entry.displayName || entry.name || 'N/A'}</td>
+              <td className="py-2 px-4 border-b">{entry.fullName || entry.display_name || entry.displayName || entry.name || 'N/A'}</td>
               <td className="py-2 px-4 border-b">{entry.role}</td>
               <td className="py-2 px-4 border-b">{entry.match_status}</td>
               <td className="py-2 px-4 border-b">{new Date(entry.timestamp).toLocaleString()}</td>

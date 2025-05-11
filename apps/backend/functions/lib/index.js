@@ -76,7 +76,14 @@ app.post('/register', async (req, res) => {
         return res.status(400).json({ error: 'Missing required fields' });
     }
     await db.collection('users').doc(uid).set({
-        role, name, email, mobile, birthData, createdAt: new Date().toISOString()
+        role,
+        name,
+        fullName: name,
+        display_name: name,
+        email,
+        mobile,
+        birthData,
+        createdAt: new Date().toISOString()
     }, { merge: true });
     res.json({ success: true });
 });

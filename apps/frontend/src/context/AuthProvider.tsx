@@ -26,7 +26,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (firebaseUser) {
         // Fetch role from Firestore
         const userDoc = await getDoc(doc(db, 'users', firebaseUser.uid));
-        const role = userDoc.exists() ? userDoc.data().role : null;
+        const data = userDoc.exists() ? userDoc.data() : {};
+        const role = data.role || null;
+        // Optionally, you could also store display name in context if needed
+        // const displayName = data.fullName || data.display_name || data.displayName || data.name || null;
         setUserRole(role);
         if (role) localStorage.setItem('userRole', role);
       } else {

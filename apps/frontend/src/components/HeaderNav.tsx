@@ -17,12 +17,14 @@ const HeaderNav: React.FC = () => {
         const userDoc = await getDoc(doc(db, 'users', firebaseUser.uid));
         if (userDoc.exists()) {
           const data = userDoc.data();
+          // Use fullName, display_name, displayName, or fallback
+          setFullName(data.fullName || data.display_name || data.displayName || data.name || 'User');
           setFullName(data.firstName && data.lastName ? `${data.firstName} ${data.lastName}` : (data.displayName || firebaseUser.displayName || firebaseUser.email));
         } else {
-          setFullName(firebaseUser.displayName || firebaseUser.email);
+          setFullName(firebaseUser.displayName || firebaseUser.email || 'User');
         }
       } else {
-        setFullName(null);
+        setFullName('User');
       }
     });
     return () => unsubscribe();
