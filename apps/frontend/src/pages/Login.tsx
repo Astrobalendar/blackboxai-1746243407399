@@ -8,12 +8,22 @@ import { useAuth } from '../context/AuthProvider';
 // WARNING: Always import context and firebase in the correct order to avoid circular dependencies and TDZ errors.
 const Login: React.FC = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
   // Debug: log mount and user state
   React.useEffect(() => {
     console.log("Login.tsx mounted");
     console.log("user from useAuth:", user);
   }, [user]);
+
+  // Step 1: Show loading indicator while auth is initializing
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+
+  // Step 2: Prompt login if user is not authenticated
+  if (!user) {
+    return <div>Please log in.</div>;
+  }
 
   const handleGoogleSignIn = async () => {
     const provider = new GoogleAuthProvider();
@@ -55,8 +65,9 @@ const Login: React.FC = () => {
     );
   }
 
-  const [loading, setLoading] = React.useState(false);
-const [errorMsg, setErrorMsg] = React.useState<string | null>(null);
+  // Local loading/error state for Google sign-in only
+const [signInLoading, setSignInLoading] = React.useState(false);
+const [signInErrorMsg, setSignInErrorMsg] = React.useState<string | null>(null);
 
 return (
   <div style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #6b21a8 0%, #111827 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -64,14 +75,14 @@ return (
       <h2 style={{ marginBottom: 28, textAlign: 'center', color: '#6b21a8', fontWeight: 800, fontSize: 28 }}>Sign in to AstroBalendar</h2>
       <button
         onClick={async () => {
-          setLoading(true);
-          setErrorMsg(null);
+          setSignInLoading(true);
+          setSignInErrorMsg(null);
           try {
             await handleGoogleSignIn();
           } catch (e: any) {
-            setErrorMsg('Google sign-in failed. Please try again.');
+            setSignInErrorMsg('Google sign-in failed. Please try again.');
           } finally {
-            setLoading(false);
+            setSignInLoading(false);
           }
         }}
         style={{
@@ -79,10 +90,10 @@ return (
           background: '#fff', color: '#222', border: '1.5px solid #a78bfa', borderRadius: 8,
           padding: '12px 0', fontWeight: 700, fontSize: 17, width: '100%', marginBottom: 18, boxShadow: '0 2px 6px rgba(107,33,168,0.08)', cursor: 'pointer', transition: 'background 0.2s',
         }}
-        disabled={loading}
+        disabled={signInLoading}
       >
         <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google logo" style={{ width: 22, height: 22 }} />
-        {loading ? 'Signing in...' : 'Sign in with Google'}
+        {signInLoading ? 'Signing in...' : 'Sign in with Google'}
       </button>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 14 }}>
         <span style={{ color: '#555', fontWeight: 500 }}>Don't have an account?</span>
@@ -91,12 +102,15 @@ return (
           style={{ color: '#6b21a8', background: 'none', border: 'none', fontWeight: 700, marginLeft: 8, cursor: 'pointer', fontSize: 16 }}
         >Sign up</button>
       </div>
-      {errorMsg && (
-        <div style={{ color: '#b91c1c', background: '#fee2e2', borderRadius: 6, padding: 10, marginTop: 8, textAlign: 'center', fontWeight: 700 }}>{errorMsg}</div>
+      {/* Show Google sign-in error if present */}
+      {signInErrorMsg && (
+        <div style={{ color: 'red', marginTop: 8, textAlign: 'center', fontWeight: 500 }}>
+          {signInErrorMsg}
+        </div>
       )}
+      </div>
     </div>
-  </div>
-);
+  );
 };
 
 export default Login;
