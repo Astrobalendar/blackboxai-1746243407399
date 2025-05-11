@@ -81,6 +81,7 @@ const BirthDataEntry: React.FC = () => {
         window.recaptchaVerifier = new RecaptchaVerifier('recaptcha-container', { size: 'invisible' }, auth);
         await window.recaptchaVerifier.render();
       }
+      // Ensure we always use the imported 'auth' instance
       const confirmation = await signInWithPhoneNumber(auth, '+91' + form.mobile, window.recaptchaVerifier);
       window.confirmationResult = confirmation;
       setOtpSent(true);
