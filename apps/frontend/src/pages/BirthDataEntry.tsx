@@ -144,11 +144,12 @@ const BirthDataEntry: React.FC = () => {
       setLoading(false);
       return;
     }
-    if (!emailVerified) {
-      setError('Please verify your email address.');
-      setLoading(false);
-      return;
-    }
+    // TODO: Email verification suspended. Re-enable this check when ready.
+    // if (!emailVerified) {
+    //   setError('Please verify your email address.');
+    //   setLoading(false);
+    //   return;
+    // }
     try {
       await setDoc(doc(db, 'birthdata', user!.uid), {
         fullName: form.fullName,
