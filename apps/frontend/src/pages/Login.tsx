@@ -84,7 +84,17 @@ const Login: React.FC = () => {
         </form>
         <div className="my-4 text-center text-gray-500">or</div>
         <button
-          onClick={handleGoogleSignIn}
+          onClick={async () => {
+            setSignInLoading(true);
+            setSignInErrorMsg(null);
+            try {
+              await handleGoogleSignIn();
+            } catch (e: any) {
+              setSignInErrorMsg('Google sign-in failed. Please try again.');
+            } finally {
+              setSignInLoading(false);
+            }
+          }}
           className="w-full bg-white border border-gray-300 text-yellow-700 py-2 rounded font-semibold hover:bg-yellow-50 transition flex items-center justify-center"
           disabled={signInLoading}
         >
