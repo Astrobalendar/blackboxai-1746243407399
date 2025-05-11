@@ -70,6 +70,8 @@ const Signup: React.FC = () => {
       const uniqueId = genUserId(role, displayName);
       await setDoc(doc(db, 'users', user.uid), {
         displayName,
+        fullName: displayName,
+        display_name: displayName,
         email,
         role,
         phone,
