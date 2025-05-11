@@ -87,29 +87,8 @@ const BirthDataForm: React.FC<BirthDataFormProps> = ({ onSubmit, loading, error,
       .catch(() => setLocations([]));
   }, []);
 
-  // Compute city options based on selected state
   const stateOptions = Array.from(new Set(locations.map(loc => loc.state)));
   const cityOptions = locations.filter(loc => loc.state === formData.state);
-
-      const stateData = countryData[formData.state] as Record<string, any>;
-      districtOptions = Object.keys(stateData);
-      if (formData.district && stateData[formData.district]) {
-        cityOptions = stateData[formData.district];
-      }
-    }
-  } catch (e) {
-    districtOptions = [];
-    cityOptions = [];
-  }
-
-  const statesOfIndia = [
-    '', 'Andhra Pradesh', 'Arunachal Pradesh', 'Assam', 'Bihar', 'Chhattisgarh', 'Goa', 'Gujarat',
-    'Haryana', 'Himachal Pradesh', 'Jharkhand', 'Karnataka', 'Kerala', 'Madhya Pradesh',
-    'Maharashtra', 'Manipur', 'Meghalaya', 'Mizoram', 'Nagaland', 'Odisha', 'Punjab',
-    'Rajasthan', 'Sikkim', 'Tamil Nadu', 'Telangana', 'Tripura', 'Uttar Pradesh',
-    'Uttarakhand', 'West Bengal', 'Andaman and Nicobar Islands', 'Chandigarh', 'Dadra and Nagar Haveli and Daman and Diu',
-    'Delhi', 'Jammu and Kashmir', 'Ladakh', 'Lakshadweep', 'Puducherry'
-  ];
 
   const validateDate = (date: string): boolean => {
     const regex = /^(\d{2})\/(\d{2})\/(\d{4})$/;
@@ -137,15 +116,12 @@ const BirthDataForm: React.FC<BirthDataFormProps> = ({ onSubmit, loading, error,
     const { name, value } = e.target;
     setFormData((prev: BirthData) => ({ ...prev, [name]: value }));
 
-    // Clear error for the changed field
     setErrors((prev: Partial<BirthData>) => ({ ...prev, [name]: '' }));
   };
 
-  // Date picker change handler
   const handleDateChange = (date: Date | null) => {
     setDatePickerValue(date);
     if (date) {
-      // Store as DD/MM/YYYY for display, ISO for backend
       setFormData((prev: BirthData) => ({ ...prev, dateOfBirth: dayjs(date).format('DD/MM/YYYY') }));
       setErrors((prev: Partial<BirthData>) => ({ ...prev, dateOfBirth: '' }));
     } else {
@@ -155,7 +131,6 @@ const BirthDataForm: React.FC<BirthDataFormProps> = ({ onSubmit, loading, error,
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Validate required fields
     const newErrors: Partial<BirthData> = {};
     if (!formData.fullName) newErrors.fullName = 'Full name is required';
     if (!formData.dateOfBirth) newErrors.dateOfBirth = 'Date of birth is required';
@@ -167,7 +142,6 @@ const BirthDataForm: React.FC<BirthDataFormProps> = ({ onSubmit, loading, error,
     setErrors(newErrors);
     if (Object.keys(newErrors).length > 0) return;
 
-    // Fill latitude/longitude from selected city
     const selectedCity = locations.find(loc => loc.name === formData.city && loc.state === formData.state);
     const payload = {
       fullName: formData.fullName,
@@ -180,19 +154,13 @@ const BirthDataForm: React.FC<BirthDataFormProps> = ({ onSubmit, loading, error,
       email: formData.email,
       mobile: formData.mobile,
       locationName: formData.city + ', ' + formData.state,
-      timeZone: formData.timeZone,
-    if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors);
-      return;
-    }
+      timeZone: formData.timeZone
+    };
 
-    // If location data is missing, try to get it using geocoding
     if (!formData.latitude || !formData.longitude || !formData.timeZone) {
       try {
-        // Normalize all address parts
         const city = formData.city.trim().toLowerCase();
         const state = formData.state.trim().toLowerCase();
-        const district = formData.district.trim().toLowerCase();
         const address = `${city}, ${state}, india`;
         const mockLocationData: Record<string, { latitude: string; longitude: string; timeZone: string }> = {
           'sholinghur, tamil nadu, india': { latitude: '13.1132', longitude: '79.4182', timeZone: 'Asia/Kolkata' },
