@@ -77,6 +77,13 @@ const BirthDataEntry: React.FC = () => {
     setError('');
     try {
       // Ensure recaptchaVerifier is initialized only once
+      // Ensure the recaptcha-container div exists
+      if (!document.getElementById('recaptcha-container')) {
+        const recaptchaDiv = document.createElement('div');
+        recaptchaDiv.id = 'recaptcha-container';
+        recaptchaDiv.style.display = 'none';
+        document.body.appendChild(recaptchaDiv);
+      }
       if (!window.recaptchaVerifier) {
         window.recaptchaVerifier = new RecaptchaVerifier('recaptcha-container', { size: 'invisible' }, auth);
         await window.recaptchaVerifier.render();
