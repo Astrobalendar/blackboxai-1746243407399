@@ -172,10 +172,14 @@ const BirthDataEntry: React.FC = () => {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-yellow-100 via-yellow-50 to-yellow-200">
-      <div className="w-full max-w-xl bg-white rounded-xl shadow-xl p-8 mt-8 mb-16">
-        <h2 className="text-2xl font-bold mb-6 text-center text-yellow-900">Enter Your Birth Data</h2>
+      <div className="w-full max-w-md mx-auto p-8 bg-white rounded-3xl shadow-2xl mt-16 mb-12">
+        <h2 className="text-2xl font-bold text-yellow-900 mb-6 text-center">Enter Your Birth Data</h2>
         {GOOGLE_MAPS_API_KEY ? (
-          <LoadScript googleMapsApiKey={GOOGLE_MAPS_API_KEY} libraries={["places"]} onLoad={() => setScriptLoaded(true)}>
+          <LoadScript
+            googleMapsApiKey={GOOGLE_MAPS_API_KEY}
+            libraries={GOOGLE_MAPS_LIBRARIES}
+            onLoad={() => setScriptLoaded(true)}
+          >
             <form onSubmit={handleSubmit}>
               {/* Personal Details Section */}
               <div>
