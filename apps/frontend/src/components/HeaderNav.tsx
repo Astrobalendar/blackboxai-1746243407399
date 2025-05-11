@@ -36,7 +36,7 @@ const HeaderNav: React.FC = () => {
   };
 
   return (
-    <nav className="bg-yellow-600 shadow-lg py-4 px-6 flex items-center justify-between">
+    <nav className="w-full bg-yellow-600 shadow-lg py-4 px-6 flex items-center justify-between">
       <h1 className="text-2xl font-bold text-white tracking-wide">🔮 AstroBalendar</h1>
       <div className="space-x-4 flex items-center">
         <Link to="/" className="text-white hover:underline">Home</Link>

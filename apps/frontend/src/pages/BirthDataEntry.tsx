@@ -76,14 +76,16 @@ const BirthDataEntry: React.FC = () => {
     setLoading(true);
     setError('');
     try {
+      // Ensure recaptchaVerifier is initialized only once
       if (!window.recaptchaVerifier) {
         window.recaptchaVerifier = new RecaptchaVerifier('recaptcha-container', { size: 'invisible' }, auth);
+        await window.recaptchaVerifier.render();
       }
       const confirmation = await signInWithPhoneNumber(auth, '+91' + form.mobile, window.recaptchaVerifier);
       window.confirmationResult = confirmation;
       setOtpSent(true);
     } catch (err: any) {
-      setError(err.message);
+      setError(err.message || 'Failed to send OTP.');
     }
     setLoading(false);
   };
@@ -92,6 +94,11 @@ const BirthDataEntry: React.FC = () => {
     setLoading(true);
     setError('');
     try {
+      if (!window.confirmationResult) {
+        setError('OTP not sent or expired. Please resend OTP.');
+        setLoading(false);
+        return;
+      }
       await window.confirmationResult.confirm(otp);
       setOtpVerified(true);
     } catch (err: any) {
@@ -99,6 +106,7 @@ const BirthDataEntry: React.FC = () => {
     }
     setLoading(false);
   };
+
 
   const handleEmailVerification = async () => {
     if (!user) return;
