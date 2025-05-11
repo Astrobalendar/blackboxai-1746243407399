@@ -237,26 +237,16 @@ const BirthDataEntry: React.FC = () => {
               {/* Contact Information Section */}
               <div>
                 <h3 className="text-lg font-bold mb-4 text-yellow-800">Contact Information</h3>
-                {/* Mobile Number and OTP Verification */}
+                {/* Mobile Number */}
                 <div className="flex gap-4 mb-4">
                   <input name="mobile" placeholder="Mobile Number" value={form.mobile} onChange={handleChange} required maxLength={10} className="flex-1 px-4 py-3 rounded-lg border border-yellow-200 focus:outline-yellow-500" />
-                  {/* OTP temporarily suspended */}
-                  <button type="button" disabled className="bg-gray-300 text-gray-500 font-bold py-3 px-6 rounded-lg cursor-not-allowed">
-                    OTP Suspended
-                  </button>
                 </div>
-                {/* Email field and verification buttons */}
+                {/* Email field (read-only) */}
                 <input name="email" placeholder="Email" value={form.email} disabled readOnly className="px-4 py-3 rounded-lg border border-yellow-200 bg-yellow-50 text-yellow-900 mb-4" />
-                {!emailVerified && (
-                  <div className="flex gap-2 mb-4">
-                    <button type="button" onClick={handleEmailVerification} disabled={loading} className="flex-1 bg-yellow-400 hover:bg-yellow-500 text-yellow-900 font-bold py-3 rounded-xl shadow transition">Send Email Verification</button>
-                    <button type="button" onClick={checkEmailVerified} disabled={loading} className="flex-1 bg-yellow-100 hover:bg-yellow-200 text-yellow-900 font-bold py-3 rounded-xl shadow transition">I have verified my email</button>
-                  </div>
-                )}
                 <input name="address" placeholder="Full Address" value={form.address} onChange={handleChange} required className="px-4 py-3 rounded-lg border border-yellow-200 focus:outline-yellow-500" />
               </div>
               {error && <div className="bg-red-100 text-red-800 rounded-lg px-4 py-3 text-center font-semibold">{error}</div>}
-              <button type="submit" disabled={loading || !otpVerified || !emailVerified} className="w-full bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-3 rounded-xl shadow transition mt-2">Submit</button>
+              <button type="submit" disabled={loading} className="w-full bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-3 rounded-xl shadow transition mt-2">Submit</button>
             </form>
           </LoadScript>
         ) : (
