@@ -1,3 +1,4 @@
+// WARNING: Avoid circular imports with firebase.ts. Never import AuthProvider or useAuth in firebase.ts.
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { onAuthStateChanged, User } from 'firebase/auth';
 export type { User };
@@ -48,4 +49,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   );
 };
 
-export const useAuth = () => useContext(AuthContext);
+export const useAuth = () => {
+  const ctx = useContext(AuthContext);
+  if (ctx === undefined) {
+    console.error("AuthContext is undefined. This may be due to a circular import or improper provider setup.");
+    throw new Error("AuthContext is undefined. Check for circular imports or missing AuthProvider.");
+  }
+  return ctx;
+};

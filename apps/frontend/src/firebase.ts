@@ -1,3 +1,5 @@
+// WARNING: Never import from any file that itself imports from this file (firebase.ts).
+// This prevents circular dependencies and TDZ errors with Firebase services.
 import { initializeApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';

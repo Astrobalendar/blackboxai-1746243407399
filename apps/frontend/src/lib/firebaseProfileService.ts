@@ -1,3 +1,4 @@
+// WARNING: Never import from this file in firebase.ts to avoid circular dependencies.
 import { doc, setDoc, getDoc } from "firebase/firestore";
 import { auth, db } from "../firebase";
 

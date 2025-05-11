@@ -5,14 +5,15 @@ import { auth, db } from '../firebase';
 import { doc, getDoc } from 'firebase/firestore';
 import { useAuth } from '../context/AuthProvider';
 
+// WARNING: Always import context and firebase in the correct order to avoid circular dependencies and TDZ errors.
 const Login: React.FC = () => {
+  const navigate = useNavigate();
+  const { user } = useAuth();
   // Debug: log mount and user state
   React.useEffect(() => {
     console.log("Login.tsx mounted");
     console.log("user from useAuth:", user);
   }, [user]);
-  const navigate = useNavigate();
-  const { user } = useAuth();
 
   const handleGoogleSignIn = async () => {
     const provider = new GoogleAuthProvider();
