@@ -33,7 +33,7 @@ interface BirthDataFormProps {
 const BirthDataForm: React.FC<BirthDataFormProps> = ({ onSubmit, loading, error, initialData }) => {
   // Add locationName for Firestore
   const [formData, setFormData] = useState<BirthData>({
-    name: '',
+    fullName: '',
     dateOfBirth: '',
     timeOfBirth: '',
     state: '',
@@ -148,10 +148,10 @@ const BirthDataForm: React.FC<BirthDataFormProps> = ({ onSubmit, loading, error,
     const newErrors: Partial<BirthData> = {};
 
     // Validate required fields
-    const requiredFields = ['name', 'dateOfBirth', 'timeOfBirth', 'state', 'district', 'city'] as const;
+    const requiredFields = ['fullName', 'dateOfBirth', 'timeOfBirth', 'state', 'district', 'city'] as const;
     requiredFields.forEach((field) => {
       if (!formData[field]) {
-        newErrors[field] = 'This field is required';
+        newErrors[field] = 'This field is required'; // fullName required
       }
     });
 

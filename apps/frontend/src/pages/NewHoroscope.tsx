@@ -13,7 +13,7 @@ const NewHoroscope: React.FC = () => {
   const navigate = useNavigate();
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState({
-    name: '',
+    fullName: '',
     dateOfBirth: '',
     timeOfBirth: '',
     placeOfBirth: '',

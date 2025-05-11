@@ -3,7 +3,7 @@ import { doc, setDoc, serverTimestamp } from "firebase/firestore";
 import { db, auth } from "../firebase";
 
 interface ProfileData {
-  name: string;
+  fullName: string;
   birthDate: string;
   birthTime: string;
   location: string;
@@ -15,7 +15,7 @@ interface NewProfileFormProps {
 
 const NewProfileForm: React.FC<NewProfileFormProps> = ({ onProfileCreated }) => {
   const [formData, setFormData] = useState<ProfileData>({
-    name: "",
+    fullName: "",
     birthDate: "",
     birthTime: "",
     location: "",
@@ -52,11 +52,11 @@ const NewProfileForm: React.FC<NewProfileFormProps> = ({ onProfileCreated }) => 
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
         <label>
-          Name:
+          Full Name:
           <input
             type="text"
-            name="name"
-            value={formData.name}
+            name="fullName"
+            value={formData.fullName}
             onChange={handleChange}
             required
             className="w-full p-2 border rounded"

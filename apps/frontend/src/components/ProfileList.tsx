@@ -4,7 +4,7 @@ import { db, auth } from "../firebase";
 
 interface Profile {
   id: string;
-  name: string;
+  fullName: string;
   birthDate: string;
 }
 
@@ -60,7 +60,7 @@ const ProfileList: React.FC<ProfileListProps> = ({ onProfileSelected }) => {
           {profiles.map((profile) => (
             <li key={profile.id} className="flex justify-between items-center">
               <span>
-                {profile.name} - {profile.birthDate}
+                {profile.fullName} - {profile.birthDate}
               </span>
               <div className="flex gap-2">
                 <button

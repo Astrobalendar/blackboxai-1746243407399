@@ -1,24 +1,30 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { auth, db } from '../firebase';
 import { doc, setDoc, getDoc } from 'firebase/firestore';
 import { RecaptchaVerifier, signInWithPhoneNumber } from 'firebase/auth';
+import { GoogleMap, LoadScript, Autocomplete } from '@react-google-maps/api';
 
 const BirthDataEntry: React.FC = () => {
   const navigate = useNavigate();
   const user = auth.currentUser;
   const [form, setForm] = useState({
-    fullName: user?.displayName || '',
+    fullName: user?.displayName || '', 
     gender: '',
-    dob: '', // Date of Birth
-    tob: '', // Time of Birth
-    pob: '', // Place of Birth (autocomplete)
+    dob: '', 
+    tob: '', 
+    pob: '', 
     latitude: '',
     longitude: '',
     mobile: '',
     email: user?.email || '',
     address: '',
   });
+
+  // Google Places Autocomplete ref
+  const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
+  const [scriptLoaded, setScriptLoaded] = useState(false);
+
   const [otpSent, setOtpSent] = useState(false);
   const [otp, setOtp] = useState('');
   const [otpVerified, setOtpVerified] = useState(false);
@@ -47,8 +53,24 @@ const BirthDataEntry: React.FC = () => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  // Placeholder for Google Places Autocomplete integration for POB
-  // To be implemented: when a place is selected, auto-fill latitude/longitude
+  // Google Places Autocomplete integration for POB
+  const handleAutocompleteLoad = (autocomplete: google.maps.places.Autocomplete) => {
+    autocompleteRef.current = autocomplete;
+  };
+
+  const handlePlaceChanged = () => {
+    if (autocompleteRef.current) {
+      const place = autocompleteRef.current.getPlace();
+      if (place && place.geometry && place.geometry.location) {
+        setForm((prev) => ({
+          ...prev,
+          pob: place.formatted_address || place.name || '',
+          latitude: place.geometry.location.lat().toString(),
+          longitude: place.geometry.location.lng().toString(),
+        }));
+      }
+    }
+  };
 
   const handleSendOtp = async () => {
     setLoading(true);
@@ -113,7 +135,16 @@ const BirthDataEntry: React.FC = () => {
     }
     try {
       await setDoc(doc(db, 'birthdata', user!.uid), {
-        ...form,
+        fullName: form.fullName,
+        gender: form.gender,
+        dob: form.dob,
+        tob: form.tob,
+        pob: form.pob,
+        latitude: form.latitude,
+        longitude: form.longitude,
+        mobile: form.mobile,
+        email: form.email,
+        address: form.address,
         uid: user!.uid,
         createdAt: new Date().toISOString(),
       });
@@ -126,75 +157,92 @@ const BirthDataEntry: React.FC = () => {
     setLoading(false);
   };
 
+  const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || process.env.REACT_APP_GOOGLE_MAPS_API_KEY;
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-yellow-100 via-yellow-50 to-yellow-200 py-8 px-2">
-      <div className="w-full max-w-lg bg-white rounded-xl shadow-xl py-10 px-6 md:px-10">
-        <h2 className="text-3xl font-extrabold text-yellow-900 mb-8 text-center">Enter Your Birth Data</h2>
-        <form onSubmit={handleSubmit} className="flex flex-col gap-8">
-          {/* Personal Details Section */}
-          <div>
-            <h3 className="text-lg font-bold mb-4 text-yellow-800">Personal Details</h3>
-            <div className="mb-4">
-              <input name="fullName" placeholder="Full Name" value={form.fullName} onChange={handleChange} required className="w-full px-4 py-3 rounded-lg border border-yellow-200 focus:outline-yellow-500" />
-            </div>
-            <div className="flex gap-4 mb-4">
-              <select name="gender" value={form.gender} onChange={handleChange} required className="flex-1 px-4 py-3 rounded-lg border border-yellow-200 focus:outline-yellow-500" title="Gender">
-                <option value="">Select Gender</option>
-                <option value="Male">Male</option>
-                <option value="Female">Female</option>
-                <option value="Other">Other</option>
-              </select>
-            </div>
-          </div>
-          {/* Birth Details Section */}
-          <div>
-            <h3 className="text-lg font-bold mb-4 text-yellow-800">Birth Details</h3>
-            <div className="flex gap-4 mb-4">
-              <input name="dob" type="date" placeholder="Date of Birth" value={form.dob} onChange={handleChange} required className="flex-1 px-4 py-3 rounded-lg border border-yellow-200 focus:outline-yellow-500" />
-              <input name="tob" type="time" placeholder="Time of Birth" value={form.tob} onChange={handleChange} required className="flex-1 px-4 py-3 rounded-lg border border-yellow-200 focus:outline-yellow-500" />
-            </div>
-            {/* Place of Birth Autocomplete */}
-            <div className="mb-4">
-              <input name="pob" placeholder="Place of Birth (City, Town, Village, etc.)" value={form.pob} onChange={handleChange} required className="w-full px-4 py-3 rounded-lg border border-yellow-200 focus:outline-yellow-500" />
-              {/* TODO: Integrate Google Places Autocomplete here for global place search */}
-              {/* TODO: Integrate Map Picker here for selecting/filling coordinates */}
-            </div>
-            <div className="flex gap-4 mb-4">
-              <input name="latitude" placeholder="Latitude" value={form.latitude} onChange={handleChange} required className="flex-1 px-4 py-3 rounded-lg border border-yellow-200 focus:outline-yellow-500" />
-              <input name="longitude" placeholder="Longitude" value={form.longitude} onChange={handleChange} required className="flex-1 px-4 py-3 rounded-lg border border-yellow-200 focus:outline-yellow-500" />
-            </div>
-          </div>
-          {/* Contact Information Section */}
-          <div>
-            <h3 className="text-lg font-bold mb-4 text-yellow-800">Contact Information</h3>
-            <div className="flex gap-4 mb-4">
-              <input name="mobile" placeholder="Mobile Number" value={form.mobile} onChange={handleChange} required maxLength={10} className="flex-1 px-4 py-3 rounded-lg border border-yellow-200 focus:outline-yellow-500" />
-              {!otpVerified && (
-                <div className="flex flex-col gap-2 flex-1">
-                  {!otpSent ? (
-                    <button type="button" disabled={loading} onClick={handleSendOtp} className="w-full bg-yellow-400 hover:bg-yellow-500 text-yellow-900 font-bold py-3 rounded-xl shadow transition">Send OTP</button>
-                  ) : (
-                    <div className="flex gap-2">
-                      <input name="otp" placeholder="Enter OTP" value={otp} onChange={e => setOtp(e.target.value)} required className="flex-1 px-4 py-3 rounded-lg border border-yellow-200 focus:outline-yellow-500" />
-                      <button type="button" disabled={loading} onClick={handleVerifyOtp} className="bg-yellow-400 hover:bg-yellow-500 text-yellow-900 font-bold py-3 px-4 rounded-xl shadow transition">Verify OTP</button>
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-yellow-100 via-yellow-50 to-yellow-200">
+      <div className="w-full max-w-xl bg-white rounded-xl shadow-xl p-8 mt-8 mb-16">
+        <h2 className="text-2xl font-bold mb-6 text-center text-yellow-900">Enter Your Birth Data</h2>
+        {GOOGLE_MAPS_API_KEY ? (
+          <LoadScript googleMapsApiKey={GOOGLE_MAPS_API_KEY} libraries={["places"]} onLoad={() => setScriptLoaded(true)}>
+            <form onSubmit={handleSubmit}>
+              {/* Personal Details Section */}
+              <div>
+                <h3 className="text-lg font-bold mb-4 text-yellow-800">Personal Details</h3>
+                <div className="mb-4">
+                  <input name="fullName" placeholder="Full Name" value={form.fullName} onChange={handleChange} required className="w-full px-4 py-3 rounded-lg border border-yellow-200 focus:outline-yellow-500" />
+                </div>
+                <div className="flex gap-4 mb-4">
+                  <select name="gender" value={form.gender} onChange={handleChange} required className="flex-1 px-4 py-3 rounded-lg border border-yellow-200 focus:outline-yellow-500" title="Gender">
+                    <option value="">Select Gender</option>
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
+                    <option value="Other">Other</option>
+                  </select>
+                </div>
+              </div>
+              {/* Birth Details Section */}
+              <div>
+                <h3 className="text-lg font-bold mb-4 text-yellow-800">Birth Details</h3>
+                <div className="flex gap-4 mb-4">
+                  <input name="dob" type="date" placeholder="Date of Birth" value={form.dob} onChange={handleChange} required className="flex-1 px-4 py-3 rounded-lg border border-yellow-200 focus:outline-yellow-500" />
+                  <input name="tob" type="time" placeholder="Time of Birth" value={form.tob} onChange={handleChange} required className="flex-1 px-4 py-3 rounded-lg border border-yellow-200 focus:outline-yellow-500" />
+                </div>
+                {/* Place of Birth (Google Autocomplete) */}
+                <div className="mb-4">
+                  <label htmlFor="pob" className="block text-sm font-semibold mb-2">Place of Birth</label>
+                  <Autocomplete onLoad={handleAutocompleteLoad} onPlaceChanged={handlePlaceChanged}>
+                    <input
+                      type="text"
+                      name="pob"
+                      value={form.pob}
+                      onChange={handleChange}
+                      required
+                      className="w-full px-4 py-3 rounded-lg border border-yellow-200 focus:outline-yellow-500"
+                      placeholder="Enter place of birth (autocomplete)"
+                    />
+                  </Autocomplete>
+                </div>
+                {/* Hidden fields for latitude and longitude, auto-filled by autocomplete */}
+                <input type="hidden" name="latitude" value={form.latitude} readOnly />
+              </div>
+              {/* Contact Information Section */}
+              <div>
+                <h3 className="text-lg font-bold mb-4 text-yellow-800">Contact Information</h3>
+                {/* Mobile Number and OTP Verification */}
+                <div className="flex gap-4 mb-4">
+                  <input name="mobile" placeholder="Mobile Number" value={form.mobile} onChange={handleChange} required maxLength={10} className="flex-1 px-4 py-3 rounded-lg border border-yellow-200 focus:outline-yellow-500" />
+                  {!otpVerified && (
+                    <div className="flex flex-col gap-2 flex-1">
+                      {!otpSent ? (
+                        <button type="button" disabled={loading} onClick={handleSendOtp} className="w-full bg-yellow-400 hover:bg-yellow-500 text-yellow-900 font-bold py-3 rounded-xl shadow transition">Send OTP</button>
+                      ) : (
+                        <div className="flex gap-2">
+                          <input name="otp" placeholder="Enter OTP" value={otp} onChange={e => setOtp(e.target.value)} required className="flex-1 px-4 py-3 rounded-lg border border-yellow-200 focus:outline-yellow-500" />
+                          <button type="button" disabled={loading} onClick={handleVerifyOtp} className="bg-yellow-400 hover:bg-yellow-500 text-yellow-900 font-bold py-3 px-4 rounded-xl shadow transition">Verify OTP</button>
+                        </div>
+                      )}
+                      <div id="recaptcha-container"></div>
                     </div>
                   )}
-                  <div id="recaptcha-container"></div>
                 </div>
-              )}
-            </div>
-            <input name="email" placeholder="Email" value={form.email} disabled readOnly className="px-4 py-3 rounded-lg border border-yellow-200 bg-yellow-50 text-yellow-900 mb-4" />
-            {!emailVerified && (
-              <div className="flex gap-2 mb-4">
-                <button type="button" onClick={handleEmailVerification} disabled={loading} className="flex-1 bg-yellow-400 hover:bg-yellow-500 text-yellow-900 font-bold py-3 rounded-xl shadow transition">Send Email Verification</button>
-                <button type="button" onClick={checkEmailVerified} disabled={loading} className="flex-1 bg-yellow-100 hover:bg-yellow-200 text-yellow-900 font-bold py-3 rounded-xl shadow transition">I have verified my email</button>
+                {/* Email field and verification buttons */}
+                <input name="email" placeholder="Email" value={form.email} disabled readOnly className="px-4 py-3 rounded-lg border border-yellow-200 bg-yellow-50 text-yellow-900 mb-4" />
+                {!emailVerified && (
+                  <div className="flex gap-2 mb-4">
+                    <button type="button" onClick={handleEmailVerification} disabled={loading} className="flex-1 bg-yellow-400 hover:bg-yellow-500 text-yellow-900 font-bold py-3 rounded-xl shadow transition">Send Email Verification</button>
+                    <button type="button" onClick={checkEmailVerified} disabled={loading} className="flex-1 bg-yellow-100 hover:bg-yellow-200 text-yellow-900 font-bold py-3 rounded-xl shadow transition">I have verified my email</button>
+                  </div>
+                )}
+                <input name="address" placeholder="Full Address" value={form.address} onChange={handleChange} required className="px-4 py-3 rounded-lg border border-yellow-200 focus:outline-yellow-500" />
               </div>
-            )}
-            <input name="address" placeholder="Full Address" value={form.address} onChange={handleChange} required className="px-4 py-3 rounded-lg border border-yellow-200 focus:outline-yellow-500" />
-          </div>
-          {error && <div className="bg-red-100 text-red-800 rounded-lg px-4 py-3 text-center font-semibold">{error}</div>}
-          <button type="submit" disabled={loading || !otpVerified || !emailVerified} className="w-full bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-3 rounded-xl shadow transition mt-2">Submit</button>
-        </form>
+              {error && <div className="bg-red-100 text-red-800 rounded-lg px-4 py-3 text-center font-semibold">{error}</div>}
+              <button type="submit" disabled={loading || !otpVerified || !emailVerified} className="w-full bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-3 rounded-xl shadow transition mt-2">Submit</button>
+            </form>
+          </LoadScript>
+        ) : (
+          <div className="text-lg font-bold mb-4 text-yellow-800">Google Maps API Key is not set.</div>
+        )}
       </div>
     </div>
   );
