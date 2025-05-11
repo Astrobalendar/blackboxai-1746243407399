@@ -98,8 +98,10 @@ const Login: React.FC = () => {
           className="w-full bg-white border border-gray-300 text-yellow-700 py-2 rounded font-semibold hover:bg-yellow-50 transition flex items-center justify-center"
           disabled={signInLoading}
         >
-          <img src="/google-icon.svg" alt="Google" className="w-5 h-5 mr-2" />
-          {signInLoading ? 'Signing in with Google...' : 'Sign in with Google'}
+          <img src="/google-icon.svg" alt="Google" className="w-5 h-5 mr-2 align-middle" />
+<span style={{ display: 'inline-block', verticalAlign: 'middle', whiteSpace: 'nowrap' }}>
+  {signInLoading ? 'Signing in with Google...' : 'Sign in with Google'}
+</span>
         </button>
         {signInErrorMsg && (
           <div className="text-red-500 text-center mt-2 font-medium">{signInErrorMsg}</div>
@@ -211,8 +213,10 @@ const Login: React.FC = () => {
           className="w-full bg-white border border-gray-300 text-yellow-700 py-2 rounded font-semibold hover:bg-yellow-50 transition flex items-center justify-center"
           disabled={signInLoading}
         >
-          <img src="/google-icon.svg" alt="Google" className="w-5 h-5 mr-2" />
-          {signInLoading ? 'Signing in with Google...' : 'Sign in with Google'}
+          <img src="/google-icon.svg" alt="Google" className="w-5 h-5 mr-2 align-middle" />
+<span style={{ display: 'inline-block', verticalAlign: 'middle', whiteSpace: 'nowrap' }}>
+  {signInLoading ? 'Signing in with Google...' : 'Sign in with Google'}
+</span>
         </button>
         {signInErrorMsg && (
           <div className="text-red-500 text-center mt-2 font-medium">{signInErrorMsg}</div>
