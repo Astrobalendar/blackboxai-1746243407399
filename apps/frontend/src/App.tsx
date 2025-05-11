@@ -34,10 +34,9 @@ function App() {
   return (
     <ErrorBoundary>
       <div className="min-h-screen bg-gradient-to-br from-yellow-200 via-yellow-100 to-yellow-300 text-yellow-900 font-sans flex flex-col">
-        <div className="flex-1 w-full max-w-7xl mx-auto px-4 py-6">
-
         {/* Show HeaderNav on all pages except Home */}
         {window.location.pathname !== '/' && <HeaderNav />}
+        <div className="flex-1 w-full max-w-7xl mx-auto px-4 py-6">
 
         <main className="p-0">
           <AuthProvider>

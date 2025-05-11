@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { auth, db } from '../firebase';
 import { doc, getDoc } from 'firebase/firestore';
 import { useAuth } from '../context/AuthProvider';
+import '../styles/login.css';
 
 // WARNING: Always import context and firebase in the correct order to avoid circular dependencies and TDZ errors.
 const Login: React.FC = () => {
@@ -21,9 +22,86 @@ const Login: React.FC = () => {
   }
 
   // Step 2: Prompt login if user is not authenticated
-  if (!user) {
-    return <div>Please log in.</div>;
-  }
+  const [email, setEmail] = React.useState("");
+  const [password, setPassword] = React.useState("");
+  const [loginError, setLoginError] = React.useState<string | null>(null);
+  const [loginLoading, setLoginLoading] = React.useState(false);
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoginError(null);
+    setLoginLoading(true);
+    try {
+      const { signInWithEmailAndPassword } = await import('firebase/auth');
+      await signInWithEmailAndPassword(auth, email, password);
+    } catch (error: any) {
+      setLoginError(error.message || 'Login failed');
+    } finally {
+      setLoginLoading(false);
+    }
+  };
+
+  return (
+    <div className="login-container">
+      <div className="login-card">
+        <h2 className="login-title">Sign in to AstroBalendar</h2>
+        <form onSubmit={handleLogin} className="space-y-4">
+          <div>
+            <label htmlFor="email" className="block text-sm font-medium text-gray-700">Email</label>
+            <input
+              id="email"
+              type="email"
+              value={email}
+              onChange={e => setEmail(e.target.value)}
+              className="w-full p-2 border rounded"
+              required
+            />
+          </div>
+          <div>
+            <label htmlFor="password" className="block text-sm font-medium text-gray-700">Password</label>
+            <input
+              id="password"
+              type="password"
+              value={password}
+              onChange={e => setPassword(e.target.value)}
+              className="w-full p-2 border rounded"
+              required
+            />
+          </div>
+          {loginError && <div className="text-red-500 text-sm">{loginError}</div>}
+          <button
+            type="submit"
+            className="w-full bg-yellow-700 text-white py-2 rounded font-semibold hover:bg-yellow-800 transition"
+            disabled={loginLoading}
+          >
+            {loginLoading ? 'Logging in...' : 'Login'}
+          </button>
+        </form>
+        <div className="my-4 text-center text-gray-500">or</div>
+        <button
+          onClick={handleGoogleSignIn}
+          className="w-full bg-white border border-gray-300 text-yellow-700 py-2 rounded font-semibold hover:bg-yellow-50 transition flex items-center justify-center"
+          disabled={signInLoading}
+        >
+          <img src="/google-icon.svg" alt="Google" className="w-5 h-5 mr-2" />
+          {signInLoading ? 'Signing in with Google...' : 'Sign in with Google'}
+        </button>
+        {signInErrorMsg && (
+          <div className="text-red-500 text-center mt-2 font-medium">{signInErrorMsg}</div>
+        )}
+        <div className="mt-4 text-center">
+          <span className="text-gray-700 font-medium">Don't have an account?</span>
+          <button
+            onClick={() => navigate('/signup')}
+            className="ml-2 text-yellow-700 font-bold hover:underline"
+            type="button"
+          >
+            Sign up
+          </button>
+        </div>
+      </div>
+    </div>
+  );
 
   const handleGoogleSignIn = async () => {
     const provider = new GoogleAuthProvider();
