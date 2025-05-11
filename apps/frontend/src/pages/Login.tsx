@@ -151,14 +151,19 @@ const Login: React.FC = () => {
     return <div>There was a problem with your session. Please refresh.</div>;
   }
 
-  if (user) {
-    return (
-      <div>
-        <h2>Welcome, {user.displayName || user.email}!</h2>
-        <button onClick={() => navigate('/birth-data')}>Go to Birth Data</button>
-      </div>
-    );
+  if (loading || !user) {
+    return <div>Loading...</div>;
   }
+
+  // Safe rendering: fallback to email or 'Friend' if displayName is null
+  const displayName = user.displayName ?? user.email ?? 'Friend';
+
+  return (
+    <div>
+      <h2>Welcome, {displayName}!</h2>
+      <button onClick={() => navigate('/birth-data')}>Go to Birth Data</button>
+    </div>
+  );
 
   // Main login form and Google sign-in UI
   return (
