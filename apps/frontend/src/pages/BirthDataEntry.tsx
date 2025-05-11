@@ -260,7 +260,23 @@ const BirthDataEntry: React.FC = () => {
             </form>
           </LoadScript>
         ) : (
-          <div className="text-lg font-bold mb-4 text-yellow-800">Google Maps API Key is not set.</div>
+          <div>
+            <div className="text-lg font-bold mb-4 text-yellow-800">Google Maps API Key is not set or is misconfigured.</div>
+            <div className="mb-4">
+              <label className="block font-bold mb-2 text-yellow-800">Place of Birth</label>
+              <input
+                name="city"
+                value={form.city}
+                onChange={handleChange}
+                className="w-full px-4 py-3 rounded-lg border border-yellow-200 focus:outline-yellow-500"
+                placeholder="Enter place of birth manually"
+              />
+            </div>
+            {/* Hidden fields for latitude and longitude */}
+            <input type="hidden" name="latitude" value={form.latitude} readOnly />
+            <input type="hidden" name="longitude" value={form.longitude} readOnly />
+            <button type="submit" disabled={loading || !otpVerified || !emailVerified} className="w-full bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-3 rounded-xl shadow transition mt-2">Submit</button>
+          </div>
         )}
       </div>
     </div>
