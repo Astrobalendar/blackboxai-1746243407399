@@ -239,7 +239,10 @@ const BirthDataEntry: React.FC = () => {
                 {/* Mobile Number and OTP Verification */}
                 <div className="flex gap-4 mb-4">
                   <input name="mobile" placeholder="Mobile Number" value={form.mobile} onChange={handleChange} required maxLength={10} className="flex-1 px-4 py-3 rounded-lg border border-yellow-200 focus:outline-yellow-500" />
-                  {!otpVerified && (
+                  {/* OTP temporarily suspended */}
+                  <button type="button" disabled className="bg-gray-300 text-gray-500 font-bold py-3 px-6 rounded-lg cursor-not-allowed">
+                    OTP Suspended
+                  </button>
                 </div>
                 {/* Email field and verification buttons */}
                 <input name="email" placeholder="Email" value={form.email} disabled readOnly className="px-4 py-3 rounded-lg border border-yellow-200 bg-yellow-50 text-yellow-900 mb-4" />
