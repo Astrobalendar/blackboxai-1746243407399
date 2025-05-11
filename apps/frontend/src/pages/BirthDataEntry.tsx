@@ -198,18 +198,29 @@ const BirthDataEntry: React.FC = () => {
                 </div>
                 {/* Place of Birth (Google Autocomplete) */}
                 <div className="mb-4">
-                  <label htmlFor="pob" className="block text-sm font-semibold mb-2">Place of Birth</label>
-                  <Autocomplete onLoad={handleAutocompleteLoad} onPlaceChanged={handlePlaceChanged}>
+                  <label className="block font-bold mb-2 text-yellow-800">Place of Birth</label>
+                  {error && error.includes("Google Maps") ? (
                     <input
-                      type="text"
                       name="pob"
                       value={form.pob}
                       onChange={handleChange}
-                      required
                       className="w-full px-4 py-3 rounded-lg border border-yellow-200 focus:outline-yellow-500"
-                      placeholder="Enter place of birth (autocomplete)"
+                      placeholder="Enter place of birth manually"
                     />
-                  </Autocomplete>
+                  ) : (
+                    <Autocomplete
+                      onLoad={handleAutocompleteLoad}
+                      onPlaceChanged={handlePlaceChanged}
+                    >
+                      <input
+                        name="pob"
+                        value={form.pob}
+                        onChange={handleChange}
+                        className="w-full px-4 py-3 rounded-lg border border-yellow-200 focus:outline-yellow-500"
+                        placeholder="Enter place of birth (autocomplete)"
+                      />
+                    </Autocomplete>
+                  )}
                 </div>
                 {/* Hidden fields for latitude and longitude, auto-filled by autocomplete */}
                 <input type="hidden" name="latitude" value={form.latitude} readOnly />
