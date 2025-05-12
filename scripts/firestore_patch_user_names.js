@@ -18,7 +18,7 @@ async function patchUsers() {
 
   for (const doc of snapshot.docs) {
     const data = doc.data();
-    const name = data.fullName || data.display_name || data.name || data.firstName || '';
+    const name = data.fullName || data.display_name || data.name || '';
     if (!data.fullName || !data.display_name) {
       await doc.ref.update({
         fullName: name,
