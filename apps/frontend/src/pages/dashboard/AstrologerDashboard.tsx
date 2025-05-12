@@ -2,9 +2,13 @@ import React, { useEffect, useState } from 'react';
 import { useAuth } from '../../context/AuthProvider';
 import PredictionHistoryTable, { PredictionHistoryEntry } from '../../components/PredictionHistoryTable';
 
+import { useRequireBirthData } from '../../components/useRequireBirthData';
+
 const AstrologerDashboard: React.FC = () => {
+  const { checking } = useRequireBirthData();
   const { user } = useAuth();
   const [history, setHistory] = useState<PredictionHistoryEntry[]>([]);
+  if (checking) return null;
   useEffect(() => {
     const fetchHistory = async () => {
       if (!user) return;

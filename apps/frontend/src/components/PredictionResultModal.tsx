@@ -16,9 +16,9 @@ const PredictionResultModal: React.FC<PredictionResultModalProps> = ({ show, onC
       </Modal.Header>
       <Modal.Body>
         {previewImg ? (
-          <img src={previewImg} alt="PDF Preview" style={{ width: '100%', border: '1px solid #eee', borderRadius: 8 }} />
+          <img src={previewImg} alt="PDF Preview" className="pdf-preview-img" />
         ) : (
-          <div style={{ minHeight: 200, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div className="pdf-preview-loading">
             <span>Loading preview...</span>
           </div>
         )}

@@ -257,13 +257,13 @@ const PredictionTabs: React.FC = () => {
   const content: Record<string, JSX.Element> = {
     "Birth Data": <BirthDataForm onSubmit={handleFormSubmit} loading={loading} error={error} />,
     "Rasi/Navamsam": (
-      <div id="tab-content" style={{ display: "flex", flexWrap: "wrap", gap: "16px" }}>
+      <div id="tab-content" className="tab-content-flex">
         {chartData.rasi.length ? (
           <>
-            <div style={{ flex: "1 1 300px" }}>
+            <div className="tab-chart-container">
               <RasiChart data={chartData?.rasi} />
             </div>
-            <div style={{ flex: "1 1 300px" }}>
+            <div className="tab-chart-container">
               <NavamsaChart data={chartData?.navamsa} />
             </div>
           </>

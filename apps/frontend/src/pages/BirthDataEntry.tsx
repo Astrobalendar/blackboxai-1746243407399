@@ -1,21 +1,32 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { FormText } from 'react-bootstrap';
 import { auth, db } from '../firebase';
+import styles from './BirthDataEntry.module.css';
 import { doc, setDoc, getDoc } from 'firebase/firestore';
 import { GoogleMap, LoadScript, Autocomplete } from '@react-google-maps/api';
+import DatePicker from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css';
+import dayjs from 'dayjs';
+
+
 
 // Google Maps libraries constant for LoadScript (prevents reload warning)
 const GOOGLE_MAPS_LIBRARIES = ["places"];
 
+import { useAuth } from '../context/AuthProvider';
+import { useBirthData } from '../context/BirthDataContext';
+
 const BirthDataEntry: React.FC = () => {
   const navigate = useNavigate();
-  const user = auth.currentUser;
+  const { user, userRole, loading } = useAuth();
+  const { birthDataComplete, loading: birthDataLoading } = useBirthData();
   const [form, setForm] = useState({
     fullName: user?.displayName || '', 
     gender: '',
-    dob: '', 
-    tob: '', 
-    pob: '', 
+    dob: '', // DD/MM/YYYY
+    tob: '',
+    pob: '', // Place of Birth, required
     latitude: '',
     longitude: '',
     mobile: '',
@@ -30,12 +41,33 @@ const BirthDataEntry: React.FC = () => {
 
   const [emailVerified, setEmailVerified] = useState(user?.emailVerified || false);
   const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [formLoading, setFormLoading] = useState(false);
+
+  // After successful submit, redirect to dashboard
+  const handleSuccessRedirect = () => {
+    if (userRole === 'astrologer') navigate('/dashboard/astrologer');
+    else if (userRole === 'student') navigate('/dashboard/student');
+    else navigate('/dashboard/client');
+  };
 
   // Handle select changes for dropdowns
   const handleSelectChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
+
+  // Strict redirect logic: never show this page if user is not logged in or birth data is complete
+  useEffect(() => {
+    if (loading || birthDataLoading) return;
+    if (!user) {
+      navigate('/login');
+      return;
+    }
+    if (birthDataComplete) {
+      if (userRole === 'astrologer') navigate('/dashboard/astrologer');
+      else if (userRole === 'student') navigate('/dashboard/student');
+      else navigate('/dashboard/client');
+    }
+  }, [user, userRole, loading, birthDataLoading, birthDataComplete, navigate]);
 
   useEffect(() => {
     if (navigator.geolocation) {
@@ -51,92 +83,85 @@ const BirthDataEntry: React.FC = () => {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
-  };
+    if (error) setError('');
+  }
 
   // Google Places Autocomplete integration for POB
   const handleAutocompleteLoad = (autocomplete: google.maps.places.Autocomplete) => {
+
+  // Update your form submission logic to call handleSuccessRedirect after successful Firestore save
+  // Example (you may need to adapt to your actual submit handler):
+  // await setDoc(...)
+  // handleSuccessRedirect();
+
     autocompleteRef.current = autocomplete;
   };
 
   const handlePlaceChanged = () => {
     if (autocompleteRef.current) {
       const place = autocompleteRef.current.getPlace();
-      if (place && place.geometry && place.geometry.location) {
-        setForm((prev) => ({
-          ...prev,
-          pob: place.formatted_address || place.name || '',
-          latitude: place.geometry.location.lat().toString(),
-          longitude: place.geometry.location.lng().toString(),
-        }));
+      if (
+        place &&
+        place.geometry &&
+        place.geometry.location &&
+        typeof place.geometry.location.lat === 'function' &&
+        typeof place.geometry.location.lng === 'function'
+      ) {
+        const lat = place.geometry.location.lat();
+        const lng = place.geometry.location.lng();
+        if (lat !== undefined && lng !== undefined) {
+          setForm((prev) => ({
+            ...prev,
+            pob: place.formatted_address || place.name || '',
+            latitude: lat.toString(),
+            longitude: lng.toString(),
+          }));
+        }
       }
     }
   };
 
-  const handleSendOtp = async () => {
-    setLoading(true);
-    setError('');
-    try {
-      // Ensure recaptchaVerifier is initialized only once
-      // Ensure the recaptcha-container div exists
-    } catch (err: any) {
-      setError(err.message || 'Failed to send OTP.');
-    }
-    setLoading(false);
-  };
-
-  const handleVerifyOtp = async () => {
-    setLoading(true);
-    setError('');
-    try {
-      if (!window.confirmationResult) {
-        setError('OTP not sent or expired. Please resend OTP.');
-        setLoading(false);
-        return;
-      }
-      await window.confirmationResult.confirm(otp);
-      setOtpVerified(true);
-    } catch (err: any) {
-      setError('Invalid OTP. Try again.');
-    }
-    setLoading(false);
-  };
-
-
-  const handleEmailVerification = async () => {
-    if (!user) return;
-    setLoading(true);
-    setError('');
-    try {
-      await user.sendEmailVerification();
-      alert('Verification email sent. Please check your inbox.');
-    } catch (err: any) {
-      setError('Failed to send verification email.');
-    }
-    setLoading(false);
-  };
-
-  const checkEmailVerified = async () => {
-    if (!user) return;
-    await user.reload();
-    setEmailVerified(user.emailVerified);
+  // Helper: Validate DD/MM/YYYY
+  const validateDate = (date: string): boolean => {
+    const regex = /^(\d{2})\/(\d{2})\/(\d{4})$/;
+    if (!regex.test(date)) return false;
+    const [day, month, year] = date.split('/').map(Number);
+    const dateObj = new Date(year, month - 1, day);
+    return (
+      dateObj.getFullYear() === year &&
+      dateObj.getMonth() === month - 1 &&
+      dateObj.getDate() === day
+    );
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
+    setError('');
     e.preventDefault();
     setError('');
-    setLoading(true);
 
-    // TODO: Email verification suspended. Re-enable this check when ready.
-    // if (!emailVerified) {
-    //   setError('Please verify your email address.');
-    //   setLoading(false);
-    //   return;
-    // }
+    // Validation
+    if (!form.fullName.trim()) {
+      setError('Full name is required.');
+      return;
+    }
+    if (!form.dob.trim() || !validateDate(form.dob.trim())) {
+      setError('Date of birth is required and must be in DD/MM/YYYY format.');
+      return;
+    }
+    if (!form.tob.trim()) {
+      setError('Time of birth is required.');
+      return;
+    }
+    if (!form.pob.trim()) {
+      setError('Place of birth is required.');
+      return;
+    }
+    setFormLoading(true);
     try {
       await setDoc(doc(db, 'birthdata', user!.uid), {
         fullName: form.fullName,
         gender: form.gender,
-        dob: form.dob,
+        dob: form.dob, // Always DD/MM/YYYY
         tob: form.tob,
         pob: form.pob,
         latitude: form.latitude,
@@ -147,36 +172,42 @@ const BirthDataEntry: React.FC = () => {
         uid: user!.uid,
         createdAt: new Date().toISOString(),
       });
-      // Mark user as verified
+      // Mark user as verified in Firestore after saving birth data
       await setDoc(doc(db, 'users', user!.uid), { verified: true }, { merge: true });
-      navigate('/dashboard/client');
+      // Redirect to dashboard after successful birth data entry
+      if (userRole === 'astrologer') navigate('/dashboard/astrologer');
+      else if (userRole === 'student') navigate('/dashboard/student');
+      else navigate('/dashboard/client');
     } catch (err: any) {
       setError('Failed to save birth data.');
     }
-    setLoading(false);
+    setFormLoading(false);
   };
 
-  const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || process.env.REACT_APP_GOOGLE_MAPS_API_KEY;
+  const GOOGLE_MAPS_API_KEY = (import.meta.env as ImportMetaEnv).VITE_GOOGLE_MAPS_API_KEY;
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-yellow-100 via-yellow-50 to-yellow-200">
-      <div className="w-full max-w-md mx-auto p-8 bg-white rounded-3xl shadow-2xl mt-16 mb-12">
-        <h2 className="text-2xl font-bold text-yellow-900 mb-6 text-center">Enter Your Birth Data</h2>
+    <div className={styles.bg}>
+      <div className={styles.card}>
+        <h2 className={styles.title}>Enter Your Birth Data</h2>
         {GOOGLE_MAPS_API_KEY ? (
           <LoadScript
             googleMapsApiKey={GOOGLE_MAPS_API_KEY}
-            libraries={GOOGLE_MAPS_LIBRARIES}
+            libraries={['places']}
             onLoad={() => setScriptLoaded(true)}
           >
-            <form onSubmit={handleSubmit}>
+            <form onSubmit={handleSubmit} className={styles.form}>
               {/* Personal Details Section */}
-              <div>
-                <h3 className="text-lg font-bold mb-4 text-yellow-800">Personal Details</h3>
-                <div className="mb-4">
-                  <input name="fullName" placeholder="Full Name" value={form.fullName} onChange={handleChange} required className="w-full px-4 py-3 rounded-lg border border-yellow-200 focus:outline-yellow-500" />
+              <div className={styles.section}>
+                <h3 className={styles.sectionTitle}>Personal Details</h3>
+                <div className={styles.formGroup}>
+                  <label className={styles.label} htmlFor="fullName">Full Name<span className={styles.error}>*</span></label>
+                  <input id="fullName" name="fullName" placeholder="Enter your full name" value={form.fullName} onChange={handleChange} required className={styles.input} />
+                  <FormText className={styles.formText}>Please enter your full name</FormText>
                 </div>
-                <div className="flex gap-4 mb-4">
-                  <select name="gender" value={form.gender} onChange={handleChange} required className="flex-1 px-4 py-3 rounded-lg border border-yellow-200 focus:outline-yellow-500" title="Gender">
+                <div className={styles.formGroup}>
+                  <label className={styles.label} htmlFor="gender">Gender<span className={styles.error}>*</span></label>
+                  <select id="gender" name="gender" value={form.gender} onChange={handleChange} required className={styles.select}>
                     <option value="">Select Gender</option>
                     <option value="Male">Male</option>
                     <option value="Female">Female</option>
@@ -185,21 +216,50 @@ const BirthDataEntry: React.FC = () => {
                 </div>
               </div>
               {/* Birth Details Section */}
-              <div>
-                <h3 className="text-lg font-bold mb-4 text-yellow-800">Birth Details</h3>
-                <div className="flex gap-4 mb-4">
-                  <input name="dob" type="date" placeholder="Date of Birth" value={form.dob} onChange={handleChange} required className="flex-1 px-4 py-3 rounded-lg border border-yellow-200 focus:outline-yellow-500" />
-                  <input name="tob" type="time" placeholder="Time of Birth" value={form.tob} onChange={handleChange} required className="flex-1 px-4 py-3 rounded-lg border border-yellow-200 focus:outline-yellow-500" />
+              <div className={styles.section}>
+                <h3 className={styles.sectionTitle}>Birth Details</h3>
+                <div className={styles.formGroup}>
+                  <label className={styles.label} htmlFor="dob">Date of Birth<span className={styles.error}>*</span></label>
+                  <DatePicker
+  id="dob"
+  name="dob"
+  selected={form.dob ? dayjs(form.dob, 'DD/MM/YYYY').toDate() : null}
+  onChange={date => setForm({ ...form, dob: date ? dayjs(date).format('DD/MM/YYYY') : '' })}
+  dateFormat="dd/MM/yyyy"
+  placeholderText="Select date of birth"
+  className={styles.input}
+  maxDate={new Date()}
+  required
+/>
+<FormText className={styles.formText}>Select your date of birth</FormText>
+                </div>
+                <div className={styles.formGroup}>
+                  <label className={styles.label} htmlFor="tob">Time of Birth<span className={styles.error}>*</span></label>
+                  <DatePicker
+  id="tob"
+  name="tob"
+  selected={form.tob ? dayjs(form.tob, 'HH:mm').toDate() : null}
+  onChange={time => setForm({ ...form, tob: time ? dayjs(time).format('HH:mm') : '' })}
+  showTimeSelect
+  showTimeSelectOnly
+  timeIntervals={5}
+  timeCaption="Time"
+  dateFormat="HH:mm"
+  placeholderText="Select time of birth"
+  className={styles.input}
+  required
+/>
+<FormText className={styles.formText}>Select your time of birth (24-hour, e.g., 16:30 for 4:30 PM)</FormText>
                 </div>
                 {/* Place of Birth (Google Autocomplete) */}
-                <div className="mb-4">
-                  <label className="block font-bold mb-2 text-yellow-800">Place of Birth</label>
+                <div className={styles.formGroup}>
+                  <label className={styles.title}>Place of Birth</label>
                   {error && error.includes("Google Maps") ? (
                     <input
                       name="pob"
                       value={form.pob}
                       onChange={handleChange}
-                      className="w-full px-4 py-3 rounded-lg border border-yellow-200 focus:outline-yellow-500"
+                      className={styles.input}
                       placeholder="Enter place of birth manually"
                     />
                   ) : (
@@ -211,47 +271,52 @@ const BirthDataEntry: React.FC = () => {
                         name="pob"
                         value={form.pob}
                         onChange={handleChange}
-                        className="w-full px-4 py-3 rounded-lg border border-yellow-200 focus:outline-yellow-500"
+                        required
                         placeholder="Enter place of birth (autocomplete)"
+                        className={styles.input}
                       />
                     </Autocomplete>
                   )}
                 </div>
                 {/* Hidden fields for latitude and longitude, auto-filled by autocomplete */}
                 <input type="hidden" name="latitude" value={form.latitude} readOnly />
+                <input type="hidden" name="longitude" value={form.longitude} readOnly />
               </div>
               {/* Contact Information Section */}
               <div>
-                <h3 className="text-lg font-bold mb-4 text-yellow-800">Contact Information</h3>
+                <h3 className={styles.sectionTitle}>Contact Information</h3>
                 {/* Mobile Number */}
-                <div className="flex gap-4 mb-4">
-                  <input name="mobile" placeholder="Mobile Number" value={form.mobile} onChange={handleChange} required maxLength={10} className="flex-1 px-4 py-3 rounded-lg border border-yellow-200 focus:outline-yellow-500" />
+                <div className={styles.formGroup}>
+                  <label className={styles.label} htmlFor="mobile">Mobile Number<span className={styles.error}>*</span></label>
+                  <input id="mobile" name="mobile" placeholder="Enter your mobile number" value={form.mobile} onChange={handleChange} required maxLength={10} className={styles.input} />
                 </div>
                 {/* Email field (read-only) */}
-                <input name="email" placeholder="Email" value={form.email} disabled readOnly className="px-4 py-3 rounded-lg border border-yellow-200 bg-yellow-50 text-yellow-900 mb-4" />
-                <input name="address" placeholder="Full Address" value={form.address} onChange={handleChange} required className="px-4 py-3 rounded-lg border border-yellow-200 focus:outline-yellow-500" />
+                <input name="email" placeholder="Email" value={form.email} disabled readOnly className={styles.bg} />
+                <label className={styles.label} htmlFor="address">Full Address<span className={styles.error}>*</span></label>
+                <input id="address" name="address" placeholder="Enter your full address" value={form.address} onChange={handleChange} required className={styles.input} />
               </div>
-              {error && <div className="bg-red-100 text-red-800 rounded-lg px-4 py-3 text-center font-semibold">{error}</div>}
-              <button type="submit" disabled={loading} className="w-full bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-3 rounded-xl shadow transition mt-2">Submit</button>
+              {error && <div className={styles.error}>{error}</div>}
+              <button type="submit" disabled={formLoading} className={styles.button}>Submit</button>
             </form>
           </LoadScript>
         ) : (
           <div>
-            <div className="text-lg font-bold mb-4 text-yellow-800">Google Maps API Key is not set or is misconfigured.</div>
-            <div className="mb-4">
-              <label className="block font-bold mb-2 text-yellow-800">Place of Birth</label>
+            <div className={styles.sectionTitle}>Google Maps API Key is not set or is misconfigured.</div>
+            <div className={styles.formGroup}>
+              <label className={styles.title}>Place of Birth<span className={styles.error}>*</span></label>
               <input
-                name="city"
-                value={form.city}
+                name="pob"
+                value={form.pob}
                 onChange={handleChange}
-                className="w-full px-4 py-3 rounded-lg border border-yellow-200 focus:outline-yellow-500"
+                required
+                className={styles.input}
                 placeholder="Enter place of birth manually"
               />
             </div>
             {/* Hidden fields for latitude and longitude */}
             <input type="hidden" name="latitude" value={form.latitude} readOnly />
             <input type="hidden" name="longitude" value={form.longitude} readOnly />
-            <button type="submit" disabled={loading || !otpVerified || !emailVerified} className="w-full bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-3 rounded-xl shadow transition mt-2">Submit</button>
+            <button type="submit" disabled={formLoading} className={styles.button}>Submit</button>
           </div>
         )}
       </div>

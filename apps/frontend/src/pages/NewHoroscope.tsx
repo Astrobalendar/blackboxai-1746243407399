@@ -1,7 +1,10 @@
-import React from 'react';
-import { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthProvider';
+import { useBirthData } from '../context/BirthDataContext';
 import BirthDataForm from '../components/BirthDataForm';
+import { auth, db } from '../firebase';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
 import PredictionResult from '../components/PredictionResult';
 import { Button, Card, Container, Row, Col } from 'react-bootstrap';
 import { PredictionInput } from '@shared/types/prediction';
@@ -9,66 +12,55 @@ import { getPrediction } from '@shared/api/predict';
 import { logError } from '../services/errorLogger';
 import { createErrorNotification } from '../components/notifications';
 
+import { useRequireBirthData } from '../components/useRequireBirthData';
+
 const NewHoroscope: React.FC = () => {
+  const { user, loading } = useAuth();
+  const { birthDataComplete, loading: birthDataLoading } = useBirthData();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (loading || birthDataLoading) return;
+    if (!user) {
+      navigate('/login');
+      return;
+    }
+    if (!birthDataComplete) {
+      navigate('/birth-data');
+      return;
+    }
+  }, [user, loading, birthDataComplete, birthDataLoading, navigate]);
+
   const [step, setStep] = useState(1);
-  const [formData, setFormData] = useState({
-    fullName: '',
-    dateOfBirth: '',
-    timeOfBirth: '',
-    placeOfBirth: '',
-    latitude: '',
-    longitude: '',
-    timeZone: '',
-  });
-  const [prediction, setPrediction] = useState<import('@shared/types/prediction').PredictionResult | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [initialData, setInitialData] = useState<any>(null);
+  const [pageLoading, setPageLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [prediction, setPrediction] = useState<import('@shared/types/prediction').PredictionResult | null>(null);
   const [showExport, setShowExport] = useState(false);
 
+
+
+  // Only use BirthDataForm for birth data entry, and save to Firestore on submit
   const handleBirthDataSubmit = async (data: any) => {
-    setFormData(data);
-    setLoading(true);
     setError(null);
-    
+    setPageLoading(true);
     try {
-      // Simulate API call with timeout
-      const response = await Promise.race([
-        fetch('/api/prediction', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(data),
-        }),
-        new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('Request timed out')), 10000)
-        )
-      ]);
-
-      if (!response.ok) {
-        throw new Error('Failed to get prediction');
-      }
-
-      const result = await response.json();
-      setPrediction(result);
-      setStep(3);
-      setShowExport(true);
+      const user = auth.currentUser;
+      if (!user) throw new Error('User not authenticated');
+      // Save birth data to Firestore
+      const userRef = doc(db, 'users', user.uid);
+      await setDoc(userRef, { ...data }, { merge: true });
+      setInitialData(data);
+      setStep(2); // Proceed to prediction
     } catch (err) {
-      logError(err as Error, {
-        userId: data.name,
-        data: {
-          request: data,
-          response: err instanceof Error ? err.message : 'Unknown error'
-        }
-      });
-      setError(err instanceof Error ? err.message : 'An error occurred');
-    } finally {
-      setLoading(false);
+      setError('Failed to save birth data.');
     }
+    setPageLoading(false);
   };
 
+
   const handleBack = () => {
+    setError(null);
     if (step === 3) {
       setStep(2);
       setShowExport(false);
@@ -103,6 +95,7 @@ const NewHoroscope: React.FC = () => {
             onSubmit={handleBirthDataSubmit}
             loading={loading}
             error={error}
+            initialData={initialData}
           />
         </div>
       )}

@@ -1,0 +1,8 @@
+.tab-content-flex {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+.tab-chart-container {
+  flex: 1 1 300px;
+}

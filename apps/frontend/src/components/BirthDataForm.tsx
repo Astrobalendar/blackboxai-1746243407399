@@ -7,8 +7,7 @@ import { Button, Form, FormLabel, FormControl, FormText } from 'react-bootstrap'
 import { PredictionResult } from '@shared/types/prediction';
 import GooglePlacesAutocomplete from './GooglePlacesAutocomplete';
 
-const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || '';
-
+const GOOGLE_MAPS_API_KEY = (import.meta.env as ImportMetaEnv).VITE_GOOGLE_MAPS_API_KEY;
 
 interface BirthData {
   fullName: string;
@@ -35,7 +34,7 @@ const BirthDataForm: React.FC<BirthDataFormProps> = ({ onSubmit, loading, error,
   // Add locationName for Firestore
   const [formData, setFormData] = useState<BirthData>({
     fullName: '',
-    dateOfBirth: '',
+    dateOfBirth: '', // DD/MM/YYYY enforced
     timeOfBirth: '',
     state: '',
     city: '',
@@ -133,10 +132,11 @@ const BirthDataForm: React.FC<BirthDataFormProps> = ({ onSubmit, loading, error,
     e.preventDefault();
     const newErrors: Partial<BirthData> = {};
     if (!formData.fullName) newErrors.fullName = 'Full name is required';
-    if (!formData.dateOfBirth) newErrors.dateOfBirth = 'Date of birth is required';
+    if (!formData.dateOfBirth || !validateDate(formData.dateOfBirth)) newErrors.dateOfBirth = 'Date of birth is required and must be DD/MM/YYYY';
     if (!formData.timeOfBirth) newErrors.timeOfBirth = 'Time of birth is required';
-    if (!formData.state) newErrors.state = 'State is required';
     if (!formData.city) newErrors.city = 'City is required';
+    if (!formData.state) newErrors.state = 'State is required';
+    if (!formData.locationName) newErrors.locationName = 'Place of birth is required';
     if (!formData.email) newErrors.email = 'Email is required';
     if (!formData.mobile) newErrors.mobile = 'Mobile number is required';
     setErrors(newErrors);
@@ -174,11 +174,7 @@ const BirthDataForm: React.FC<BirthDataFormProps> = ({ onSubmit, loading, error,
         // Try with city+state only, fallback to city+district+state if needed
         let location = mockLocationData[address];
         let triedKeys = [address];
-        if (!location && formData.district) {
-          const districtAddress = `${city}, ${district}, ${state}, india`;
-          location = mockLocationData[districtAddress];
-          triedKeys.push(districtAddress);
-        }
+        
         console.log('Location lookup keys tried:', triedKeys);
         if (location) {
           setFormData((prev: BirthData) => ({
@@ -215,19 +211,19 @@ const BirthDataForm: React.FC<BirthDataFormProps> = ({ onSubmit, loading, error,
       <h2 className="text-3xl text-white font-bold mb-6 text-center drop-shadow-lg tracking-wide">Enter Your Birth Data</h2>
       <div className="space-y-8">
         <div className="space-y-2">
-          <label className="block text-white text-lg font-bold tracking-wide" title="Name">Name</label>
+          <label className="block text-white text-lg font-bold tracking-wide" title="Full Name">Full Name</label>
           <input
             type="text"
-            name="name"
-            value={formData.name}
+            name="fullName"
+            value={formData.fullName}
             onChange={handleInputChange}
-            placeholder="Enter your name"
+            placeholder="Enter your full name"
             className="w-full px-4 py-3 rounded-lg bg-purple-900/70 text-white placeholder-purple-300 border border-purple-700 focus:outline-none focus:ring-2 focus:ring-yellow-400 text-lg"
-            aria-label="Name"
+            aria-label="Full Name"
             autoComplete="off"
           />
           <p className="text-purple-300 text-sm mt-1">Please enter your full name</p>
-          {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name}</p>}
+          {errors.fullName && <p className="text-red-500 text-sm mt-1">{errors.fullName}</p>}
         </div>
 
         <div className="space-y-2">
@@ -266,97 +262,7 @@ const BirthDataForm: React.FC<BirthDataFormProps> = ({ onSubmit, loading, error,
               }
             />
           </div>
-          <p className="text-purple-300 text-sm mt-1" title="Please select date of birth">
-            Please select date of birth
-          </p>
           {errors.dateOfBirth && <p className="text-red-500 text-sm mt-1">{errors.dateOfBirth}</p>}
-        </div>
-
-        <div className="space-y-2">
-          <label className="block text-white text-lg font-bold tracking-wide">State</label>
-          <select
-            name="state"
-            value={formData.state}
-            onChange={handleInputChange}
-            className="w-full px-4 py-3 rounded-lg bg-purple-900/50 text-white border border-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-400"
-            aria-label="State"
-            required
-          >
-            <option value="">Select state</option>
-            {statesOfIndia.map((state) => (
-              <option key={state} value={state}>
-                {state}
-              </option>
-            ))}
-          </select>
-          {errors.state && <p className="text-red-500 text-sm mt-1">{errors.state}</p>}
-        </div>
-
-        <div className="space-y-2">
-          <label className="block text-white text-lg font-bold tracking-wide">District</label>
-          <select
-            name="district"
-            value={formData.district}
-            onChange={handleInputChange}
-            className="w-full px-4 py-3 rounded-lg bg-purple-900/50 text-white border border-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-400"
-            aria-label="District"
-            required
-            disabled={!formData.state}
-          >
-            <option value="">{!formData.state ? 'Select state first' : 'Select district'}</option>
-            {districtOptions.map((district) => (
-              <option key={district} value={district}>
-                {district}
-              </option>
-            ))}
-          </select>
-          {errors.district && <p className="text-red-500 text-sm mt-1">{errors.district}</p>}
-        </div>
-
-        <div className="space-y-2">
-          <label className="block text-white text-lg font-bold tracking-wide">City / Town / Village</label>
-          {GOOGLE_MAPS_API_KEY ? (
-            <GooglePlacesAutocomplete
-              apiKey={GOOGLE_MAPS_API_KEY}
-              onSelect={(loc) => {
-                setFormData((prev: BirthData) => ({
-                  ...prev,
-                  city: loc.locationName,
-                  locationName: loc.locationName,
-                  latitude: loc.latitude,
-                  longitude: loc.longitude,
-                  timeZone: loc.timeZone,
-                }));
-                setCityAutocompleteUsed(true);
-                setShowFallbackAlert(false);
-                // Cache last 3 locations
-                const updated = [loc, ...lastLocations.filter((l) => l.locationName !== loc.locationName)].slice(0, 3);
-                setLastLocations(updated);
-                localStorage.setItem('astrobalendar_last_locations', JSON.stringify(updated));
-              }}
-              defaultValue={formData.city || (lastLocations[0]?.locationName || '')}
-              onLoading={setLocationLoading}
-              placeholder="Start typing a city name (e.g., Chennai, Delhi)"
-            />
-          ) : (
-            <select
-              name="city"
-              value={formData.city}
-              onChange={handleInputChange}
-              className="w-full px-4 py-3 rounded-lg bg-purple-900/50 text-white border border-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-400"
-              aria-label="City / Town / Village"
-              required
-              disabled={!formData.district}
-            >
-              <option value="">{!formData.district ? 'Select district first' : cityOptions.length ? 'Select city/town/village' : 'No cities available'}</option>
-              {cityOptions.map((city) => (
-                <option key={city} value={city}>
-                  {city}
-                </option>
-              ))}
-            </select>
-          )}
-          {errors.city && <p className="text-red-500 text-sm mt-1">{errors.city}</p>}
         </div>
 
         <div className="space-y-2">

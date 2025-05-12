@@ -1,0 +1,103 @@
+.bg {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f8fafc 0%, #f3e8ff 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.card {
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 12px 36px rgba(80, 0, 120, 0.18);
+  padding: 56px 48px 48px 48px;
+  max-width: 520px;
+  width: 100%;
+  margin: 40px auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-size: 1.15rem;
+  transition: box-shadow 0.2s, transform 0.2s;
+}
+.card:hover {
+  box-shadow: 0 20px 56px rgba(80, 0, 120, 0.25);
+  transform: translateY(-4px) scale(1.01);
+}
+.title {
+  margin-bottom: 32px;
+  text-align: center;
+  color: #6b21a8;
+  font-weight: 800;
+  font-size: 2.1rem;
+  letter-spacing: 0.5px;
+}
+.form {
+  width: 100%;
+  gap: 36px;
+  display: flex;
+  flex-direction: column;
+}
+.section {
+  margin-bottom: 26px;
+}
+.label {
+  font-size: 1.18rem;
+  margin-bottom: 10px;
+  font-weight: 700;
+  color: #4b006e;
+}
+.input, .select {
+  font-size: 1.08rem;
+  padding: 18px;
+  border-radius: 10px;
+  border: 2px solid #a78bfa;
+  width: 100%;
+  margin-bottom: 16px;
+}
+.input:focus, .select:focus {
+  border-color: #7c3aed;
+  outline: none;
+}
+.button {
+  font-size: 1.18rem;
+  padding: 18px 0;
+  border-radius: 14px;
+  margin-top: 18px;
+  background: linear-gradient(90deg, #6b21a8 0%, #7c3aed 100%);
+  color: #fff;
+  font-weight: 800;
+  border: none;
+  box-shadow: 0 4px 16px rgba(107,33,168,0.10);
+  cursor: pointer;
+  transition: background 0.2s, box-shadow 0.2s;
+}
+.button:hover {
+  background: linear-gradient(90deg, #7c3aed 0%, #6d28d9 100%);
+  box-shadow: 0 8px 24px rgba(107,33,168,0.18);
+}
+.error {
+  color: #b91c1c;
+  background: #fee2e2;
+  border-radius: 8px;
+  padding: 12px;
+  margin-top: 10px;
+  text-align: center;
+  font-weight: 700;
+  font-size: 1rem;
+}
+@media (max-width: 600px) {
+  .card {
+    padding: 28px 8px 24px 8px;
+    max-width: 98vw;
+  }
+  .title {
+    font-size: 1.3rem;
+  }
+  .form {
+    gap: 20px;
+  }
+  .button {
+    padding: 14px 0;
+    font-size: 1.05rem;
+  }
+}

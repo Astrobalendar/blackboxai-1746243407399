@@ -1,6 +1,10 @@
 import React from 'react';
 
+import { useRequireBirthData } from '../../components/useRequireBirthData';
+
 const StudentDashboard: React.FC = () => {
+  const { checking } = useRequireBirthData();
+  if (checking) return null;
   return (
     <div>
       <h2>Student Dashboard</h2>

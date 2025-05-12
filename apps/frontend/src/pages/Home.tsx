@@ -1,6 +1,20 @@
 import React from 'react';
+import { useAuth } from '../context/AuthProvider';
+import { signOut } from 'firebase/auth';
+import { auth } from '../firebase';
+import { useNavigate } from 'react-router-dom';
 
 const Home = () => {
+  const { user, loading } = useAuth();
+  const navigate = useNavigate();
+
+  const fullName = user?.displayName || user?.email || 'User';
+
+  const handleLogout = async () => {
+    await signOut(auth);
+    navigate('/');
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-yellow-100 via-yellow-50 to-yellow-200 text-yellow-900">
       <header className="w-full bg-yellow-500 shadow-lg py-4 px-0 flex items-center justify-between fixed top-0 left-0 z-50">
@@ -11,8 +25,17 @@ const Home = () => {
           <a href="/chat" className="px-4 py-2 rounded-lg font-semibold text-yellow-900 hover:bg-yellow-200 transition">Chat</a>
           <a href="/new-horoscope" className="px-4 py-2 rounded-lg font-semibold text-yellow-900 hover:bg-yellow-200 transition">New Horoscope</a>
           <a href="/birth-data" className="px-4 py-2 rounded-lg font-semibold text-yellow-900 hover:bg-yellow-200 transition">Birth Data</a>
-          <a href="/login" className="px-4 py-2 rounded-lg font-semibold text-yellow-900 hover:bg-yellow-200 transition">Login</a>
-          <a href="/signup" className="px-4 py-2 rounded-lg font-semibold bg-yellow-700 text-white hover:bg-yellow-800 transition">Sign Up</a>
+          {user ? (
+            <>
+              <span className="ml-4 font-semibold text-white bg-yellow-700 px-3 py-1 rounded-lg">{fullName}</span>
+              <button onClick={handleLogout} className="ml-4 bg-white text-yellow-700 px-4 py-2 rounded font-semibold shadow hover:bg-yellow-100 transition">Logout</button>
+            </>
+          ) : (
+            <>
+              <a href="/login" className="ml-4 bg-white text-yellow-700 px-4 py-2 rounded font-semibold shadow hover:bg-yellow-100 transition">Login</a>
+              <a href="/signup" className="ml-2 bg-yellow-700 text-white px-4 py-2 rounded font-semibold shadow hover:bg-yellow-800 transition">Sign Up</a>
+            </>
+          )}
         </nav>
       </header>
       <main className="mt-20 w-full">
