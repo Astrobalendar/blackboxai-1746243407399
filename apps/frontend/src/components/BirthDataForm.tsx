@@ -264,7 +264,7 @@ const BirthDataForm: React.FC<BirthDataFormProps> = ({ onSubmit, loading, error,
                   aria-label="Date of Birth"
                   title="Date of Birth"
                   placeholder="DD/MM/YYYY | பிறந்த தேதி | जन्म तारीख | పుట్టిన తేదీ"
-                  className="w-full px-5 py-3 rounded-xl bg-purple-900/80 text-white placeholder-purple-300 border border-purple-600 focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 text-lg shadow-sm transition-all duration-200"
+                  className="w-full px-5 py-3 pl-12 rounded-xl bg-purple-900/80 text-white placeholder-purple-300 border border-purple-600 focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 text-lg shadow-sm transition-all duration-200"
                 />
               }
             />
@@ -294,59 +294,25 @@ const BirthDataForm: React.FC<BirthDataFormProps> = ({ onSubmit, loading, error,
               pattern="^([01]?[0-9]|2[0-3]):[0-5][0-9]$"
               onBlur={(e) => {
                 if (!e.target.value) setErrors((er) => ({ ...er, timeOfBirth: 'Time is required' }));
+                else if (!/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/.test(e.target.value)) setErrors((er) => ({ ...er, timeOfBirth: 'Enter time in 24-hour format (e.g., 16:30)' }));
+                else setErrors((er) => ({ ...er, timeOfBirth: '' }));
               }}
-              aria-label="Date of Birth"
-              title="Date of Birth"
-              placeholder="DD/MM/YYYY | பிறந்த தேதி | जन्म तारीख | పుట్టిన తేదీ"
-              className="w-full px-5 py-3 rounded-xl bg-purple-900/80 text-white placeholder-purple-300 border border-purple-600 focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 text-lg shadow-sm transition-all duration-200"
             />
-          }
-        />
-      </div>
-      {errors.dateOfBirth && <p className="text-red-500 text-sm mt-1">{errors.dateOfBirth}</p>}
-    </div>
+          </div>
+          <p className="text-purple-400 text-sm mt-1" title="Enter time in 24-hour format (e.g., 16:30 for 4:30 PM)">
+            Enter time in 24-hour format (e.g., 16:30 for 4:30 PM)
+          </p>
+          {errors.timeOfBirth && <p className="text-red-500 text-sm mt-1">{errors.timeOfBirth}</p>}
+        </div>
 
-    <div className="space-y-2">
-      <label className="block text-white text-lg font-bold tracking-wide">Time of Birth | பிறந்த நேரம் | जन्म का समय | పుట్టిన సమయం</label>
-      <div className="relative flex items-center">
-        <span className="absolute left-3 text-purple-300" title="Clock">
-          <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-            <circle cx="12" cy="12" r="10" />
-            <path d="M12 6v6l4 2" />
-          </svg>
-        </span>
-        <input
-          type="time"
-          name="timeOfBirth"
-          value={formData.timeOfBirth}
-          onChange={handleInputChange}
-          className="w-full px-5 py-3 pl-12 rounded-xl border border-purple-600 focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 text-white bg-purple-900/80 placeholder-purple-300 text-lg shadow-sm transition-all duration-200"
-          aria-label="Time of Birth"
-          title="Enter time in 24-hour format (e.g., 16:30 for 4:30 PM)"
-          placeholder="00:00:00 | பிறந்த நேரம் | जन्म का समय | పుట్టిన సమయం"
-          step="60"
-          pattern="^([01]?[0-9]|2[0-3]):[0-5][0-9]$"
-          onBlur={(e) => {
-            if (!e.target.value) setErrors((er) => ({ ...er, timeOfBirth: 'Time is required' }));
-            else if (!/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/.test(e.target.value)) setErrors((er) => ({ ...er, timeOfBirth: 'Enter time in 24-hour format (e.g., 16:30)' }));
-            else setErrors((er) => ({ ...er, timeOfBirth: '' }));
-          }}
-        />
-      </div>
-      <p className="text-purple-400 text-sm mt-1" title="Enter time in 24-hour format (e.g., 16:30 for 4:30 PM)">
-        Enter time in 24-hour format (e.g., 16:30 for 4:30 PM)
-      </p>
-      {errors.timeOfBirth && <p className="text-red-500 text-sm mt-1">{errors.timeOfBirth}</p>}
-    </div>
-
-    <button
-      type="submit"
-      disabled={loading}
-      className="w-full bg-yellow-400 text-purple-900 font-extrabold px-8 py-4 rounded-2xl hover:bg-yellow-300 transition-all duration-200 shadow-xl hover:shadow-yellow-400/50 disabled:opacity-60 disabled:cursor-not-allowed text-xl tracking-wide mt-4 border-2 border-yellow-300 focus:outline-none focus:ring-2 focus:ring-yellow-400"
-    >
-      {loading ? 'Loading...' : 'Get Prediction'}
-    </button>
-  </form>
-);
-
+        <button
+          type="submit"
+          disabled={loading}
+          className="w-full bg-yellow-400 text-purple-900 font-extrabold px-8 py-4 rounded-2xl hover:bg-yellow-300 transition-all duration-200 shadow-xl hover:shadow-yellow-400/50 disabled:opacity-60 disabled:cursor-not-allowed text-xl tracking-wide mt-4 border-2 border-yellow-300 focus:outline-none focus:ring-2 focus:ring-yellow-400"
+        >
+          {loading ? 'Loading...' : 'Get Prediction'}
+        </button>
+      </form>
+  );
+}
 export default BirthDataForm;
