@@ -10,11 +10,33 @@ export function formatDate(date: any, locale = "en-US"): string {
 }
 
 // Example usage in a component
-// ...existing imports...
+import React from "react";
 import { isValidDate, formatDate } from "@/utils/dateUtils";
 
-// ...inside your component render...
-{isValidDate(birthDate)
-  ? <span>{formatDate(birthDate)}</span>
-  : <span>Invalid or missing date</span>
-}
+const ExampleComponent: React.FC = () => {
+  const birthDate = "1990-01-01"; // Example valid date
+  const invalidDate = "not-a-date"; // Example invalid date
+
+  return (
+    <div>
+      <div>
+        <strong>Valid date:</strong>{" "}
+        {isValidDate(birthDate) ? (
+          <span>{formatDate(birthDate)}</span>
+        ) : (
+          <span>Invalid or missing date</span>
+        )}
+      </div>
+      <div>
+        <strong>Invalid date:</strong>{" "}
+        {isValidDate(invalidDate) ? (
+          <span>{formatDate(invalidDate)}</span>
+        ) : (
+          <span>Invalid or missing date</span>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default ExampleComponent;
