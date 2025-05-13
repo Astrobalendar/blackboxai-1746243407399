@@ -32,11 +32,15 @@ const BirthDataEntry: React.FC = () => {
     setError(null);
     setFormLoading(true);
     try {
-      await setDoc(doc(db, 'birthdata', user!.uid), {
-        ...data,
-        uid: user!.uid,
-        createdAt: new Date().toISOString(),
-      });
+      // Remove undefined fields before saving
+      const cleanedData = Object.fromEntries(
+        Object.entries({
+          ...data,
+          uid: user!.uid,
+          createdAt: new Date().toISOString(),
+        }).filter(([_, v]) => v !== undefined)
+      );
+      await setDoc(doc(db, 'birthdata', user!.uid), cleanedData);
       await setDoc(doc(db, 'users', user!.uid), { verified: true }, { merge: true });
       // Redirect
       if (userRole === 'astrologer') navigate('/dashboard/astrologer');
@@ -58,7 +62,6 @@ const BirthDataEntry: React.FC = () => {
           error={error}
           initialData={{
             fullName: user?.displayName || '',
-            email: user?.email || '',
           }}
         />
       </div>

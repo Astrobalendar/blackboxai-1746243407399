@@ -37,33 +37,48 @@ const NewHoroscope: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [prediction, setPrediction] = useState<import('@shared/types/prediction').PredictionResult | null>(null);
   const [showExport, setShowExport] = useState(false);
-
-
+  const [previewData, setPreviewData] = useState<any>(null);
 
   // Only use BirthDataForm for birth data entry, and save to Firestore on submit
   const handleBirthDataSubmit = async (data: any) => {
     setError(null);
     setPageLoading(true);
     try {
+      // Instead of saving now, show preview first
+      setPreviewData(data);
+      setStep(2); // Go to preview step
+    } catch (err) {
+      setError('Failed to process birth data.');
+    }
+    setPageLoading(false);
+  };
+
+  // Confirm and save to Firestore, then get prediction
+  const handleConfirmPreview = async () => {
+    setError(null);
+    setPageLoading(true);
+    try {
       const user = auth.currentUser;
       if (!user) throw new Error('User not authenticated');
-      // Save birth data to Firestore
-      const userRef = doc(db, 'users', user.uid);
-      await setDoc(userRef, { ...data }, { merge: true });
-      setInitialData(data);
-      setStep(2); // Proceed to prediction
+      const cleanedData = Object.fromEntries(
+        Object.entries(previewData).filter(([_, v]) => v !== undefined)
+      );
+      await setDoc(doc(db, 'users', user.uid), cleanedData, { merge: true });
+      setInitialData(previewData);
+      setStep(3); // Proceed to prediction
     } catch (err) {
       setError('Failed to save birth data.');
     }
     setPageLoading(false);
   };
 
-
   const handleBack = () => {
     setError(null);
     if (step === 3) {
       setStep(2);
       setShowExport(false);
+    } else if (step === 2) {
+      setStep(1);
     } else {
       navigate('/');
     }
@@ -71,8 +86,9 @@ const NewHoroscope: React.FC = () => {
 
   const steps = [
     { title: "Personal Info", completed: step >= 1 },
-    { title: "Prediction", completed: step >= 2 },
-    { title: "Export", completed: step >= 3 }
+    { title: "Preview", completed: step >= 2 },
+    { title: "Prediction", completed: step >= 3 },
+    { title: "Export", completed: step >= 4 }
   ];
 
   return (
@@ -100,7 +116,36 @@ const NewHoroscope: React.FC = () => {
         </div>
       )}
 
-      {step === 2 && prediction && (
+      {step === 2 && previewData && (
+        <div className="preview-container max-w-xl mx-auto mt-12 mb-12 bg-gradient-to-br from-purple-950/90 to-purple-900/80 rounded-3xl shadow-2xl p-10 space-y-10 border border-purple-800 backdrop-blur-lg font-[system-ui,sans-serif] text-white">
+          <h2 className="text-3xl font-bold mb-4">Confirm Your Details</h2>
+          <div className="mb-2"><strong>Full Name:</strong> {previewData.fullName}</div>
+          <div className="mb-2"><strong>Date of Birth:</strong> {previewData.dateOfBirth}</div>
+          <div className="mb-2"><strong>Time of Birth:</strong> {previewData.timeOfBirth}</div>
+          <div className="mb-2"><strong>City:</strong> {previewData.city}</div>
+          <div className="mb-2"><strong>State:</strong> {previewData.state}</div>
+          <div className="mb-2"><strong>Country:</strong> {previewData.country}</div>
+          <div className="flex gap-4 mt-6">
+            <button
+              type="button"
+              className="bg-yellow-400 text-purple-900 font-bold px-6 py-3 rounded-xl hover:bg-yellow-300 transition-all duration-200"
+              onClick={handleConfirmPreview}
+              disabled={pageLoading}
+            >
+              {pageLoading ? 'Loading...' : 'Confirm & Get Prediction'}
+            </button>
+            <button
+              type="button"
+              className="bg-gray-400 text-white font-bold px-6 py-3 rounded-xl hover:bg-gray-300 transition-all duration-200"
+              onClick={() => setStep(1)}
+            >
+              Edit
+            </button>
+          </div>
+        </div>
+      )}
+
+      {step === 3 && prediction && (
         <div className="prediction-container">
           <PredictionResult
             prediction={prediction}
@@ -114,7 +159,7 @@ const NewHoroscope: React.FC = () => {
         </div>
       )}
 
-      {step === 3 && prediction && (
+      {step === 4 && prediction && (
         <div className="export-container">
           <PredictionResult
             prediction={prediction}

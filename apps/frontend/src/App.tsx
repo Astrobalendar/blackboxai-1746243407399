@@ -6,6 +6,8 @@ import RoleRoute from './components/RoleRoute';
 import AstrologerDashboard from './pages/dashboard/AstrologerDashboard';
 import ClientDashboard from './pages/dashboard/ClientDashboard';
 import StudentDashboard from './pages/dashboard/StudentDashboard';
+import Dashboard from './pages/Dashboard';
+import Prediction from './pages/Prediction';
 import Home from "./pages/Home";
 import Calendar from "./pages/Calendar";
 import Login from "./pages/Login";
@@ -78,6 +80,16 @@ function App() {
                   <RoleRoute role="client">
                     <ClientDashboard />
                   </RoleRoute>
+                </PrivateRoute>
+              } />
+              <Route path="/dashboard" element={
+                <PrivateRoute>
+                  <Dashboard />
+                </PrivateRoute>
+              } />
+              <Route path="/prediction-new" element={
+                <PrivateRoute>
+                  <Prediction />
                 </PrivateRoute>
               } />
               <Route

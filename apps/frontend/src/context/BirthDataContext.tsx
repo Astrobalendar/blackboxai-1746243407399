@@ -26,7 +26,7 @@ export const BirthDataProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       const userRef = doc(db, 'users', user.uid);
       const docSnap = await getDoc(userRef);
       const data = docSnap.exists() ? docSnap.data() : {};
-      if (data.fullName && data.dateOfBirth && data.timeOfBirth && data.state && data.city && data.timeZone) {
+      if (data.fullName && data.dateOfBirth && data.timeOfBirth && data.state && data.city && data.country && data.timeZone) {
         setBirthDataComplete(true);
       } else {
         setBirthDataComplete(false);

@@ -210,17 +210,21 @@ const Signup: React.FC = () => {
           <div className={styles.signupField}>
             <label className={styles.signupLabel} htmlFor="signup-photo">Profile Photo URL (optional)</label>
             <input
-              id="signup-photo"
-              type="url"
+              name="photoURL"
               value={photoURL}
               onChange={e => setPhotoURL(e.target.value)}
-              placeholder="Paste a photo URL (optional)"
-              className={styles.signupInput}
-              autoComplete="photo"
+              placeholder="Paste a photo URL"
+              className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-300"
             />
           </div>
-          <button type="submit" className={styles.button}>Sign Up</button>
-          {error && <div className={styles.error}>{error}</div>}
+          {error && <div className="text-red-500 text-sm text-center">{error}</div>}
+          <button
+            type="submit"
+            className="w-full bg-purple-700 text-white font-bold py-2 rounded-lg hover:bg-purple-800 transition"
+            disabled={loading}
+          >
+            {loading ? 'Signing Up...' : 'Sign Up'}
+          </button>
         </form>
       </div>
     </div>
