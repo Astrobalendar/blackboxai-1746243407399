@@ -15,7 +15,32 @@ export default defineConfig(({ mode }) => {
       },
     },
     plugins: [
-      react()
+      react(),
+      require('vite-plugin-pwa').VitePWA({
+        registerType: 'autoUpdate',
+        manifest: './public/manifest.webmanifest',
+        workbox: {
+          runtimeCaching: [
+            {
+              urlPattern: /\/api\/prediction\//,
+              handler: 'NetworkFirst',
+              options: {
+                cacheName: 'prediction-api',
+                expiration: { maxEntries: 50, maxAgeSeconds: 24 * 60 * 60 },
+              },
+            },
+            {
+              urlPattern: /\/assets\//,
+              handler: 'CacheFirst',
+              options: {
+                cacheName: 'static-assets',
+                expiration: { maxEntries: 100, maxAgeSeconds: 7 * 24 * 60 * 60 },
+              },
+            },
+          ],
+        },
+        includeAssets: ['favicon.ico', 'robots.txt', 'astrobalendar-logo.png'],
+      })
     ],
     build: {
       outDir: 'dist',

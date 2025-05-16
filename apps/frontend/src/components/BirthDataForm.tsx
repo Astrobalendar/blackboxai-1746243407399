@@ -5,6 +5,9 @@ interface BirthDataFormProps {
     dateOfBirth: string;
     timeOfBirth: string;
     locationName: string;
+    latitude: string;
+    longitude: string;
+    fullAddress: string;
   }) => void;
   loading: boolean;
   error: string | null;
@@ -13,9 +16,13 @@ interface BirthDataFormProps {
     dateOfBirth?: string;
     timeOfBirth?: string;
     locationName?: string;
+    latitude?: string;
+    longitude?: string;
+    fullAddress?: string;
   };
   language?: 'en' | 'ta' | 'hi' | 'te';
 }
+
 
 const LANGUAGES = [
   { code: 'en', label: 'English' },
@@ -117,6 +124,9 @@ const ERROR_REQUIRED = {
   },
 };
 
+import { useRef } from 'react';
+import usePlacesAutocomplete, { getGeocode, getLatLng } from 'use-places-autocomplete';
+
 const BirthDataForm: React.FC<BirthDataFormProps> = ({
   onSubmit,
   loading,
@@ -124,40 +134,70 @@ const BirthDataForm: React.FC<BirthDataFormProps> = ({
   initialData,
   language = 'en',
 }) => {
-  const [formData, setFormData] = useState({
+  const [form, setForm] = useState({
     fullName: initialData?.fullName || '',
     dateOfBirth: initialData?.dateOfBirth || '',
     timeOfBirth: initialData?.timeOfBirth || '',
     locationName: initialData?.locationName || '',
+    latitude: initialData?.latitude || '',
+    longitude: initialData?.longitude || '',
+    fullAddress: initialData?.fullAddress || '',
   });
+
+  const {
+    ready,
+    value,
+    suggestions: { status, data },
+    setValue,
+    clearSuggestions,
+  } = usePlacesAutocomplete({
+    requestOptions: { /* Define bounds or country if needed */ },
+    debounce: 300,
+  });
+
+  const handleSelect = async (address: string) => {
+    setValue(address, false);
+    setForm(f => ({ ...f, locationName: address }));
+    clearSuggestions();
+    try {
+      const results = await getGeocode({ address });
+      const { lat, lng } = await getLatLng(results[0]);
+      setForm(f => ({ ...f, latitude: lat.toString(), longitude: lng.toString(), fullAddress: results[0].formatted_address }));
+    } catch (e) {
+      // fallback
+    }
+  };
+
+  const handleGetLocation = () => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(pos => {
+        setForm(f => ({ ...f, latitude: pos.coords.latitude.toString(), longitude: pos.coords.longitude.toString() }));
+      });
+    }
+  };
+
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [formSubmitted, setFormSubmitted] = useState(false);
 
   const validate = () => {
     const newErrors: { [key: string]: string } = {};
-    if (!formData.fullName.trim()) {
+    if (!form.fullName.trim()) {
       newErrors.fullName = ERROR_REQUIRED.fullName[language];
     }
-    if (!formData.dateOfBirth.trim()) {
+    if (!form.dateOfBirth.trim()) {
       newErrors.dateOfBirth = ERROR_REQUIRED.dateOfBirth[language];
-    } else if (!/^\d{4}-\d{2}-\d{2}$/.test(formData.dateOfBirth)) {
+    } else if (!/^\d{4}-\d{2}-\d{2}$/.test(form.dateOfBirth)) {
       newErrors.dateOfBirth = ERROR_REQUIRED.dateOfBirthFormat[language];
     }
-    if (!formData.timeOfBirth.trim()) {
+    if (!form.timeOfBirth.trim()) {
       newErrors.timeOfBirth = ERROR_REQUIRED.timeOfBirth[language];
-    } else if (!/^\d{2}:\d{2}$/.test(formData.timeOfBirth)) {
+    } else if (!/^\d{2}:\d{2}$/.test(form.timeOfBirth)) {
       newErrors.timeOfBirth = ERROR_REQUIRED.timeOfBirthFormat[language];
     }
-    if (!formData.locationName.trim()) {
+    if (!form.locationName.trim()) {
       newErrors.locationName = ERROR_REQUIRED.locationName[language];
     }
     return newErrors;
-  };
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-    setErrors((prev) => ({ ...prev, [name]: '' }));
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -166,16 +206,17 @@ const BirthDataForm: React.FC<BirthDataFormProps> = ({
     const validationErrors = validate();
     setErrors(validationErrors);
     if (Object.keys(validationErrors).length > 0) return;
-    onSubmit(formData);
+    onSubmit(form);
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setForm(f => ({ ...f, [name]: value }));
+    setErrors(f => ({ ...f, [name]: '' }));
   };
 
   return (
-    <form
-      className="max-w-xl mx-auto mt-12 mb-12 bg-gradient-to-br from-purple-950/90 to-purple-900/80 rounded-3xl shadow-2xl p-10 space-y-10 border border-purple-800 backdrop-blur-lg font-[system-ui,sans-serif]"
-      onSubmit={handleSubmit}
-      aria-label="Birth Data Form"
-      title="Birth Data Form"
-    >
+    <form onSubmit={handleSubmit} className="glassmorphic p-6 rounded-2xl shadow-xl backdrop-blur-lg bg-white/30 border border-white/30">
       <div className="space-y-2">
         <label className="block text-white text-lg font-bold tracking-wide" title="Full Name">
           {LABELS.fullName[language]}
@@ -183,15 +224,15 @@ const BirthDataForm: React.FC<BirthDataFormProps> = ({
         <input
           type="text"
           name="fullName"
+          value={form.fullName}
+          onChange={handleChange}
           placeholder={PLACEHOLDERS.fullName[language]}
-          value={formData.fullName}
-          onChange={handleInputChange}
-          className="w-full rounded px-3 py-2 text-lg bg-purple-800 text-white border border-purple-500 focus:outline-none"
-          required
+          disabled={loading}
+          className="glass-input"
         />
-        <div className={formSubmitted && errors.fullName ? "text-red-400 text-sm mt-1" : "invisible text-red-400 text-sm mt-1"}>
-          {errors.fullName || 'Full name is required'}
-        </div>
+        {formSubmitted && errors.fullName && (
+          <div className="text-red-400 text-sm mt-1">{errors.fullName}</div>
+        )}
       </div>
 
       <div className="space-y-2">
@@ -201,11 +242,11 @@ const BirthDataForm: React.FC<BirthDataFormProps> = ({
         <input
           type="date"
           name="dateOfBirth"
+          value={form.dateOfBirth}
+          onChange={handleChange}
           placeholder={PLACEHOLDERS.dateOfBirth[language]}
-          value={formData.dateOfBirth}
-          onChange={handleInputChange}
-          className="w-full rounded px-3 py-2 text-lg bg-purple-800 text-white border border-purple-500 focus:outline-none"
-          required
+          disabled={loading}
+          className="glass-input"
         />
         {formSubmitted && errors.dateOfBirth && (
           <div className="text-red-400 text-sm mt-1">{errors.dateOfBirth}</div>
@@ -219,11 +260,11 @@ const BirthDataForm: React.FC<BirthDataFormProps> = ({
         <input
           type="time"
           name="timeOfBirth"
+          value={form.timeOfBirth}
+          onChange={handleChange}
           placeholder={PLACEHOLDERS.timeOfBirth[language]}
-          value={formData.timeOfBirth}
-          onChange={handleInputChange}
-          className="w-full rounded px-3 py-2 text-lg bg-purple-800 text-white border border-purple-500 focus:outline-none"
-          required
+          disabled={loading}
+          className="glass-input"
         />
         {formSubmitted && errors.timeOfBirth && (
           <div className="text-red-400 text-sm mt-1">{errors.timeOfBirth}</div>
@@ -237,11 +278,51 @@ const BirthDataForm: React.FC<BirthDataFormProps> = ({
         <input
           type="text"
           name="locationName"
+          value={value}
+          onChange={e => setValue(e.target.value)}
           placeholder={PLACEHOLDERS.locationName[language]}
-          value={formData.locationName}
-          onChange={handleInputChange}
-          className="w-full rounded px-3 py-2 text-lg bg-purple-800 text-white border border-purple-500 focus:outline-none"
-          required
+          disabled={loading}
+          className="glass-input"
+          autoComplete="off"
+        />
+        {status === 'OK' && (
+          <ul className="autocomplete-list">
+            {data.map(({ description }, idx) => (
+              <li key={idx} onClick={() => handleSelect(description)} className="autocomplete-item">
+                {description}
+              </li>
+            ))}
+          </ul>
+        )}
+        <button type="button" onClick={handleGetLocation} className="glass-btn mt-2">Use My Location</button>
+        <div className="flex gap-2 mt-2">
+          <input
+            type="text"
+            name="latitude"
+            value={form.latitude}
+            onChange={handleChange}
+            placeholder="Latitude"
+            disabled={loading}
+            className="glass-input flex-1"
+          />
+          <input
+            type="text"
+            name="longitude"
+            value={form.longitude}
+            onChange={handleChange}
+            placeholder="Longitude"
+            disabled={loading}
+            className="glass-input flex-1"
+          />
+        </div>
+        <input
+          type="text"
+          name="fullAddress"
+          value={form.fullAddress}
+          onChange={handleChange}
+          placeholder="Full Address"
+          disabled={loading}
+          className="glass-input mt-2"
         />
         {formSubmitted && errors.locationName && (
           <div className="text-red-400 text-sm mt-1">{errors.locationName}</div>

@@ -1,61 +1,81 @@
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { signOut } from "firebase/auth";
-import { auth } from '../firebase';
-import { useAuth } from '../context/AuthProvider';
-import { useBirthData } from '../context/BirthDataContext';
+import { useTranslation } from 'react-i18next';
+
+const menuItems = [
+  { name: "Personal Info", path: "/birth-entry" },
+  { name: "Horoscope Prediction", path: "/prediction" },
+  { name: "Export", path: "/export-example" },
+  { name: "Astro Research Lab", path: "/admin/research" },
+];
+
+const languages = [
+  { code: 'en', label: 'EN' },
+  { code: 'hi', label: 'हिंदी' },
+  { code: 'ta', label: 'தமிழ்' },
+];
 
 const HeaderNav: React.FC = () => {
-  const { user, loading } = useAuth();
-  const { birthDataComplete } = useBirthData();
+  const [open, setOpen] = React.useState(false);
   const navigate = useNavigate();
-
-  const fullName = user?.displayName || user?.email || 'User';
-
-  const handleLogout = async () => {
-    await signOut(auth);
-    navigate('/');
-  };
-
-  if (loading) return null;
+  const { i18n } = useTranslation();
+  const [langOpen, setLangOpen] = React.useState(false);
 
   return (
-    <nav className="w-full bg-yellow-600 shadow-lg py-4 px-6 flex items-center justify-between">
-      <h1 className="text-2xl font-bold text-white tracking-wide">🔮 AstroBalendar</h1>
-      <div className="space-x-4 flex items-center">
-        {!user ? (
-          <>
-            <Link to="/login">
-              <button type="button" className="ml-4 bg-white text-yellow-700 px-4 py-2 rounded font-semibold shadow hover:bg-yellow-100 transition">Login</button>
-            </Link>
-            <Link to="/signup">
-              <button type="button" className="ml-2 bg-yellow-700 text-white px-4 py-2 rounded font-semibold shadow hover:bg-yellow-800 transition">Sign Up</button>
-            </Link>
-          </>
-        ) : !birthDataComplete ? (
-          <>
-            <Link to="/birth-data" className="text-white hover:underline">Birth Data Entry</Link>
-            <span className="ml-4 font-semibold text-white bg-yellow-700 px-3 py-1 rounded-lg">{fullName}</span>
-            <button onClick={handleLogout} className="ml-4 bg-white text-yellow-700 px-4 py-2 rounded font-semibold shadow hover:bg-yellow-100 transition">Logout</button>
-          </>
-        ) : (
-          <>
-            {!birthDataComplete ? (
-              <>
-                <Link to="/birth-data" className="text-white hover:underline">Birth Data Entry</Link>
-                <span className="ml-4 font-semibold text-white bg-yellow-700 px-3 py-1 rounded-lg">{fullName}</span>
-                <button onClick={handleLogout} className="ml-4 bg-white text-yellow-700 px-4 py-2 rounded font-semibold shadow hover:bg-yellow-100 transition">Logout</button>
-              </>
-            ) : (
-              <>
-                <Link to="/dashboard/client" className="text-white hover:underline">Dashboard</Link>
-                <Link to="/new-horoscope" className="text-white hover:underline">New Horoscope</Link>
-                <span className="ml-4 font-semibold text-white bg-yellow-700 px-3 py-1 rounded-lg">{fullName}</span>
-                <button onClick={handleLogout} className="ml-4 bg-white text-yellow-700 px-4 py-2 rounded font-semibold shadow hover:bg-yellow-100 transition">Logout</button>
-              </>
-            )}
-          </>
-        )}
+    <nav className="bg-gradient-to-r from-yellow-200 via-yellow-100 to-yellow-300 shadow flex items-center justify-between px-6 py-4">
+      <div className="flex items-center gap-4">
+        <Link to="/" className="text-yellow-900 font-bold text-xl tracking-wide">AstroBalendar</Link>
+        <Link to="/calendar" className="text-yellow-700 hover:text-yellow-900 px-2">Calendar</Link>
+      </div>
+      <div className="flex items-center gap-4">
+        {/* Language Switcher */}
+        <div className="relative">
+          <button
+            onClick={() => setLangOpen(v => !v)}
+            className="flex items-center gap-2 px-3 py-1 bg-yellow-200 text-yellow-900 rounded-full hover:bg-yellow-100 focus:outline-none focus:ring-2 focus:ring-yellow-400"
+            aria-label="Change Language"
+          >
+            <span className="font-semibold">{languages.find(l => l.code === i18n.language)?.label || 'EN'}</span>
+            <svg className={`w-3 h-3 transition-transform ${langOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
+          </button>
+          {langOpen && (
+            <div className="absolute right-0 mt-2 w-28 bg-white rounded-lg shadow-lg border border-yellow-100 z-50">
+              {languages.map(lang => (
+                <button
+                  key={lang.code}
+                  onClick={() => { i18n.changeLanguage(lang.code); setLangOpen(false); }}
+                  className={`w-full text-left px-4 py-2 hover:bg-yellow-100 text-yellow-900 font-medium rounded-lg transition ${i18n.language === lang.code ? 'bg-yellow-100' : ''}`}
+                >
+                  {lang.label}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+        {/* Main Menu */}
+        <div className="relative">
+          <button
+            onClick={() => setOpen((v) => !v)}
+            className="flex items-center gap-2 px-4 py-2 bg-yellow-300 text-yellow-900 rounded-full shadow hover:bg-yellow-200 focus:outline-none focus:ring-2 focus:ring-yellow-400"
+            aria-label="Open Menu"
+          >
+            <span className="font-semibold">Menu</span>
+            <svg className={`w-4 h-4 transition-transform ${open ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
+          </button>
+          {open && (
+            <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-yellow-100 z-50">
+              {menuItems.map((item) => (
+                <button
+                  key={item.path}
+                  onClick={() => { setOpen(false); navigate(item.path); }}
+                  className="w-full text-left px-5 py-3 hover:bg-yellow-100 text-yellow-900 font-medium rounded-lg transition"
+                >
+                  {item.name}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     </nav>
   );

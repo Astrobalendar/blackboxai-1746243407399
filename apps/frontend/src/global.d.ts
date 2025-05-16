@@ -3,3 +3,9 @@ interface ImportMeta {
     VITE_BACKEND_URL: string;
   };
 }
+
+declare namespace JSX {
+  interface IntrinsicElements {
+    [elemName: string]: any;
+  }
+}

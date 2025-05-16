@@ -1,34 +1,49 @@
-import React, { useState } from 'react';
-import PredictionView from '../components/prediction/PredictionView';
-import axios from 'axios';
+import React, { useEffect, useState } from 'react';
+import { useParams } from 'react-router-dom';
+import { getFirestore, doc, getDoc } from 'firebase/firestore';
+import { useAuth } from '../context/AuthProvider';
+import { KPStellarPredictionView } from '../components/prediction/KPStellarPredictionView';
 
-const Prediction = () => {
-  const [predictionData, setPredictionData] = useState<any>({});
-  const [chartsData, setChartsData] = useState<any>({});
+const Prediction: React.FC = () => {
+  const { horoscopeId } = useParams<{ horoscopeId: string }>();
+  const { user } = useAuth();
+  // If role is not available, default to non-editable for clients/students
+  const editable = false;
+  const [prediction, setPrediction] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
 
-  const handleEdit = (title: string, value: string) => {
-    setPredictionData((prev: any) => ({ ...prev, [title.toLowerCase()]: value }));
-  };
+  useEffect(() => {
+    const fetchData = async () => {
+      if (!user || !horoscopeId) return;
+      setLoading(true);
+      const db = getFirestore();
+      // Fetch birth data
+      const birthRef = doc(db, `users/${user.uid}/birthData`);
+      const birthSnap = await getDoc(birthRef);
+      // Fetch prediction data
+      const predRef = doc(db, `users/${user.uid}/horoscopes/${horoscopeId}`);
+      const predSnap = await getDoc(predRef);
+      setPrediction({
+        ...(birthSnap.exists() ? birthSnap.data() : {}),
+        ...(predSnap.exists() ? predSnap.data() : {}),
+      });
+      setLoading(false);
+    };
+    fetchData();
+  }, [user, horoscopeId]);
 
-  const handleExportPDF = () => {
-    // PDF export handled in PredictionView
-  };
+  if (loading) return <div className="p-8 text-center text-lg">Loading prediction...</div>;
+  if (!prediction) return <div className="p-8 text-center text-lg text-red-600">Prediction not found.</div>;
 
-  const handlePredict = async (birthData: any, question: string) => {
-    const res = await axios.post('/api/predict', { birthData, question });
-    setPredictionData((prev: any) => ({ ...prev, general: res.data.prediction }));
-  };
-
+  if (!prediction) return <div>Loading...</div>;
   return (
-    <div>
-      <button onClick={() => handlePredict({ name: 'Test User' }, 'What is my future?')} className="btn btn-accent mb-4">Get AI Prediction</button>
-      <PredictionView
-        predictionData={predictionData}
-        chartsData={chartsData}
-        onEdit={handleEdit}
-        onExportPDF={handleExportPDF}
-      />
-    </div>
+    <KPStellarPredictionView
+      prediction={prediction}
+      editable={editable}
+      googleMapsApiKey={import.meta.env.VITE_GOOGLE_MAPS_API_KEY}
+      exportFileName={`${prediction.fullName || 'Prediction'}_${prediction.dob || ''}`}
+      user={user}
+    />
   );
 };
 

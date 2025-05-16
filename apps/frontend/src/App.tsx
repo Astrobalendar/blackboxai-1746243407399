@@ -1,61 +1,65 @@
 import React, { useState } from "react";
-import { BrowserRouter, Routes, Route, Link } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Link, Navigate } from "react-router-dom";
 import { AuthProvider } from './context/AuthProvider';
+import { LoadScript } from '@react-google-maps/api';
+
 import PrivateRoute from './components/PrivateRoute';
 import RoleRoute from './components/RoleRoute';
 import AstrologerDashboard from './pages/dashboard/AstrologerDashboard';
 import ClientDashboard from './pages/dashboard/ClientDashboard';
 import StudentDashboard from './pages/dashboard/StudentDashboard';
 import Dashboard from './pages/Dashboard';
-import Prediction from './pages/Prediction';
-import Home from "./pages/Home";
+import Home from './pages/Home';
+import ExportHoroscopeExample from './pages/ExportHoroscopeExample';
 import Calendar from "./pages/Calendar";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import RoleSelection from "./pages/RoleSelection";
-import PredictionPage from "./pages/PredictionPage";
+import PredictionPage from "./pages/Prediction";
 import ChatPage from "./pages/ChatPage";
-import NewHoroscopePage from "./pages/NewHoroscopePage";
-
+import NewHoroscopePage from './pages/NewHoroscope';
+import TestPrediction from './pages/TestPrediction';
 import { fetchPrediction } from "./services/api";
-import TestPrediction from "./pages/TestPrediction";
 import HeaderNav from "./components/HeaderNav";
 import BirthDataEntry from './pages/BirthDataEntry';
 import { ErrorBoundary } from "./components/ErrorBoundary";
-
-import { PredictionResult } from '../../../../shared/types/prediction';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import { Prediction, PredictionResult } from "./shared/types/prediction";
 
 interface PredictionPageProps {
   prediction: PredictionResult | null;
 }
 
-// NOTE: App is wrapped in ErrorBoundary and AuthProvider for robust error handling.
 function App() {
   const [predictionResult, setPredictionResult] = useState<PredictionResult | null>(null);
 
   return (
     <ErrorBoundary>
-      <div className="min-h-screen bg-gradient-to-br from-yellow-200 via-yellow-100 to-yellow-300 text-yellow-900 font-sans flex flex-col">
-        {/* Show HeaderNav on all pages except Home */}
-        {window.location.pathname !== '/' && <HeaderNav />}
-        <div className="flex-1 w-full max-w-7xl mx-auto px-4 py-6">
-
-        <main className="p-0">
-          <AuthProvider>
-            <Routes>
-              <Route path="/birthdata" element={
-                <PrivateRoute>
-                  <BirthDataEntry />
-                </PrivateRoute>
-              } />
+      <ToastContainer />
+      <LoadScript googleMapsApiKey={import.meta.env.VITE_GOOGLE_MAPS_API_KEY} libraries={['places']}>
+        <div className="min-h-screen bg-gradient-to-br from-yellow-200 via-yellow-100 to-yellow-300 text-yellow-900 font-sans flex flex-col">
+          <HeaderNav />
+          <div className="flex-1 w-full max-w-7xl mx-auto px-4 py-6">
+            <AuthProvider>
+              <Routes>
+              {/* Modernized: Use /birth-entry as the enforced route for birth data entry */}
+<Route path="/birth-entry" element={
+  <PrivateRoute>
+    <BirthDataEntry />
+  </PrivateRoute>
+} />
+{/* Backward compatibility: Redirect /birthdata to /birth-entry */}
+<Route path="/birthdata" element={<Navigate to="/birth-entry" replace />} />
               <Route path="/" element={<Home />} />
+<Route path="/export-example" element={<ExportHoroscopeExample />} />
               <Route path="/calendar" element={<Calendar />} />
               <Route path="/login" element={<Login />} />
               <Route path="/signup" element={<Signup />} />
               <Route path="/role-selection" element={<RoleSelection />} />
-              <Route path="/prediction" element={<PredictionPage prediction={predictionResult} />} />
+              <Route path="/prediction" element={<PredictionPage />} />
               <Route path="/chat" element={<ChatPage />} />
-              <Route path="/test-prediction" element={<TestPrediction />} />
+              <Route path="/test-prediction" element={<TestPrediction prediction={{ prediction: 'Test prediction result', success: true, error: null, predictionId: 'test-id' }} />} />
               <Route path="/new-horoscope" element={
                 <PrivateRoute>
                   <NewHoroscopePage />
@@ -87,11 +91,7 @@ function App() {
                   <Dashboard />
                 </PrivateRoute>
               } />
-              <Route path="/prediction-new" element={
-                <PrivateRoute>
-                  <Prediction />
-                </PrivateRoute>
-              } />
+
               <Route
                 path="*"
                 element={
@@ -105,13 +105,12 @@ function App() {
               />
             </Routes>
           </AuthProvider>
-        </main>
-
+        </div>
+        </div>
         <footer className="text-center text-xs text-gray-400 py-6">
           2025 AstroBalendar | Privacy | Terms | Contact
         </footer>
-      </div>
-    </div>
+      </LoadScript>
     </ErrorBoundary>
   );
 }

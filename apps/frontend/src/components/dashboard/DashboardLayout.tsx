@@ -1,8 +1,24 @@
 import React from 'react';
-import { useAuth } from '../context/AuthProvider';
+import { useAuth } from '../../context/AuthProvider';
+import ResearchStatCard from './ResearchStatCard';
+import { BarChart } from 'lucide-react';
+import useTodayFeedbackCount from './useTodayFeedbackCount';
 
 const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { userRole } = useAuth();
+  const { user, userRole } = useAuth();
+  const [token, setToken] = React.useState<string | null>(null);
+
+  React.useEffect(() => {
+    let isMounted = true;
+    if (user) {
+      user.getIdToken().then(t => { if (isMounted) setToken(t); });
+    } else {
+      setToken(null);
+    }
+    return () => { isMounted = false; };
+  }, [user]);
+
+  const { count, isLoading } = useTodayFeedbackCount(token || '');
 
   return (
     <div className="flex min-h-screen">
@@ -26,6 +42,15 @@ const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ children }) 
           </div>
           {/* Ruling planet widget, profile, etc. */}
         </header>
+        {/* Astro Research Lab Stat Card */}
+        <div className="mb-8 flex flex-wrap gap-6">
+          <ResearchStatCard
+            title="Feedback Received Today"
+            value={isLoading ? '...' : count}
+            icon={<BarChart className="w-8 h-8 text-blue-500" />}
+            color="border-blue-500"
+          />
+        </div>
         {children}
       </main>
     </div>

@@ -1,0 +1,18 @@
+{
+    "folders": [
+        {
+            "path": "."
+        }
+    ],
+    "settings": {
+        "typescript.tsdk": "node_modules/typescript/lib",
+        "typescript.check.workspaceVersion": true,
+        "typescript.tsserver.log": "normal",
+        "typescript.tsserver.maxTsServerMemory": 4096,
+        "typescript.tsserver.watchOptions": {
+            "watchFile": "useFsEvents",
+            "watchDirectory": "useFsEvents",
+            "fallbackPollingWatchType": "dynamicPriority"
+        }
+    }
+}

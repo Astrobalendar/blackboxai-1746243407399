@@ -3,6 +3,7 @@ import { useAuth } from '../context/AuthProvider';
 import { signOut } from 'firebase/auth';
 import { auth } from '../firebase';
 import { useNavigate } from 'react-router-dom';
+import HeaderDropdownMenu from '../components/HeaderDropdownMenu';
 
 const Home = () => {
   const { user, loading } = useAuth();
@@ -19,12 +20,15 @@ const Home = () => {
     <div className="min-h-screen bg-gradient-to-br from-yellow-100 via-yellow-50 to-yellow-200 text-yellow-900">
       <header className="w-full bg-yellow-500 shadow-lg py-4 px-0 flex items-center justify-between fixed top-0 left-0 z-50">
         <div className="pl-8 text-2xl font-bold text-yellow-900 tracking-wide">AstroBalendar</div>
-        <nav className="flex flex-wrap gap-2 pr-8">
+        <nav className="flex flex-wrap items-center gap-2 pr-8">
           <a href="/" className="px-4 py-2 rounded-lg font-semibold text-yellow-900 hover:bg-yellow-200 transition">Home</a>
           <a href="/calendar" className="px-4 py-2 rounded-lg font-semibold text-yellow-900 hover:bg-yellow-200 transition">Calendar</a>
           <a href="/chat" className="px-4 py-2 rounded-lg font-semibold text-yellow-900 hover:bg-yellow-200 transition">Chat</a>
           <a href="/new-horoscope" className="px-4 py-2 rounded-lg font-semibold text-yellow-900 hover:bg-yellow-200 transition">New Horoscope</a>
           <a href="/birth-data" className="px-4 py-2 rounded-lg font-semibold text-yellow-900 hover:bg-yellow-200 transition">Birth Data</a>
+          <div className="ml-2">
+            <HeaderDropdownMenu />
+          </div>
           {user ? (
             <>
               <span className="ml-4 font-semibold text-white bg-yellow-700 px-3 py-1 rounded-lg">{fullName}</span>
