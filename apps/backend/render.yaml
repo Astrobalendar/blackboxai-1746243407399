@@ -1,12 +1,16 @@
 services:
   - type: web
     name: astrobalendar-backend
-    runtime: python3
+    runtime: python
     plan: free
     region: oregon
     buildCommand: |
+      python -m pip install --upgrade pip
       pip install -r requirements.txt
-    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    startCommand: >-
+      python -c "import sys; print('Python version:', sys.version)" &&
+      python -c "import pkg_resources; installed = pkg_resources.working_set; installed_packages = sorted(['%s==%s' % (i.key, i.version) for i in installed]); print('Installed packages:', installed_packages)" &&
+      PYTHONPATH=/opt/render/project/src uvicorn app.main:app --host 0.0.0.0 --port $PORT
     envVars:
       - key: PORT
         value: 10000
@@ -14,6 +18,8 @@ services:
         value: 1
       - key: PYTHONPATH
         value: /opt/render/project/src
+      - key: PYTHON_VERSION
+        value: 3.11.0
       - key: ENVIRONMENT
         value: production
       - key: LOG_LEVEL
