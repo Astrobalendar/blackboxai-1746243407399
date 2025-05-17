@@ -9,7 +9,7 @@
   publish = "apps/frontend/.next"
   
   # Ignore builds triggered by commits with [skip-netlify]
-  ignore = "git log -1 --pretty=%B | grep \"\[skip-netlify\""
+  ignore = "git log -1 --pretty=%B | grep \"\\[skip-netlify\""
 
 [build.environment]
   # Node.js version
