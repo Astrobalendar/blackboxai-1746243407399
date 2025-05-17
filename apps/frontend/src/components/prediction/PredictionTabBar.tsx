@@ -34,6 +34,7 @@ const PredictionTabBar: React.FC<PredictionTabBarProps> = ({ activeTab }) => {
         role="tablist"
         aria-orientation="horizontal"
         aria-label="Prediction Tabs"
+        tabIndex={0}
       >
         {TABS.map((tab, idx) => {
           const isActive = tab === currentTab;
@@ -42,17 +43,14 @@ const PredictionTabBar: React.FC<PredictionTabBarProps> = ({ activeTab }) => {
               key={tab}
               role="tab"
               aria-selected={isActive}
-              initial={{ opacity: 0, y: -8 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: idx * 0.04, duration: 0.4, type: 'spring' }}
-              whileHover={!isActive ? { boxShadow: '0 0 0 2px #60a5fa, 0 2px 8px #fff4' } : {}}
-              className={`inline-block px-3 py-2 rounded-md cursor-default select-none transition-all duration-200 text-base font-medium pointer-events-none opacity-60 ${
-                isActive
-                  ? 'bg-white/20 border-b-2 border-blue-400 font-semibold text-blue-100 pointer-events-none opacity-100'
-                  : 'hover:bg-white/15 text-white'
-              }`}
+              aria-controls={`tabpanel-${idx}`}
+              id={`tab-${idx}`}
               tabIndex={isActive ? 0 : -1}
-              aria-disabled
+              className={`px-4 py-2 md:px-6 text-sm md:text-base font-semibold focus:outline-none transition border-b-2 ${isActive ? 'border-yellow-500 text-yellow-900 bg-yellow-50' : 'border-transparent text-gray-700'}`}
+              type="button"
+              aria-label={tab}
+              title={tab}
+              onClick={() => {}}
             >
               {tab}
               {isActive && (

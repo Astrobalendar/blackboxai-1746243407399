@@ -2,6 +2,10 @@ import React, { useState } from 'react';
 interface BirthDataFormProps {
   onSubmit: (data: {
     fullName: string;
+    gender: string;
+    fatherName: string;
+    familyName: string;
+    gothram: string;
     dateOfBirth: string;
     timeOfBirth: string;
     locationName: string;
@@ -13,6 +17,10 @@ interface BirthDataFormProps {
   error: string | null;
   initialData?: {
     fullName?: string;
+    gender?: string;
+    fatherName?: string;
+    familyName?: string;
+    gothram?: string;
     dateOfBirth?: string;
     timeOfBirth?: string;
     locationName?: string;
@@ -37,6 +45,30 @@ const LABELS = {
     ta: 'முழு பெயர்',
     hi: 'पूरा नाम',
     te: 'పూర్తి పేరు',
+  },
+  gender: {
+    en: 'Gender',
+    ta: 'பாலினம்',
+    hi: 'लिंग',
+    te: 'లింగం',
+  },
+  fatherName: {
+    en: "Father's Name",
+    ta: 'தந்தையின் பெயர்',
+    hi: 'पिता का नाम',
+    te: 'తండ్రి పేరు',
+  },
+  familyName: {
+    en: 'Family Name',
+    ta: 'குடும்ப பெயர்',
+    hi: 'परिवार का नाम',
+    te: 'కుటుంబ పేరు',
+  },
+  gothram: {
+    en: 'Gothram',
+    ta: 'கோத்ரம்',
+    hi: 'गोत्र',
+    te: 'గోత్రం',
   },
   dateOfBirth: {
     en: 'Date of Birth',
@@ -65,6 +97,30 @@ const PLACEHOLDERS = {
     hi: 'अपना पूरा नाम दर्ज करें',
     te: 'మీ పూర్తి పేరును నమోదు చేయండి',
   },
+  gender: {
+    en: 'Select gender',
+    ta: 'பாலினத்தை தேர்ந்தெடுக்கவும்',
+    hi: 'लिंग चुनें',
+    te: 'లింగాన్ని ఎంచుకోండి',
+  },
+  fatherName: {
+    en: "Enter father's name",
+    ta: 'தந்தையின் பெயரை உள்ளிடவும்',
+    hi: 'पिता का नाम दर्ज करें',
+    te: 'తండ్రి పేరును నమోదు చేయండి',
+  },
+  familyName: {
+    en: 'Enter family name',
+    ta: 'குடும்ப பெயரை உள்ளிடவும்',
+    hi: 'परिवार का नाम दर्ज करें',
+    te: 'కుటుంబ పేరును నమోదు చేయండి',
+  },
+  gothram: {
+    en: 'Enter gothram',
+    ta: 'கோத்ரத்தை உள்ளிடவும்',
+    hi: 'गोत्र दर्ज करें',
+    te: 'గోత్రాన్ని నమోదు చేయండి',
+  },
   dateOfBirth: {
     en: 'YYYY-MM-DD',
     ta: 'YYYY-MM-DD',
@@ -91,6 +147,12 @@ const ERROR_REQUIRED = {
     ta: 'முழு பெயர் தேவை',
     hi: 'पूरा नाम आवश्यक है',
     te: 'పూర్తి పేరు అవసరం',
+  },
+  gender: {
+    en: 'Gender is required',
+    ta: 'பாலினம் தேவை',
+    hi: 'लिंग आवश्यक है',
+    te: 'లింగం అవసరం',
   },
   dateOfBirth: {
     en: 'Date of birth is required',
@@ -136,6 +198,10 @@ const BirthDataForm: React.FC<BirthDataFormProps> = ({
 }) => {
   const [form, setForm] = useState({
     fullName: initialData?.fullName || '',
+    gender: initialData?.gender || '',
+    fatherName: initialData?.fatherName || '',
+    familyName: initialData?.familyName || '',
+    gothram: initialData?.gothram || '',
     dateOfBirth: initialData?.dateOfBirth || '',
     timeOfBirth: initialData?.timeOfBirth || '',
     locationName: initialData?.locationName || '',
@@ -184,6 +250,18 @@ const BirthDataForm: React.FC<BirthDataFormProps> = ({
     if (!form.fullName.trim()) {
       newErrors.fullName = ERROR_REQUIRED.fullName[language];
     }
+    if (!form.gender.trim() || !['Male','Female','Other'].includes(form.gender)) {
+      newErrors.gender = 'Gender is required';
+    }
+    if (!form.fatherName.trim()) {
+      newErrors.fatherName = 'Father name is required';
+    }
+    if (!form.familyName.trim()) {
+      newErrors.familyName = 'Family name is required';
+    }
+    if (!form.gothram.trim()) {
+      newErrors.gothram = 'Gothram is required';
+    }
     if (!form.dateOfBirth.trim()) {
       newErrors.dateOfBirth = ERROR_REQUIRED.dateOfBirth[language];
     } else if (!/^\d{4}-\d{2}-\d{2}$/.test(form.dateOfBirth)) {
@@ -200,14 +278,16 @@ const BirthDataForm: React.FC<BirthDataFormProps> = ({
     return newErrors;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setFormSubmitted(true);
     const validationErrors = validate();
     setErrors(validationErrors);
     if (Object.keys(validationErrors).length > 0) return;
+    // Directly submit to parent handler; duplicate check is handled in NewHoroscope.tsx
     onSubmit(form);
   };
+
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -233,6 +313,93 @@ const BirthDataForm: React.FC<BirthDataFormProps> = ({
         {formSubmitted && errors.fullName && (
           <div className="text-red-400 text-sm mt-1">{errors.fullName}</div>
         )}
+        {/* Duplicate error message */}
+        {errors.fullName && !formSubmitted && (
+          <div className="text-red-500 text-sm mt-1">{errors.fullName}</div>
+        )}
+      </div>
+
+      <div className="space-y-2">
+        <label className="block text-white text-lg font-bold tracking-wide" title="Gender">
+          {LABELS.gender[language]}
+        </label>
+        <select
+          name="gender"
+          value={form.gender}
+          onChange={e => handleChange(e as any)}
+          disabled={loading}
+          className="glass-input"
+          aria-label={LABELS.gender[language]}
+          title={LABELS.gender[language]}
+        >
+          <option value="">{PLACEHOLDERS.gender[language]}</option>
+          <option value="Male">Male</option>
+          <option value="Female">Female</option>
+          <option value="Other">Other</option>
+        </select>
+        {formSubmitted && errors.gender && (
+          <div className="text-red-400 text-sm mt-1">{ERROR_REQUIRED.gender ? ERROR_REQUIRED.gender[language] : errors.gender}</div>
+        )}
+      </div>
+
+      <div className="space-y-2">
+        <label className="block text-white text-lg font-bold tracking-wide" title="Father Name">
+          {LABELS.fatherName[language]}
+        </label>
+        <input
+          type="text"
+          name="fatherName"
+          value={form.fatherName}
+          onChange={handleChange}
+          placeholder={PLACEHOLDERS.fatherName[language]}
+          disabled={loading}
+          className="glass-input"
+          aria-label={LABELS.fatherName[language]}
+          title={LABELS.fatherName[language]}
+        />
+        {formSubmitted && errors.fatherName && (
+          <div className="text-red-400 text-sm mt-1">{errors.fatherName}</div>
+        )}
+      </div>
+
+      <div className="space-y-2">
+        <label className="block text-white text-lg font-bold tracking-wide" title="Family Name">
+          {LABELS.familyName[language]}
+        </label>
+        <input
+          type="text"
+          name="familyName"
+          value={form.familyName}
+          onChange={handleChange}
+          placeholder={PLACEHOLDERS.familyName[language]}
+          disabled={loading}
+          className="glass-input"
+          aria-label={LABELS.familyName[language]}
+          title={LABELS.familyName[language]}
+        />
+        {formSubmitted && errors.familyName && (
+          <div className="text-red-400 text-sm mt-1">{errors.familyName}</div>
+        )}
+      </div>
+
+      <div className="space-y-2">
+        <label className="block text-white text-lg font-bold tracking-wide" title="Gothram">
+          {LABELS.gothram[language]}
+        </label>
+        <input
+          type="text"
+          name="gothram"
+          value={form.gothram}
+          onChange={handleChange}
+          placeholder={PLACEHOLDERS.gothram[language]}
+          disabled={loading}
+          className="glass-input"
+          aria-label={LABELS.gothram[language]}
+          title={LABELS.gothram[language]}
+        />
+        {formSubmitted && errors.gothram && (
+          <div className="text-red-400 text-sm mt-1">{errors.gothram}</div>
+        )}
       </div>
 
       <div className="space-y-2">
@@ -247,6 +414,8 @@ const BirthDataForm: React.FC<BirthDataFormProps> = ({
           placeholder={PLACEHOLDERS.dateOfBirth[language]}
           disabled={loading}
           className="glass-input"
+          aria-label={LABELS.dateOfBirth[language]}
+          title={LABELS.dateOfBirth[language]}
         />
         {formSubmitted && errors.dateOfBirth && (
           <div className="text-red-400 text-sm mt-1">{errors.dateOfBirth}</div>

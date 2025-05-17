@@ -1,0 +1,28 @@
+# KP Newcombe Stellar Astrology Platform ML Retrain Cron
+# Platform: Firebase Cloud Scheduler or Render Cron
+# Schedule: Sunday 03:00 UTC
+# HTTP POST to /api/aiTrainingBatches/retrain
+# Headers:
+#   Content-Type: application/json
+#   Authorization: Bearer {ADMIN_CRON_SECRET}
+#
+# Example Render Cron Job (render.yaml):
+#
+#  cronjobs:
+#    - name: ml-retrain
+#      schedule: '0 3 * * 0'
+#      command: |
+#        curl -X POST "https://<YOUR_DOMAIN>/api/aiTrainingBatches/retrain" \
+#          -H "Content-Type: application/json" \
+#          -H "Authorization: Bearer $ADMIN_CRON_SECRET"
+#
+# Example Firebase Scheduler (gcloud):
+#
+#  gcloud scheduler jobs create http ml-retrain \
+#    --schedule="0 3 * * 0" \
+#    --uri="https://<YOUR_DOMAIN>/api/aiTrainingBatches/retrain" \
+#    --http-method=POST \
+#    --headers="Content-Type:application/json,Authorization:Bearer $ADMIN_CRON_SECRET" \
+#    --time-zone="UTC"
+#
+# To enable/disable, set Firestore doc /systemConfig/mlAutoRetrain: true|false

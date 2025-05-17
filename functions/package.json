@@ -1,0 +1,18 @@
+{
+  "dependencies": {
+    "axios": "^1.9.0",
+    "expo": "^53.0.8",
+    "firebase": "^11.6.1",
+    "firebase-admin": "^13.3.0",
+    "html2pdf.js": "^0.10.3"
+  },
+  "devDependencies": {
+    "@types/axios": "^0.9.36",
+    "eas-cli": "^16.4.1",
+    "vite": "^6.3.5"
+  },
+  "scripts": {
+    "build": "vite build",
+    "deploy": "npm run build && firebase deploy"
+  }
+}

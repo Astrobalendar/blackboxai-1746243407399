@@ -14,6 +14,13 @@ const PredictionView = ({ predictionData, chartsData, onEdit, user }: any) => {
   const [showExport, setShowExport] = useState(false);
   const [exporting, setExporting] = useState(false);
   const [toast, setToast] = useState<string|null>(null);
+  // Accessibility: Focus management for export modal
+  const exportButtonRef = React.useRef<HTMLButtonElement>(null);
+  React.useEffect(() => {
+    if (showExport && exportButtonRef.current) {
+      exportButtonRef.current.focus();
+    }
+  }, [showExport]);
 
   const handleExportClick = () => {
     if (!predictionData) return;
@@ -89,11 +96,11 @@ const PredictionView = ({ predictionData, chartsData, onEdit, user }: any) => {
         <PredictionCard title="Remedies" content={predictionData?.remedies} editable onEdit={onEdit} />
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <RadarChart data={chartsData?.radar} />
-        <StackedBarChart data={chartsData?.dasaBhukti} />
-        <PieChart data={chartsData?.bhava} />
-        <LineChart data={chartsData?.transit} />
-        <KPChartSVG data={chartsData?.kp} />
+        <RadarChart data={chartsData?.radar} aria-label="Radar Chart" role="img" />
+        <StackedBarChart data={chartsData?.dasaBhukti} aria-label="Dasa Bhukti Chart" role="img" />
+        <PieChart data={chartsData?.bhava} aria-label="Bhava Pie Chart" role="img" />
+        <LineChart data={chartsData?.transit} aria-label="Transit Line Chart" role="img" />
+        <KPChartSVG data={chartsData?.kp} aria-label="KP Chart" role="img" />
       </div>
     </div>
   );

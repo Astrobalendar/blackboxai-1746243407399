@@ -1,0 +1,75 @@
+/* Progress bar container */
+.progressContainer {
+  width: 100%;
+  margin: 1rem 0;
+  padding: 0.5rem 0;
+}
+
+/* Progress bar track */
+.progressTrack {
+  width: 100%;
+  height: 8px;
+  background-color: #e5e7eb;
+  border-radius: 4px;
+  overflow: hidden;
+  position: relative;
+}
+
+/* Progress fill */
+.progressBar {
+  height: 100%;
+  width: var(--progress, 0%);
+  background-color: #4f46e5;
+  border-radius: 4px;
+  transition: width 0.3s ease-in-out;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Dynamic width classes for progressive enhancement */
+.progressBar.progressFill0 { width: 0%; }
+.progressBar.progressFill25 { width: 25%; }
+.progressBar.progressFill50 { width: 50%; }
+.progressBar.progressFill75 { width: 75%; }
+.progressBar.progressFill100 { width: 100%; }
+
+/* Animation for progress bar */
+@keyframes progressAnimation {
+  0% { width: 0%; }
+  100% { width: var(--progress, 0%); }
+}
+
+/* Screen reader only text */
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* Optional: Add a subtle gradient for better visual feedback */
+.progressBar::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    to right,
+    rgba(255, 255, 255, 0.2) 0%,
+    rgba(255, 255, 255, 0.4) 50%,
+    rgba(255, 255, 255, 0.2) 100%
+  );
+  animation: shimmer 2s infinite linear;
+}
+
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}

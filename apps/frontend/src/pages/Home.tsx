@@ -24,8 +24,7 @@ const Home = () => {
           <a href="/" className="px-4 py-2 rounded-lg font-semibold text-yellow-900 hover:bg-yellow-200 transition">Home</a>
           <a href="/calendar" className="px-4 py-2 rounded-lg font-semibold text-yellow-900 hover:bg-yellow-200 transition">Calendar</a>
           <a href="/chat" className="px-4 py-2 rounded-lg font-semibold text-yellow-900 hover:bg-yellow-200 transition">Chat</a>
-          <a href="/new-horoscope" className="px-4 py-2 rounded-lg font-semibold text-yellow-900 hover:bg-yellow-200 transition">New Horoscope</a>
-          <a href="/birth-data" className="px-4 py-2 rounded-lg font-semibold text-yellow-900 hover:bg-yellow-200 transition">Birth Data</a>
+
           <div className="ml-2">
             <HeaderDropdownMenu />
           </div>

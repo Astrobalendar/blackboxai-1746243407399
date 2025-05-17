@@ -24,7 +24,9 @@ const MENU_GROUPS = [
     label: 'Horoscope Tools',
     icon: <BookOpen className="w-4 h-4 mr-2" />,
     items: [
-      { label: 'New Horoscope +', icon: <FileUp className="w-4 h-4" />, href: '/new-horoscope' },
+      { label: 'Home', icon: <Grid className="w-4 h-4" />, href: '/dashboard' },
+      { label: 'New Horoscope', icon: <FileUp className="w-4 h-4" />, href: '/horoscope/new' },
+      { label: 'Horoscope Calendar', icon: <BookOpen className="w-4 h-4" />, href: '/calendar' },
       { label: 'Adjust Birth Time', icon: <Edit className="w-4 h-4" />, href: '/adjust-birth-time' },
       { label: 'Ruling Planets', icon: <Star className="w-4 h-4" />, href: '/ruling-planets' },
       { label: 'Horary Chart', icon: <Sun className="w-4 h-4" />, href: '/horary-chart' },
@@ -58,7 +60,12 @@ const MENU_GROUPS = [
       { label: 'Browse Horoscope', icon: <BookOpen className="w-4 h-4" />, href: '/browse-horoscope' },
       { label: 'Backup and Restore', icon: <FileDown className="w-4 h-4" />, href: '/backup-restore' },
       { label: 'Export in Excel Format', icon: <FileSpreadsheet className="w-4 h-4" />, href: '/export-excel' },
-      { label: 'Astro Research Lab', icon: <BarChart className="w-4 h-4" />, href: '/admin/research' },
+      { label: 'Research Lab', icon: <BarChart className="w-4 h-4" />, href: '/admin/research' },
+      { label: 'ML Feedback', icon: <BarChart className="w-4 h-4" />, href: '/admin/ml-feedback' },
+      { label: 'Batch Upload', icon: <FileUp className="w-4 h-4" />, href: '/admin/batch-upload' },
+      { label: 'Horoscope Test', icon: <BookOpen className="w-4 h-4" />, href: '/horoscope-test' },
+      { label: 'Admin QA Report', icon: <FileText className="w-4 h-4" />, href: '/admin/qa-report' },
+      { label: 'Export Example', icon: <FileSpreadsheet className="w-4 h-4" />, href: '/export-example' },
     ],
   },
 ];
@@ -85,7 +92,7 @@ export const HeaderDropdownMenu: React.FC = () => {
       <button
         className="flex items-center justify-center w-10 h-10 rounded-full bg-yellow-200 hover:bg-yellow-300 focus:outline-none focus:ring-2 focus:ring-yellow-500"
         aria-haspopup="true"
-        aria-expanded={open}
+        aria-expanded={open ? 'true' : 'false'}
         aria-label="Open menu"
         onClick={() => setOpen((v) => !v)}
       >
@@ -93,63 +100,68 @@ export const HeaderDropdownMenu: React.FC = () => {
         <span className="sr-only">Open menu</span>
       </button>
       {open && (
-  <ul
-    className="absolute right-0 mt-2 w-80 max-w-[90vw] bg-white rounded-xl shadow-2xl border border-yellow-200 z-50 overflow-y-auto max-h-[80vh] focus:outline-none"
-    role="menu"
-    data-tabindex={-1}
-  >
-    {MENU_GROUPS.map((group, idx) => (
-      <li key={group.label} role="presentation" className="border-b last:border-b-0 border-yellow-100">
-        <button
-          className="flex w-full items-center px-4 py-3 font-semibold text-yellow-800 bg-yellow-50 hover:bg-yellow-100 focus:bg-yellow-100 transition group focus:outline-none"
-          aria-expanded={expanded === idx}
-          aria-controls={`menu-group-${idx}`}
-          onClick={() => setExpanded(expanded === idx ? null : idx)}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' || e.key === ' ') setExpanded(expanded === idx ? null : idx);
-          }}
-        >
-          {group.icon}
-          <span className="flex-1 text-left">{group.label}</span>
-          {expanded === idx ? <ChevronUp className="w-4 h-4 ml-2" /> : <ChevronDown className="w-4 h-4 ml-2" />}
-        </button>
         <ul
-          id={`menu-group-${idx}`}
-          className={`transition-all overflow-hidden ${expanded === idx ? 'max-h-96 py-2' : 'max-h-0 py-0'} bg-white`}
-          aria-hidden={expanded !== idx}
+          className="absolute right-0 mt-2 w-80 max-w-[90vw] bg-white rounded-xl shadow-2xl border border-yellow-200 z-50 overflow-y-auto max-h-[80vh] focus:outline-none"
           role="menu"
         >
-          {group.items.map((item, j) => (
-            <li key={item.label} role="menuitem">
-              {item.external ? (
-                <a
-                  href={item.href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-2 px-2 py-2 rounded-lg text-yellow-800 hover:bg-yellow-100 focus:bg-yellow-100 transition focus:outline-none"
-                  data-tabindex={expanded === idx ? 0 : -1}
+          {MENU_GROUPS.map((group, idx) => (
+            <li key={group.label} role="none" className="border-b last:border-b-0 border-yellow-100">
+              <button
+                className="flex w-full items-center px-4 py-3 font-semibold text-yellow-800 bg-yellow-50 hover:bg-yellow-100 focus:bg-yellow-100 transition group focus:outline-none"
+                aria-expanded={expanded === idx}
+                aria-controls={`menu-group-${idx}`}
+                onClick={() => setExpanded(expanded === idx ? null : idx)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') setExpanded(expanded === idx ? null : idx);
+                }}
+                role="menuitem"
+                tabIndex={0}
+              >
+                {group.icon}
+                <span className="flex-1 text-left">{group.label}</span>
+                {expanded === idx ? <ChevronUp className="w-4 h-4 ml-2" /> : <ChevronDown className="w-4 h-4 ml-2" />}
+              </button>
+              {expanded === idx && (
+                <ul
+                  id={`menu-group-${idx}`}
+                  className={`transition-all overflow-hidden max-h-96 py-2 bg-white`}
+                  aria-hidden={!expanded}
+                  role="menu"
                 >
-                  {item.icon}
-                  <span>{item.label}</span>
-                  <ExternalLink className="w-3 h-3 ml-auto text-yellow-400" />
-                </a>
-              ) : (
-                <a
-                  href={item.href}
-                  className="flex items-center gap-2 px-2 py-2 rounded-lg text-yellow-800 hover:bg-yellow-100 focus:bg-yellow-100 transition focus:outline-none"
-                  data-tabindex={expanded === idx ? 0 : -1}
-                >
-                  {item.icon}
-                  <span>{item.label}</span>
-                </a>
+                  {group.items.map((item, j) => (
+                    <li key={item.label} role="none">
+                      {item.external ? (
+                        <a
+                          href={item.href}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-2 px-2 py-2 rounded-lg text-yellow-800 hover:bg-yellow-100 focus:bg-yellow-100 transition focus:outline-none"
+                          tabIndex={expanded === idx ? 0 : -1}
+                          role="menuitem"
+                        >
+                          {item.icon}
+                          <span>{item.label}</span>
+                          <ExternalLink className="w-3 h-3 ml-auto text-yellow-400" />
+                        </a>
+                      ) : (
+                        <a
+                          href={item.href}
+                          className="flex items-center gap-2 px-2 py-2 rounded-lg text-yellow-800 hover:bg-yellow-100 focus:bg-yellow-100 transition focus:outline-none"
+                          tabIndex={expanded === idx ? 0 : -1}
+                          role="menuitem"
+                        >
+                          {item.icon}
+                          <span>{item.label}</span>
+                        </a>
+                      )}
+                    </li>
+                  ))}
+                </ul>
               )}
             </li>
           ))}
         </ul>
-      </li>
-    ))}
-  </ul>
-)}
+      )}
     </div>
   );
 };

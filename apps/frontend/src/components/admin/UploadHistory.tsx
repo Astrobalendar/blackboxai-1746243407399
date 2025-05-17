@@ -35,7 +35,6 @@ const UploadHistory: React.FC = () => {
 
   useEffect(() => {
     fetchBatches();
-    // eslint-disable-next-line
   }, []);
 
   const fetchBatches = async () => {

@@ -1,0 +1,37 @@
+# Dependencies
+node_modules/
+venv/
+
+# Environment variables
+.env
+
+# Build output
+build/
+dist/
+
+# Logs
+logs/
+*.log
+
+# IDE
+.idea/
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Test files
+test/
+__tests__/
+*.test.js
+*.spec.js
+
+# Python files
+*.py
+*.pyc
+__pycache__/
+
+# Debug logs
+firebase-debug.log
+firestore-debug.log

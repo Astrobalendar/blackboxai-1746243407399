@@ -1,0 +1,27 @@
+# This file specifies files and directories to be ignored when deploying
+# to Google Cloud Functions.
+
+# Node.js specific files
+node_modules/
+*.log
+
+# Environment files
+.env
+
+# Build output
+build/
+dist/
+
+# IDE
+.idea/
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Test files
+test/
+__tests__/
+*.test.js
+*.spec.js

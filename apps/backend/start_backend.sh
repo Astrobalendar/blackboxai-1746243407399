@@ -9,4 +9,4 @@ cd "$(dirname "$0")"
 export $(grep -v '^#' .env | xargs)
 
 echo "🚀 Starting backend server..."
-python backend_server.py
+python3 backend_server.py

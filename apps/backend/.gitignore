@@ -1,0 +1,27 @@
+# Dependencies
+node_modules/
+venv/
+
+# Environment variables
+.env
+
+# Build output
+build/
+dist/
+
+# Logs
+*.log
+
+# IDE
+.idea/
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Test files
+test/
+__tests__/
+*.test.js
+*.spec.js

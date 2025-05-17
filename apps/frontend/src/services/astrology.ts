@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { PredictionResult } from '@shared/types/prediction';
 
-const API_URL = process.env.REACT_APP_ASTROLOGY_API_URL || 'http://localhost:3001';
+const API_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3001';
 
 interface PredictionRequest {
   name: string;
@@ -41,5 +41,47 @@ export const getAstrologicalPrediction = async (data: PredictionRequest): Promis
     } else {
       throw new Error('Failed to fetch astrological prediction');
     }
+  }
+};
+
+/**
+ * Fetches Rasi and Navamsa chart data from backend using birth details.
+ * @param birthDetails { dateOfBirth, timeOfBirth, locationName, latitude, longitude }
+ * @returns { rasi: PlanetPlacement[], navamsa: PlanetPlacement[] }
+ */
+export type PlanetPlacement = { name: string; house: number; degree?: number; rasi?: string };
+
+export interface ChartDataRequest {
+  dateOfBirth: string;
+  timeOfBirth: string;
+  locationName: string;
+  latitude: number;
+  longitude: number;
+}
+
+export interface ChartDataResponse {
+  rasi: PlanetPlacement[];
+  navamsa: PlanetPlacement[];
+}
+
+export const getChartData = async (
+  birthDetails: ChartDataRequest
+): Promise<ChartDataResponse> => {
+  try {
+    // Call the backend API endpoint for computing chart data
+    const response = await axios.post(
+      `${API_URL}/api/v1/chart-data`,
+      birthDetails,
+      {
+        timeout: 30000,
+        headers: { 'Content-Type': 'application/json' },
+      }
+    );
+    if (!response.data || !response.data.rasi || !response.data.navamsa) {
+      throw new Error('Invalid chart data response');
+    }
+    return response.data;
+  } catch (error) {
+    throw new Error('Failed to fetch chart data');
   }
 };

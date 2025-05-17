@@ -1,333 +1,377 @@
-import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { db, auth } from '../../lib/firebase';
-import { doc, getDoc, setDoc, updateDoc, serverTimestamp, collection, getDocs } from 'firebase/firestore';
-import ChartInsightPanel from '../research/ChartInsightPanel';
-import { useAuth } from '../../context/AuthProvider';
+import React, { useState, useEffect, FC, ChangeEvent, FormEvent } from 'react';
+import axios from 'axios';
+import { useAuth } from '../../contexts/AuthContext';
+import { ProgressBar } from '../ui/ProgressBar';
+import { db } from '../../lib/firebase/config';
+import { collection, addDoc, serverTimestamp, query, where, getDocs } from 'firebase/firestore';
+import { v4 as uuidv4 } from 'uuid';
+import styles from './TestSessionView.module.css';
 
-// Utility: Generate mock chart and prediction data
-function getMockChartData() {
-  return {
-    dob: '1992-07-15',
-    tob: '10:45',
-    pob: 'Chennai',
-    lagna: 'Leo',
-    kpDetails: { planets: ['Sun', 'Moon', 'Mars'], dasa: 'Venus', sublords: ['Mercury', 'Saturn'] },
-  };
-}
-function getMockPredictions() {
-  return [
-    { topic: 'Career', notes: 'Strong period for growth.', confidence: 0.88 },
-    { topic: 'Health', notes: 'Maintain regular exercise.', confidence: 0.72 },
-    { topic: 'Finance', notes: 'Stable income, avoid risks.', confidence: 0.65 },
-  ];
+interface PlanetPosition {
+  name: string;
+  house: number;
+  sign: string;
+  degree: number;
 }
 
-
-const STEPS = [
-  { label: 'Chart', key: 'chart' },
-  { label: 'Prediction', key: 'prediction' },
-  { label: 'AI Insight', key: 'insight' },
-  { label: 'Export', key: 'export' },
-];
+interface ChartData {
+  rasi: PlanetPosition[];
+  navamsa: PlanetPosition[];
+  [key: string]: any;
+}
 
 interface TestSessionViewProps {
-  onComplete: () => void;
+  onComplete: (data?: ChartData) => void;
 }
 
-import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
-import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { addQrCodeToPdfFooter } from '../../modules/postlaunch/NextStepLaunchEnhancements';
+interface FormData {
+  fullName: string;
+  dateOfBirth: string;
+  timeOfBirth: string;
+  locationName: string;
+  latitude: number;
+  longitude: number;
+}
 
-const TestSessionView: React.FC<TestSessionViewProps> = ({ onComplete }) => {
-  const [step, setStep] = useState(0);
-  const [loading, setLoading] = useState(true);
-  const [mockMode, setMockMode] = useState(false);
-  const [sessionId, setSessionId] = useState<string | null>(null);
-  const [chartData, setChartData] = useState<any>(null);
-  const [predictions, setPredictions] = useState<any[]>([]);
-  const [insights, setInsights] = useState<string[]>([]);
-  const [userRole, setUserRole] = useState<'astrologer' | 'client'>('astrologer');
-  const [saving, setSaving] = useState(false);
-  const [uid, setUid] = useState<string | null>(null);
-  const [exporting, setExporting] = useState(false);
-  const [pdfUrl, setPdfUrl] = useState<string | null>(null);
-  const [exportSuccess, setExportSuccess] = useState(false);
-  const [shareWithClient, setShareWithClient] = useState(false);
+interface Step {
+  title: string;
+  description: string;
+}
+
+const TestSessionView: FC<TestSessionViewProps> = ({ onComplete }) => {
   const { user } = useAuth();
-  const [fullName, setFullName] = useState<string>('');
+  const [currentStep, setCurrentStep] = useState<number>(0);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [saving, setSaving] = useState<boolean>(false);
+  const [progress, setProgress] = useState<number>(0);
+  const [formData, setFormData] = useState<FormData>({
+    fullName: '',
+    dateOfBirth: '',
+    timeOfBirth: '',
+    locationName: '',
+    latitude: 0,
+    longitude: 0
+  });
+  const [chartData, setChartData] = useState<ChartData | null>(null);
+  const [sessionId, setSessionId] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
-  // On mount: load or create session
+  const steps: Step[] = [
+    { title: 'Personal Information', description: 'Enter your basic details' },
+    { title: 'Birth Details', description: 'Enter your birth information' },
+    { title: 'Generate Horoscope', description: 'Processing your chart' },
+    { title: 'Results', description: 'View your horoscope' }
+  ];
+
   useEffect(() => {
-    // Enable Firestore onSnapshot for live editing (astrologer role only)
-    if (userRole === 'astrologer' && uid && sessionId) {
-      const testDocRef = doc(db, 'users', uid, 'tests', sessionId);
-      const unsub = onSnapshot(testDocRef, (docSnap) => {
-        if (docSnap.exists()) {
-          const data = docSnap.data();
-          setChartData(data.chartData || null);
-          setPredictions(data.predictions || []);
-          setInsights(data.insights || []);
-        }
-      });
-      return () => unsub();
-    }
-  }, [userRole, uid, sessionId]);
-    let mounted = true;
-    setLoading(true);
-    auth.onAuthStateChanged(async (user) => {
-      if (!user) { setLoading(false); return; }
-      const userId = user.uid;
-      setUid(userId);
-      // Try to find latest in-progress test
-      const testsRef = collection(db, 'users', userId, 'tests');
-      const testsSnap = await getDocs(testsRef);
-      let foundId = null;
-      testsSnap.forEach(docSnap => {
-        const d = docSnap.data();
-        if (d.status === 'in_progress' && !foundId) foundId = docSnap.id;
-      });
-      let testId = foundId || `test_${Date.now()}`;
-      setSessionId(testId);
-      const testDocRef = doc(db, 'users', userId, 'tests', testId);
-      const testDoc = await getDoc(testDocRef);
-      if (testDoc.exists()) {
-        const data = testDoc.data();
-        setChartData(data.chartData || null);
-        setPredictions(data.predictions || []);
-        setInsights(data.insights || []);
-        setShareWithClient(!!data.shareWithClient);
-        setMockMode(false);
-        // Try to get astrologer fullName from session doc first
-        if (data.astrologerFullName) setFullName(data.astrologerFullName);
-      } else {
-        // Create new test with mock data
-        const mockChart = getMockChartData();
-        const mockPreds = getMockPredictions();
-        // Also try to fetch astrologer fullName from Firestore user doc
-        let astrologerName = '';
-        try {
-          const userDoc = await getDoc(doc(db, 'users', userId));
-          if (userDoc.exists()) {
-            const udata = userDoc.data();
-            astrologerName = udata.fullName || '';
-            setFullName(astrologerName);
-          }
-        } catch {}
-        await setDoc(testDocRef, {
-          testId,
-          createdBy: userId,
-          status: 'in_progress',
-          createdAt: serverTimestamp(),
-          chartData: mockChart,
-          predictions: mockPreds,
-          insights: [],
-          astrologerFullName: astrologerName,
-        });
-        setChartData(mockChart);
-        setPredictions(mockPreds);
-        setInsights([]);
-        setMockMode(true);
-      }
-      setLoading(false);
-    });
-    return () => { mounted = false; };
-  }, []);
+    const newProgress = Math.min(100, Math.floor(((currentStep + 1) / steps.length) * 100));
+    setProgress(newProgress);
+  }, [currentStep, steps.length]);
 
-  // Save after each step
-  useEffect(() => {
-    if (!uid || !sessionId) return;
-    if (loading) return;
-    setSaving(true);
-    const testDocRef = doc(db, 'users', uid, 'tests', sessionId);
-    updateDoc(testDocRef, {
-      chartData,
-      predictions,
-      insights,
-      lastModified: serverTimestamp(),
-    }).finally(() => setSaving(false));
-  }, [step]);
+  const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: name === 'latitude' || name === 'longitude' ? parseFloat(value) || 0 : value
+    }));
+  };
 
-  const next = () => setStep((s) => Math.min(s + 1, STEPS.length - 1));
-  const prev = () => setStep((s) => Math.max(s - 1, 0));
-
-  // PDF Export Handler
-  const handleExportPDF = async () => {
-    if (!uid || !sessionId) return;
-    setExporting(true);
-    setExportSuccess(false);
+  const checkForDuplicates = async (birthData: FormData) => {
+    if (!user?.uid) throw new Error('User not authenticated');
+    
     try {
-      const node = document.getElementById('pdf-export-content');
-      if (!node) throw new Error('Export content not found');
-      const canvas = await html2canvas(node, { scale: 2 });
-      const imgData = canvas.toDataURL('image/png');
-      const pdf = new jsPDF('p', 'mm', 'a4');
-      const pageWidth = pdf.internal.pageSize.getWidth();
-      const pageHeight = pdf.internal.pageSize.getHeight();
-      const imgProps = pdf.getImageProperties(imgData);
-      const pdfWidth = pageWidth - 20;
-      const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
-      pdf.addImage(imgData, 'PNG', 10, 10, pdfWidth, pdfHeight);
-      // Inject QR code in footer (session share URL)
-      const sessionUrl = `${window.location.origin}/client/session/${sessionId}`;
-      await addQrCodeToPdfFooter(pdf, sessionUrl, pageHeight - 30);
-      const pdfBlob = pdf.output('blob');
-      // Upload to Firestore Storage
-      const storage = getStorage();
-      const pdfRef = ref(storage, `users/${uid}/tests/${sessionId}/export.pdf`);
-      await uploadBytes(pdfRef, pdfBlob, { contentType: 'application/pdf' });
-      const url = await getDownloadURL(pdfRef);
-      setPdfUrl(url);
-      setExportSuccess(true);
-      // Update test session metadata
-      const testDocRef = doc(db, 'users', uid, 'tests', sessionId);
-      await updateDoc(testDocRef, {
-        status: 'completed',
-        exportGeneratedAt: serverTimestamp(),
-        pdfUrl: url,
-        downloadCount: (testDocRef.downloadCount || 0) + 1,
-        completedAt: serverTimestamp(),
-      });
-      // Confetti/toast
-      if (window && window.dispatchEvent) {
-        window.dispatchEvent(new CustomEvent('confetti')); // Use a confetti library in real app
-      }
-    } catch (e) {
-      alert('Export failed: ' + (e as Error).message);
-    } finally {
-      setExporting(false);
+      const q = query(
+        collection(db, 'horoscopes'),
+        where('astrologerId', '==', user.uid),
+        where('fullName', '==', birthData.fullName),
+        where('birthDate', '==', birthData.dateOfBirth)
+      );
+      
+      const querySnapshot = await getDocs(q);
+      return !querySnapshot.empty;
+    } catch (error) {
+      console.error('Error checking for duplicates:', error);
+      throw new Error('Unable to check for duplicates. Please try again.');
     }
   };
 
-  // Handlers for editing chart/prediction/insight (astrologer only)
-  const handleChartChange = (field: string, value: any) => {
-    if (userRole !== 'astrologer') return;
-    setChartData((prev: any) => ({ ...prev, [field]: value }));
-  };
-  const handlePredictionChange = (idx: number, field: string, value: any) => {
-    if (userRole !== 'astrologer') return;
-    setPredictions((prev) => prev.map((p, i) => i === idx ? { ...p, [field]: value } : p));
-  };
-  const handleInsightsChange = (ins: string[]) => {
-    if (userRole !== 'astrologer') return;
-    setInsights(ins);
+  const saveHoroscope = async (chartData: ChartData): Promise<string> => {
+    if (!user?.uid) {
+      throw new Error('User not authenticated');
+    }
+
+    try {
+      setSaving(true);
+      setError(null);
+
+      // Check for duplicates
+      const isDuplicate = await checkForDuplicates(formData);
+      if (isDuplicate) {
+        throw new Error('A horoscope with these details already exists');
+      }
+
+      // Save to Firestore
+      const docRef = await addDoc(collection(db, 'horoscopes'), {
+        id: uuidv4(),
+        astrologerId: user.uid,
+        fullName: formData.fullName,
+        birthDate: formData.dateOfBirth,
+        birthTime: formData.timeOfBirth,
+        birthPlace: formData.locationName,
+        latitude: formData.latitude,
+        longitude: formData.longitude,
+        chartData: chartData,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
+      });
+
+      setSessionId(docRef.id);
+      return docRef.id;
+    } catch (error) {
+      console.error('Error saving horoscope:', error);
+      throw error;
+    } finally {
+      setSaving(false);
+    }
   };
 
-  if (loading) return <div className="text-center py-8">Loading test session...</div>;
+  const handleSubmit = async (e: FormEvent) => {
+    e.preventDefault();
+    
+    if (currentStep < steps.length - 2) {
+      setCurrentStep(prev => prev + 1);
+    } else if (currentStep === steps.length - 2) {
+      try {
+        setLoading(true);
+        setError(null);
+        
+        // Simulate API call to generate chart data
+        const response = await axios.post('https://api.vedicastroapi.com/v1/chart', {
+          name: formData.fullName,
+          date: formData.dateOfBirth,
+          time: formData.timeOfBirth,
+          latitude: formData.latitude,
+          longitude: formData.longitude,
+          timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
+        });
+        
+        const chartResponse = response.data;
+        setChartData(chartResponse);
+        
+        // Save to Firestore
+        await saveHoroscope(chartResponse);
+        
+        // Move to results step
+        setCurrentStep(prev => prev + 1);
+      } catch (error) {
+        console.error('Error generating horoscope:', error);
+        setError(error instanceof Error ? error.message : 'Failed to generate horoscope');
+      } finally {
+        setLoading(false);
+      }
+    } else {
+      onComplete(chartData || undefined);
+    }
+  };
 
-  return (
-    <div>
-      <div className="bg-green-100 border-l-4 border-green-500 p-3 mb-4 rounded text-green-800 font-semibold text-center">
-        ✅ Post-Launch Modules Active
-      </div>
-      {/* Progress Bar */}
-      <div className="mb-6 flex items-center gap-4">
-        {STEPS.map((s, idx) => (
-          <div key={s.key} className="flex-1 flex flex-col items-center">
-            <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-white ${idx <= step ? 'bg-indigo-600' : 'bg-gray-300'}`}>{idx + 1}</div>
-            <span className={`text-xs mt-1 ${idx === step ? 'font-semibold text-indigo-700' : 'text-gray-400'}`}>{s.label}</span>
+  const renderStepContent = () => {
+    switch (currentStep) {
+      case 0:
+        return (
+          <div className={styles.formGroup}>
+            <label htmlFor="fullName">Full Name</label>
+            <input
+              type="text"
+              id="fullName"
+              name="fullName"
+              value={formData.fullName}
+              onChange={handleInputChange}
+              required
+              className={styles.input}
+              placeholder="Enter full name"
+            />
           </div>
-        ))}
-      </div>
-      {/* Step Content */}
-      <motion.div key={step} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
-        {step === 0 && <div>Chart step (mock or real chart here)</div>}
-        {step === 1 && <div>Prediction step (prediction cards here)</div>}
-        {step === 2 && <div>AI Insight step (ChartInsightPanel or summary)</div>}
-        {step === 3 && (
-          <div className="space-y-4">
-            {/* Share with Client toggle (only for astrologer) */}
-            {userRole === 'astrologer' && (
-              <div className="flex items-center mb-2">
-                <input
-                  type="checkbox"
-                  id="share-with-client"
-                  className="mr-2 h-4 w-4 accent-indigo-600"
-                  checked={!!shareWithClient}
-                  onChange={async (e) => {
-                    const checked = e.target.checked;
-                    setShareWithClient(checked);
-                    if (uid && sessionId) {
-                      const testDocRef = doc(db, 'users', uid, 'tests', sessionId);
-                      await updateDoc(testDocRef, { shareWithClient: checked });
-                    }
-                  }}
-                />
-                <label htmlFor="share-with-client" className="text-sm font-medium text-indigo-700 select-none">
-                  Share with Client
-                </label>
-                <span className="ml-2 text-xs text-gray-400">({shareWithClient ? 'Client can view & download' : 'Private to astrologer'})</span>
+        );
+      case 1:
+        return (
+          <>
+            <div className={styles.formGroup}>
+              <label htmlFor="dateOfBirth">Date of Birth</label>
+              <input
+                type="date"
+                id="dateOfBirth"
+                name="dateOfBirth"
+                value={formData.dateOfBirth}
+                onChange={handleInputChange}
+                required
+                className={styles.input}
+                max={new Date().toISOString().split('T')[0]}
+              />
+            </div>
+            <div className={styles.formGroup}>
+              <label htmlFor="timeOfBirth">Time of Birth</label>
+              <input
+                type="time"
+                id="timeOfBirth"
+                name="timeOfBirth"
+                value={formData.timeOfBirth}
+                onChange={handleInputChange}
+                required
+                className={styles.input}
+              />
+            </div>
+            <div className={styles.formGroup}>
+              <label htmlFor="locationName">Birth Place</label>
+              <input
+                type="text"
+                id="locationName"
+                name="locationName"
+                value={formData.locationName}
+                onChange={handleInputChange}
+                required
+                className={styles.input}
+                placeholder="Enter birth place"
+              />
+            </div>
+            <div className={styles.formGroup}>
+              <label>Location Coordinates</label>
+              <div className={styles.coordinateInputs}>
+                <div className={styles.coordinateGroup}>
+                  <span>Latitude:</span>
+                  <input
+                    type="number"
+                    name="latitude"
+                    value={formData.latitude || ''}
+                    onChange={handleInputChange}
+                    step="0.000001"
+                    className={styles.coordinateInput}
+                    placeholder="e.g., 19.0760"
+                  />
+                </div>
+                <div className={styles.coordinateGroup}>
+                  <span>Longitude:</span>
+                  <input
+                    type="number"
+                    name="longitude"
+                    value={formData.longitude || ''}
+                    onChange={handleInputChange}
+                    step="0.000001"
+                    className={styles.coordinateInput}
+                    placeholder="e.g., 72.8777"
+                  />
+                </div>
+              </div>
+              <p className={styles.helpText}>
+                Tip: You can find coordinates using{' '}
+                <a 
+                  href="https://www.latlong.net/" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className={styles.link}
+                >
+                  latlong.net
+                </a>
+              </p>
+            </div>
+          </>
+        );
+      case 2:
+        return (
+          <div className={styles.loadingContainer}>
+            <div className={styles.spinner}></div>
+            <p>Generating your horoscope...</p>
+            {loading && <p className={styles.statusText}>Fetching astrological data...</p>}
+          </div>
+        );
+      case 3:
+        return (
+          <div className={styles.successContainer}>
+            <div className={styles.successIcon}>✓</div>
+            <h3>Horoscope Generated Successfully!</h3>
+            <p>Your horoscope has been saved to your account.</p>
+            {sessionId && (
+              <div className={styles.sessionInfo}>
+                <p><strong>Session ID:</strong> {sessionId}</p>
+                <p><strong>Date:</strong> {new Date().toLocaleDateString()}</p>
               </div>
             )}
-            <div id="pdf-export-content" className="bg-white rounded-xl shadow p-6">
-              <h2 className="font-bold text-xl mb-2">Horoscope Test Summary</h2>
-              <div className="mb-2">
-                <span className="font-semibold">Chart Overview:</span><br />
-                DOB: {chartData?.dob} | TOB: {chartData?.tob} | POB: {chartData?.pob}<br />
-                Lagna: {chartData?.lagna}<br />
-                KP Planets: {chartData?.kpDetails?.planets?.join(', ')}<br />
-                Dasa: {chartData?.kpDetails?.dasa} | Sublords: {chartData?.kpDetails?.sublords?.join(', ')}
-              </div>
-              <div className="mb-2">
-                <span className="font-semibold">Predictions:</span>
-                <ul className="list-disc pl-6">
-                  {predictions.map((p, i) => (
-                    <li key={i}><b>{p.topic}:</b> {p.notes} <span className="text-xs text-gray-500">(Confidence: {Math.round(p.confidence*100)}%)</span></li>
-                  ))}
-                </ul>
-              </div>
-              <div className="mb-2">
-                <span className="font-semibold">AI Insights:</span>
-                <ul className="list-disc pl-6">
-                  {insights.map((ins, i) => (
-                    <li key={i}>{ins}</li>
-                  ))}
-                </ul>
-              </div>
-              <div className="mt-4 border-t pt-2 text-xs text-gray-600">
-                Prepared by: Astrologer {fullName || '[Name]'}<br/>
-                Test ID: {sessionId}<br/>
-                Timestamp: {new Date().toLocaleString()}<br/>
-              </div>
-            </div>
-            <div className="flex gap-4 items-center">
-              <button
-                className="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 disabled:opacity-60"
-                disabled={saving || exporting}
-                onClick={handleExportPDF}
-              >{exporting ? 'Exporting...' : 'Export Summary as PDF'}</button>
-              {pdfUrl && (
-                <a
-                  href={pdfUrl}
-                  download={`horoscope_test_${sessionId}.pdf`}
-                  className="px-3 py-2 bg-green-600 text-white rounded hover:bg-green-700"
-                >Download PDF</a>
-              )}
-              {exportSuccess && <span className="text-green-600 font-semibold">Exported!</span>}
+            <div className={styles.actions}>
+              <button 
+                type="button" 
+                className={`${styles.button} ${styles.primaryButton}`}
+                onClick={() => onComplete(chartData || undefined)}
+              >
+                View Horoscope
+              </button>
+              <button 
+                type="button" 
+                className={styles.button}
+                onClick={() => setCurrentStep(0)}
+              >
+                Create Another
+              </button>
             </div>
           </div>
+        );
+      default:
+        return <div>Complete!</div>;
+    }
+  };
+
+  return (
+    <div className={styles.container}>
+      <h2>Create New Horoscope</h2>
+      <ProgressBar progress={progress} />
+      
+      {error && (
+        <div className={styles.errorAlert}>
+          <p>{error}</p>
+          <button 
+            onClick={() => setError(null)} 
+            className={styles.closeButton}
+            aria-label="Close error"
+          >
+            &times;
+          </button>
+        </div>
+      )}
+      
+      <form onSubmit={handleSubmit} className={styles.form}>
+        <div className={styles.formContent}>
+          {renderStepContent()}
+        </div>
+        
+        {currentStep < steps.length - 1 && (
+          <div className={styles.buttonGroup}>
+            {currentStep > 0 && (
+              <button 
+                type="button" 
+                onClick={() => setCurrentStep(prev => prev - 1)}
+                className={`${styles.button} ${styles.secondaryButton}`}
+                disabled={loading || saving}
+              >
+                Back
+              </button>
+            )}
+            <button 
+              type="submit" 
+              className={`${styles.button} ${styles.primaryButton}`}
+              disabled={loading || saving}
+            >
+              {currentStep === steps.length - 2 ? 'Generate Horoscope' : 'Next'}
+              {(loading || saving) && <span className={styles.buttonSpinner}></span>}
+            </button>
+          </div>
         )}
-      </motion.div>
-      {/* Controls */}
-      <div className="flex mt-8 gap-4 justify-end">
-        <button
-          className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
-          onClick={prev}
-          disabled={step === 0}
-        >Back</button>
-        {step < STEPS.length - 1 ? (
-          <button
-            className="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700"
-            onClick={next}
-          >Next</button>
-        ) : (
-          <button
-            className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
-            onClick={onComplete}
-          >Finish & Close</button>
-        )}
-      </div>
+      </form>
+      
+      {process.env.NODE_ENV === 'development' && (
+        <div className={styles.debugInfo}>
+          <h4>Debug Info:</h4>
+          <pre>{JSON.stringify(formData, null, 2)}</pre>
+          {chartData && <pre>Chart data loaded: {Object.keys(chartData).join(', ')}</pre>}
+        </div>
+      )}
     </div>
   );
 };

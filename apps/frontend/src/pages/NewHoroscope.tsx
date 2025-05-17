@@ -3,16 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthProvider';
 import { useBirthData } from '../context/BirthDataContext';
 import BirthDataForm from '../components/BirthDataForm';
-import { auth, db } from '../firebase';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
-import PredictionResult from '../components/PredictionResult';
-import { Button, Card, Container, Row, Col } from 'react-bootstrap';
-import { PredictionInput } from '@shared/types/prediction';
-import { getPrediction } from '@shared/api/predict';
-import { logError } from '../services/errorLogger';
-import { createErrorNotification } from '../components/notifications';
-
-import { useRequireBirthData } from '../components/useRequireBirthData';
+import { db } from '../firebaseConfig';
+import { collection, addDoc, getDocs, query, where, serverTimestamp } from 'firebase/firestore';
+import { generateReferenceId } from '../utils/referenceId';
 
 const NewHoroscope: React.FC = () => {
   const { user, loading } = useAuth();
@@ -31,156 +24,114 @@ const NewHoroscope: React.FC = () => {
     }
   }, [user, loading, birthDataComplete, birthDataLoading, navigate]);
 
-  const [step, setStep] = useState(1);
-  const [initialData, setInitialData] = useState<any>(null);
-  const [pageLoading, setPageLoading] = useState(true);
+  const [formLoading, setFormLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [prediction, setPrediction] = useState<import('@shared/types/prediction').PredictionResult | null>(null);
-  const [showExport, setShowExport] = useState(false);
-  const [previewData, setPreviewData] = useState<any>(null);
 
-  // Only use BirthDataForm for birth data entry, and save to Firestore on submit
-  const handleBirthDataSubmit = async (data: any) => {
-    setError(null);
-    setPageLoading(true);
-    try {
-      // Instead of saving now, show preview first
-      setPreviewData(data);
-      setStep(2); // Go to preview step
-    } catch (err) {
-      setError('Failed to process birth data.');
-    }
-    setPageLoading(false);
-  };
+  const [existingDocId, setExistingDocId] = useState<string | null>(null);
 
-  // Confirm and save to Firestore, then get prediction
-  const handleConfirmPreview = async () => {
+const handleBirthDataSubmit = async (data: any) => {
     setError(null);
-    setPageLoading(true);
+    setExistingDocId(null);
+    setFormLoading(true);
     try {
-      const user = auth.currentUser;
-      if (!user) throw new Error('User not authenticated');
-      const cleanedData = Object.fromEntries(
-        Object.entries(previewData).filter(([_, v]) => v !== undefined)
+      // Duplicate check
+      const horoscopesRef = collection(db, 'horoscopes');
+      const q = query(
+        horoscopesRef,
+        where('fullName', '==', data.fullName),
+        where('dateOfBirth', '==', data.dateOfBirth),
+        where('timeOfBirth', '==', data.timeOfBirth),
+        where('locationName', '==', data.locationName)
       );
-      await setDoc(doc(db, 'users', user.uid), cleanedData, { merge: true });
-      setInitialData(previewData);
-      setStep(3); // Proceed to prediction
-    } catch (err) {
-      setError('Failed to save birth data.');
+      let snapshot;
+      try {
+        snapshot = await getDocs(q);
+      } catch (err) {
+        setError('Unable to check for duplicates. Please try again.');
+        setFormLoading(false);
+        return;
+      }
+      if (!snapshot.empty) {
+        const docId = snapshot.docs[0].id;
+        setExistingDocId(docId);
+        setError('This horoscope already exists.');
+        setFormLoading(false);
+        return;
+      }
+      // Store data in Firestore with timestamp
+      let docRef;
+      // Generate referenceId using utility
+      try {
+        // Import the utility at the top
+        // import { generateReferenceId } from '../utils/referenceId';
+        docRef = await addDoc(horoscopesRef, {
+          ...data,
+          referenceId: generateReferenceId(data.fullName),
+          createdAt: serverTimestamp(),
+        });
+      } catch (err) {
+        setError('Failed to create horoscope. Please try again.');
+        setFormLoading(false);
+        return;
+      }
+      navigate(`/prediction/${docRef.id}`);
+    } finally {
+      setFormLoading(false);
     }
-    setPageLoading(false);
   };
 
-  const handleBack = () => {
-    setError(null);
-    if (step === 3) {
-      setStep(2);
-      setShowExport(false);
-    } else if (step === 2) {
-      setStep(1);
-    } else {
-      navigate('/');
-    }
-  };
 
-  const steps = [
-    { title: "Personal Info", completed: step >= 1 },
-    { title: "Preview", completed: step >= 2 },
-    { title: "Prediction", completed: step >= 3 },
-    { title: "Export", completed: step >= 4 }
-  ];
 
   return (
-    <Container className="mt-5">
-      <div className="steps-container mb-4">
-        {steps.map((stepItem, index) => (
-          <div
-            key={index}
-            className={`step ${stepItem.completed ? 'completed' : ''}`}
-          >
-            <span className="step-number">{index + 1}</span>
-            <span className="step-title">{stepItem.title}</span>
-          </div>
-        ))}
-      </div>
-
-      {step === 1 && (
-        <div className="form-container">
+    <div className="flex justify-center items-center min-h-screen bg-gradient-to-br from-yellow-100 via-yellow-50 to-yellow-200">
+      <div className="w-full max-w-lg bg-white/95 rounded-3xl shadow-2xl p-10 border border-yellow-200 flex flex-col gap-6">
+        <h1 className="text-5xl font-black text-yellow-900 mb-4 text-center tracking-tight drop-shadow-lg">New Horoscope Entry</h1>
+        <div className="mb-4 text-gray-800 text-center text-lg font-medium">
+          Enter your birth details below to generate your personalized KP Stellar Horoscope prediction.<br />
+          <span className="text-yellow-700 text-base">All fields are required.</span>
+        </div>
+        <div className="rounded-2xl shadow-xl bg-white/80 p-6 md:p-8 border border-yellow-100">
           <BirthDataForm
             onSubmit={handleBirthDataSubmit}
-            loading={loading}
+            loading={formLoading}
             error={error}
-            initialData={initialData}
           />
+          {formLoading && (
+            <div className="mt-4 text-center text-yellow-700 font-medium">Checking for duplicates...</div>
+          )}
+          {error && (
+            <div className="mt-4 text-center text-red-600 font-semibold">
+              {error}
+              {existingDocId && (
+                <div className="mt-2">
+                  <button
+                    className="underline text-yellow-700 hover:text-yellow-900 font-bold"
+                    onClick={() => navigate(`/prediction/${existingDocId}`)}
+                  >
+                    View Existing
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+          {error && (
+  <div className="mt-4 text-center text-red-600 font-semibold">
+    {error}
+    {existingDocId && (
+      <div className="mt-2">
+        <button
+          className="underline text-yellow-700 hover:text-yellow-900 font-bold"
+          onClick={() => navigate(`/prediction/${existingDocId}`)}
+        >
+          View Existing
+        </button>
+      </div>
+    )}
+  </div>
+)}
         </div>
-      )}
-
-      {step === 2 && previewData && (
-        <div className="preview-container max-w-xl mx-auto mt-12 mb-12 bg-gradient-to-br from-purple-950/90 to-purple-900/80 rounded-3xl shadow-2xl p-10 space-y-10 border border-purple-800 backdrop-blur-lg font-[system-ui,sans-serif] text-white">
-          <h2 className="text-3xl font-bold mb-4">Confirm Your Details</h2>
-          <div className="mb-2"><strong>Full Name:</strong> {previewData.fullName}</div>
-          <div className="mb-2"><strong>Date of Birth:</strong> {previewData.dateOfBirth}</div>
-          <div className="mb-2"><strong>Time of Birth:</strong> {previewData.timeOfBirth}</div>
-          <div className="mb-2"><strong>City:</strong> {previewData.city}</div>
-          <div className="mb-2"><strong>State:</strong> {previewData.state}</div>
-          <div className="mb-2"><strong>Country:</strong> {previewData.country}</div>
-          <div className="flex gap-4 mt-6">
-            <button
-              type="button"
-              className="bg-yellow-400 text-purple-900 font-bold px-6 py-3 rounded-xl hover:bg-yellow-300 transition-all duration-200"
-              onClick={handleConfirmPreview}
-              disabled={pageLoading}
-            >
-              {pageLoading ? 'Loading...' : 'Confirm & Get Prediction'}
-            </button>
-            <button
-              type="button"
-              className="bg-gray-400 text-white font-bold px-6 py-3 rounded-xl hover:bg-gray-300 transition-all duration-200"
-              onClick={() => setStep(1)}
-            >
-              Edit
-            </button>
-          </div>
-        </div>
-      )}
-
-      {step === 3 && prediction && (
-        <div className="prediction-container">
-          <PredictionResult
-            prediction={prediction}
-            showExport={false}
-            onBack={handleBack}
-            onError={(err) => {
-              setError(err);
-              setStep(1);
-            }}
-          />
-        </div>
-      )}
-
-      {step === 4 && prediction && (
-        <div className="export-container">
-          <PredictionResult
-            prediction={prediction}
-            showExport={true}
-            onBack={handleBack}
-            onError={(err) => {
-              setError(err);
-              setStep(2);
-            }}
-          />
-        </div>
-      )}
-
-      {error && (
-        <div className="error-container">
-          <div className="alert alert-danger">
-            {error}
-          </div>
-        </div>
-      )}
-    </Container>
+      </div>
+    </div>
   );
 };
 

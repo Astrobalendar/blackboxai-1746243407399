@@ -1,3 +1,4 @@
+import React from 'react';
 import jsPDF from 'jspdf';
 import QRCode from 'qrcode';
 
@@ -17,12 +18,14 @@ export function enableRealtimeCollab(sessionId: string) {
 }
 
 // 3. Add dashboard card: Shared Tests Available to Client
-export function sharedTestsDashboardCard(count: number) {
-  return (
-    <div className="bg-green-50 border-l-4 border-green-500 p-4 mb-4 rounded">
-      <div className="font-bold text-green-800">Shared Tests Available</div>
-      <div className="text-green-700 text-lg">{count}</div>
-    </div>
+export function sharedTestsDashboardCard(count: number): React.ReactNode {
+  return React.createElement(
+    'div',
+    { className: 'bg-green-50 border-l-4 border-green-500 p-4 mb-4 rounded' },
+    [
+      React.createElement('div', { key: 'title', className: 'font-bold text-green-800' }, 'Shared Tests Available'),
+      React.createElement('div', { key: 'count', className: 'text-green-700 text-lg' }, count)
+    ]
   );
 }
 

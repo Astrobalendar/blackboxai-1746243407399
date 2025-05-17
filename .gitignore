@@ -1,5 +1,241 @@
-node_modules
+# ==================================
+# Project-wide Git Ignore
+# ==================================
+
+# Dependencies
+# ==================================
+node_modules/
+.pnp
+.pnp.js
+.pnp.cjs
+.pnp.mjs
+.yarn/cache
+.yarn/unplugged
+.yarn/build-state.yml
+.yarn/install-state.gz
+.pnp.*
+
+# Environment Variables
+# ==================================
+.env
+.env.*
+!.env.example
+!.env.schema
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Build Outputs
+# ==================================
+# Frontend
+/dist
+/build
+/.next
+/out
+/.svelte-kit
+/.astro
+
+# Backend
+/apps/backend/dist
+/apps/backend/build
+
+# Logs
+# ==================================
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+*.log
+logs
+*.log.*
+
+# Editor Directories and Files
+# ==================================
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Testing
+# ==================================
+/coverage
+.nyc_output
+
+# Production
+# ==================================
+*.pem
+*.p12
+*.key
+*.crt
+*.cert
+
+# Misc
+# ==================================
+.cache
+.temp
+tmp/
+.tmp/
+*.tmp
+
+# Package Manager Specific
+# ==================================
+# npm
+package-lock.json
+npm-debug.log*
+# Yarn
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/sdks
+!.yarn/versions
+# pnpm
+pnpm-lock.yaml
+pnpm-debug.log*
+# Lerna
+lerna-debug.log*
+
+# Debug
+# ==================================
+debug*
 
 # Local Netlify folder
 .netlify
+
+# Local Vercel folder
+.vercel
+
+# Local Render folder
+.render
+
+# Local development certificates
+*.pem
+*.key
+*.crt
+
+# Local development database files
+*.db
+*.sqlite
+*.sqlite3
+
+# Local development volumes
+volumes/
+data/
+
+# IDE specific files
+.idea/
+.vscode/
+*.code-workspace
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Optional npm cache directory
+.npm
+
+# Optional eslint cache
+.eslintcache
+
+# Optional REPL history
+.node_repl_history
+
+# Output of 'npm pack'
+*.tgz
+
+# Yarn Integrity file
+.yarn-integrity
+
+# dotenv environment variables file
+.env.test
+
+# parcel-bundler cache (https://parceljs.org/)
+.parcel-cache
+
+# Next.js build output
+.next
+out
+
+# Nuxt.js build / generate output
+.nuxt
+dist
+
+# Gatsby files
+.cache/
+public
+
+# vuepress build output
+.vuepress/dist
+
+# Serverless directories
+.serverless/
+
+# FuseBox cache
+.fusebox/
+
+# DynamoDB Local files
+.dynamodb/
+
+# TernJS port file
+.tern-port
+
+# Stores VSCode versions used for testing VSCode extensions
+.vscode-test/
+
+# yarn v2
+.yarn/cache
+.yarn/unplugged
+.yarn/build-state.yml
+.yarn/install-state.gz
+.pnp.*
+yarn-error.log*
+
+# Local development
+.DS_Store
+*.pem
+
+# Editor directories and files
+.idea
+.vscode
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Local Netlify folder
+.netlify/
 serviceAccountKey.json
+
+# Firebase
+.firebase/
+firebase-debug.log
+firebase-debug.*.log
+
+# Testing
+coverage/
+.nyc_output/
+
+# Production
+.cache/
+
+# Misc
+*.log
+logs
+*.tsbuildinfo
+.next/
+
+# Environment files
+.env*.local
+*.env
+
