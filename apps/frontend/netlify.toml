@@ -1,10 +1,17 @@
-# Netlify Configuration for Astrobalendar Frontend
+# Netlify Configuration for Astrobalendar Frontend (Next.js)
 # Docs: https://docs.netlify.com/configure-builds/file-based-configuration/
 
 [build]
-  base = "apps/frontend"
-  command = "npm install && npm run build"
-  publish = "dist"
+  # Base directory is the root of the repository
+  base = "."
+  
+  # Build command for Next.js
+  command = "cd apps/frontend && npm install && npm run build"
+  
+  # Publish directory for Next.js output
+  publish = "apps/frontend/.next"
+  
+  # Ignore builds triggered by commits with [skip-netlify]
   ignore = "git log -1 --pretty=%B | grep \"\[skip-netlify\""
 
 [build.environment]
@@ -15,10 +22,26 @@
   NODE_ENV = "production"
   
   # Backend API URL - will be overridden by Netlify environment variables
-  VITE_BACKEND_URL = "https://astrobalendar-backend.onrender.com"
+  NEXT_PUBLIC_API_URL = "https://astrobalendar-backend.onrender.com"
   
   # Google Maps API Key - set in Netlify dashboard
-  VITE_GOOGLE_MAPS_API_KEY = "@google_maps_api_key"
+  NEXT_PUBLIC_GOOGLE_MAPS_API_KEY = "@google_maps_api_key"
+
+# Required for Next.js
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
+
+# Redirects for client-side routing
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+# Rewrite rules for Next.js API routes
+[[redirects]]
+  from = "/api/*"
+  to = "/api/:splat"
+  status = 200
   
   # Build optimization
   NODE_OPTIONS = "--max-old-space-size=4096"
