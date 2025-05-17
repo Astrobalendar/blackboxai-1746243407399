@@ -40,6 +40,18 @@ node_modules/
 /apps/backend/dist
 /apps/backend/build
 
+# Large files and archives
+*.zip
+*.tar.gz
+*.tgz
+*.rar
+*.7z
+
+# Source code archives
+*_source.zip
+*_backup.zip
+*_archive.zip
+
 # Logs
 # ==================================
 npm-debug.log*
