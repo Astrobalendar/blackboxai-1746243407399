@@ -18,7 +18,7 @@
     "preview:prod": "vite preview --host",
     "type-check": "tsc --noEmit",
     "check": "npm run type-check && npm run lint",
-    "prepare": "husky install",
+    "prepare": "[ -z \"$CI\" ] && husky install || echo 'Skipping husky install in CI'",
     "predeploy": "npm run build",
     "deploy": "netlify deploy --prod"
   },
