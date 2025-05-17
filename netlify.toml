@@ -1,19 +1,18 @@
 [build]
   command = "cd apps/frontend && npm install && npm run build"
   publish = "apps/frontend/.next"
-  base = "apps/frontend"
+  base = "."
 
 [build.environment]
   NODE_VERSION = "18"
   NODE_ENV = "production"
   NEXT_PUBLIC_API_URL = "https://astrobalendar-backend.onrender.com"
   NEXT_PUBLIC_GOOGLE_MAPS_API_KEY = "@google_maps_api_key"
-  NODE_OPTIONS = "--max-old-space-size=4096"
-
-[[plugins]]
-  package = "@netlify/plugin-nextjs"
 
 [[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
+
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
