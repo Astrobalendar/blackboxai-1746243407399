@@ -1,0 +1,32 @@
+services:
+  - type: web
+    name: astrobalendar-backend
+    runtime: python3
+    plan: free
+    region: oregon
+    buildCommand: |
+      pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: PORT
+        value: 10000
+      - key: PYTHONUNBUFFERED
+        value: 1
+      - key: PYTHONPATH
+        value: /opt/render/project/src
+      - key: ENVIRONMENT
+        value: production
+      - key: LOG_LEVEL
+        value: info
+      - key: ALLOWED_ORIGINS
+        value: https://astrobalendar.netlify.app,https://astrobalendar.com
+      - key: JWT_SECRET
+        generateValue: true
+      - key: MONGODB_URI
+        fromDatabase:
+          name: astrobalendar-db
+          property: connectionString
+    scaling:
+      maxInstances: 1
+      minInstances: 1
+      instanceSize: free
