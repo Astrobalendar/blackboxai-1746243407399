@@ -1,6 +1,6 @@
 [build]
   base = "apps/frontend"
-  command = "npm install && npm run build"
+  command = "npm ci --include=dev && npm run build"
   publish = ".next"
   ignore = "git diff --quiet HEAD^ HEAD --quiet apps/backend/ || echo 'Backend changes detected but will be ignored in this build.'"
 
