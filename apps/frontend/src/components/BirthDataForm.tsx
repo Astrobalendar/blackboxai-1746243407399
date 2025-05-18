@@ -1,4 +1,7 @@
-import React, { useState } from 'react';
+import * as React from 'react';
+import { useState, useEffect } from 'react';
+import { loadGoogleMapsScript } from '../utils/googleMaps';
+import LocationAutocomplete from './LocationAutocomplete';
 interface BirthDataFormProps {
   onSubmit: (data: {
     fullName: string;
@@ -186,16 +189,15 @@ const ERROR_REQUIRED = {
   },
 };
 
-import { useRef } from 'react';
-import usePlacesAutocomplete, { getGeocode, getLatLng } from 'use-places-autocomplete';
+// Remove unused imports
 
-const BirthDataForm: React.FC<BirthDataFormProps> = ({
+const BirthDataForm = ({
   onSubmit,
   loading,
   error,
-  initialData,
-  language = 'en',
-}) => {
+  initialData = {},
+  language = 'en' as const,
+}: BirthDataFormProps) => {
   const [form, setForm] = useState({
     fullName: initialData?.fullName || '',
     gender: initialData?.gender || '',
@@ -210,37 +212,31 @@ const BirthDataForm: React.FC<BirthDataFormProps> = ({
     fullAddress: initialData?.fullAddress || '',
   });
 
-  const {
-    ready,
-    value,
-    suggestions: { status, data },
-    setValue,
-    clearSuggestions,
-  } = usePlacesAutocomplete({
-    requestOptions: { /* Define bounds or country if needed */ },
-    debounce: 300,
-  });
-
-  const handleSelect = async (address: string) => {
-    setValue(address, false);
-    setForm(f => ({ ...f, locationName: address }));
-    clearSuggestions();
-    try {
-      const results = await getGeocode({ address });
-      const { lat, lng } = await getLatLng(results[0]);
-      setForm(f => ({ ...f, latitude: lat.toString(), longitude: lng.toString(), fullAddress: results[0].formatted_address }));
-    } catch (e) {
-      // fallback
-    }
-  };
-
-  const handleGetLocation = () => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(pos => {
-        setForm(f => ({ ...f, latitude: pos.coords.latitude.toString(), longitude: pos.coords.longitude.toString() }));
+  // Load Google Maps script when component mounts
+  useEffect(() => {
+    // Replace with your actual Google Maps API key from environment variables
+    const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || '';
+    if (apiKey) {
+      loadGoogleMapsScript(apiKey).catch(error => {
+        console.error('Failed to load Google Maps script:', error);
       });
     }
-  };
+  }, []);
+
+  const handleLocationSelect = React.useCallback((location: {
+    address: string;
+    lat: number;
+    lng: number;
+    placeId: string;
+  }) => {
+    setForm(f => ({
+      ...f,
+      locationName: location.address,
+      latitude: location.lat.toString(),
+      longitude: location.lng.toString(),
+      fullAddress: location.address
+    }));
+  }, []);
 
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [formSubmitted, setFormSubmitted] = useState(false);
@@ -283,16 +279,33 @@ const BirthDataForm: React.FC<BirthDataFormProps> = ({
     setFormSubmitted(true);
     const validationErrors = validate();
     setErrors(validationErrors);
-    if (Object.keys(validationErrors).length > 0) return;
+    
+    if (Object.keys(validationErrors).length > 0) {
+      // Scroll to the first error
+      const firstError = Object.keys(validationErrors)[0];
+      const element = document.querySelector(`[name="${firstError}"]`);
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+      return;
+    }
+    
     // Directly submit to parent handler; duplicate check is handled in NewHoroscope.tsx
     onSubmit(form);
   };
 
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setForm(f => ({ ...f, [name]: value }));
-    setErrors(f => ({ ...f, [name]: '' }));
+    // Clear error for the field being edited
+    if (errors[name]) {
+      setErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors[name];
+        return newErrors;
+      });
+    }
   };
 
   return (
@@ -444,57 +457,53 @@ const BirthDataForm: React.FC<BirthDataFormProps> = ({
         <label className="block text-white text-lg font-bold tracking-wide" title="Place of Birth">
           {LABELS.locationName[language]}
         </label>
-        <input
-          type="text"
-          name="locationName"
-          value={value}
-          onChange={e => setValue(e.target.value)}
+        <LocationAutocomplete
+          value={form.locationName}
+          onChange={(value) => setForm(f => ({ ...f, locationName: value }))}
+          onLocationSelect={handleLocationSelect}
           placeholder={PLACEHOLDERS.locationName[language]}
           disabled={loading}
-          className="glass-input"
-          autoComplete="off"
+          error={formSubmitted && errors.locationName ? errors.locationName : undefined}
+          countryRestriction="in"
+          types={['(cities)']}
+          showCurrentLocation={true}
+          className="mb-2"
         />
-        {status === 'OK' && (
-          <ul className="autocomplete-list">
-            {data.map(({ description }, idx) => (
-              <li key={idx} onClick={() => handleSelect(description)} className="autocomplete-item">
-                {description}
-              </li>
-            ))}
-          </ul>
-        )}
-        <button type="button" onClick={handleGetLocation} className="glass-btn mt-2">Use My Location</button>
-        <div className="flex gap-2 mt-2">
-          <input
-            type="text"
-            name="latitude"
-            value={form.latitude}
-            onChange={handleChange}
-            placeholder="Latitude"
-            disabled={loading}
-            className="glass-input flex-1"
-          />
-          <input
-            type="text"
-            name="longitude"
-            value={form.longitude}
-            onChange={handleChange}
-            placeholder="Longitude"
-            disabled={loading}
-            className="glass-input flex-1"
-          />
+        <div className="grid grid-cols-2 gap-2">
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-1">Latitude</label>
+            <input
+              type="text"
+              name="latitude"
+              value={form.latitude}
+              onChange={handleChange}
+              placeholder="Latitude"
+              disabled={loading}
+              className="glass-input w-full"
+              readOnly
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-1">Longitude</label>
+            <input
+              type="text"
+              name="longitude"
+              value={form.longitude}
+              onChange={handleChange}
+              placeholder="Longitude"
+              disabled={loading}
+              className="glass-input w-full"
+              readOnly
+            />
+          </div>
         </div>
-        <input
-          type="text"
-          name="fullAddress"
-          value={form.fullAddress}
-          onChange={handleChange}
-          placeholder="Full Address"
-          disabled={loading}
-          className="glass-input mt-2"
-        />
-        {formSubmitted && errors.locationName && (
-          <div className="text-red-400 text-sm mt-1">{errors.locationName}</div>
+        {form.fullAddress && (
+          <div className="mt-2">
+            <label className="block text-sm font-medium text-gray-300 mb-1">Full Address</label>
+            <div className="glass-input bg-gray-100 bg-opacity-20 text-gray-200 p-2 rounded text-sm">
+              {form.fullAddress}
+            </div>
+          </div>
         )}
       </div>
       <button
