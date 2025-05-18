@@ -14,9 +14,10 @@
   NEXT_PUBLIC_API_URL = "https://astrobalendar-backend.onrender.com"
   NEXT_PUBLIC_GOOGLE_MAPS_API_KEY = "@google_maps_api_key"
 
-# Disable automatic plugin installation
-[plugins]
+# Next.js plugin configuration
+[[plugins]]
   package = "@netlify/plugin-nextjs"
+  
   [plugins.inputs]
     python = false
 
