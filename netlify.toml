@@ -17,6 +17,8 @@ package = "@netlify/plugin-lighthouse"
 
 [[plugins]]
 package = "@netlify/plugin-nextjs"
+
+[plugins.inputs]
 enabled = false
 
 [[redirects]]
