@@ -12,13 +12,13 @@
   PYTHON = "/bin/false"
   PIP_DISABLE_PIP_VERSION_CHECK = "1"
 
-# Ignore backend directory
+# Redirects configuration
 [[redirects]]
   from = "/backend/*"
   to = "/404.html"
   status = 404
 
-# Disable all plugins since we're using Vite
+# Disable default plugins
 [[plugins]]
   package = "@netlify/plugin-lighthouse"
   enabled = false
@@ -26,3 +26,8 @@
 [[plugins]]
   package = "@netlify/plugin-nextjs"
   enabled = false
+
+# Explicitly enable Vite plugin if needed
+# [[plugins]]
+#   package = "@netlify/plugin-vite"
+#   enabled = true
