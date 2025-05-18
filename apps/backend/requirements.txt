@@ -1,7 +1,7 @@
 fastapi==0.104.1
 uvicorn[standard]==0.23.2
 pydantic[email]==2.4.2
-python-jose[cryptography]==3.3.2
+python-jose[cryptography]==3.4.0
 motor==3.3.2
 pytest==7.4.3
 httpx==0.25.1
@@ -12,5 +12,3 @@ python-dotenv==1.0.0
 pymongo==4.5.0
 firebase-admin==6.2.0
 firebase-functions==1.0.0
-aiohttp
-python-multipart
