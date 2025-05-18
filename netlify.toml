@@ -1,5 +1,5 @@
 [build]
-  command = "cd apps/frontend && npm install && npm run build"
+  command = "bash ./netlify-build.sh"
   publish = "apps/frontend/.next"
   base = "."
 
@@ -8,6 +8,8 @@
   NODE_ENV = "production"
   NEXT_PUBLIC_API_URL = "https://astrobalendar-backend.onrender.com"
   NEXT_PUBLIC_GOOGLE_MAPS_API_KEY = "@google_maps_api_key"
+  RUSTUP_HOME = "/opt/buildhome/.rustup"
+  CARGO_HOME = "/opt/buildhome/.cargo"
 
 [[redirects]]
   from = "/*"
