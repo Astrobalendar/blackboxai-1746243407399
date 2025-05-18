@@ -1,36 +1,112 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthProvider';
 import PredictionHistoryTable, { PredictionHistoryEntry } from '../../components/PredictionHistoryTable';
-
 import { useRequireBirthData } from '../../components/useRequireBirthData';
+import { toast } from 'react-toastify';
 
 const AstrologerDashboard: React.FC = () => {
   const { checking } = useRequireBirthData();
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [history, setHistory] = useState<PredictionHistoryEntry[]>([]);
-  if (checking) return null;
+  const [isLoading, setIsLoading] = useState(true);
+
   useEffect(() => {
     const fetchHistory = async () => {
       if (!user) return;
-      const res = await fetch(`/api/predictions/${user.uid}`);
-      const data = await res.json();
-      setHistory(data);
+      
+      try {
+        setIsLoading(true);
+        // In a real app, you would fetch this from your API
+        // const res = await fetch(`/api/astrologer/${user.uid}/predictions`);
+        // const data = await res.json();
+        
+        // Mock data for demonstration
+        const mockData: PredictionHistoryEntry[] = [
+          {
+            id: '1',
+            prediction_id: 'pred-12345',
+            fullName: 'John Doe',
+            role: 'client',
+            match_status: 'matched',
+            timestamp: new Date().toISOString(),
+            birthDetails: {
+              dateOfBirth: '1990-01-01',
+              timeOfBirth: '12:00',
+              locationName: 'New York, NY',
+              latitude: 40.7128,
+              longitude: -74.0060
+            },
+            predictionData: {
+              // Add prediction data structure here
+            }
+          },
+          // Add more mock data as needed
+        ];
+        
+        setHistory(mockData);
+      } catch (error) {
+        console.error('Failed to fetch prediction history:', error);
+        toast.error('Failed to load prediction history');
+      } finally {
+        setIsLoading(false);
+      }
     };
+    
     fetchHistory();
   }, [user]);
+
+  const handleEditPrediction = (prediction: PredictionHistoryEntry) => {
+    // Navigate to edit page with prediction ID
+    navigate(`/edit-prediction/${prediction.id}`, { 
+      state: { 
+        predictionData: prediction.predictionData,
+        birthDetails: prediction.birthDetails
+      } 
+    });
+  };
+
+  if (checking) return null;
+
   return (
-    <div>
-      <h2>Astrologer Dashboard</h2>
-      <ul>
-        <li>View assigned clients</li>
-        <li>Generate Horoscope</li>
-        <li>Send predictions to clients</li>
-      </ul>
-      <div className="my-6">
-        <a href="/new-horoscope" className="inline-block px-6 py-3 bg-purple-600 text-white rounded-lg shadow hover:bg-purple-700 text-lg font-semibold transition">+ New Horoscope</a>
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="flex justify-between items-center mb-8">
+        <div>
+          <h2 className="text-2xl font-bold text-gray-900">Astrologer Dashboard</h2>
+          <p className="mt-1 text-sm text-gray-500">
+            Manage client predictions and view your horoscope readings
+          </p>
+        </div>
+        <div>
+          <button
+            onClick={() => navigate('/new-horoscope')}
+            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
+          >
+            + New Horoscope
+          </button>
+        </div>
       </div>
-      <h3 className="mt-8 mb-2 text-lg font-semibold">Prediction History</h3>
-      <PredictionHistoryTable data={history} />
+
+      <div className="bg-white shadow rounded-lg p-6">
+        <div className="mb-6">
+          <h3 className="text-lg font-medium text-gray-900">Prediction History</h3>
+          <p className="mt-1 text-sm text-gray-500">
+            View and manage all your predictions
+          </p>
+        </div>
+        
+        {isLoading ? (
+          <div className="flex justify-center items-center py-12">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-500"></div>
+          </div>
+        ) : (
+          <PredictionHistoryTable 
+            data={history} 
+            onEdit={handleEditPrediction} 
+          />
+        )}
+      </div>
     </div>
   );
 };

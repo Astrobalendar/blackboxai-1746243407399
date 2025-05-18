@@ -77,11 +77,21 @@ export const getChartData = async (
         headers: { 'Content-Type': 'application/json' },
       }
     );
-    if (!response.data || !response.data.rasi || !response.data.navamsa) {
-      throw new Error('Invalid chart data response');
+    
+    // Handle nested response format { status: 'success', data: { rasi: [...], navamsa: [...] } }
+    const responseData = response.data?.data || response.data;
+    
+    if (!responseData || !responseData.rasi || !responseData.navamsa) {
+      throw new Error('Invalid chart data response format');
     }
-    return response.data;
-  } catch (error) {
-    throw new Error('Failed to fetch chart data');
+    
+    return {
+      rasi: responseData.rasi,
+      navamsa: responseData.navamsa
+    };
+  } catch (error: any) {
+    console.error('Error in getChartData:', error);
+    const errorMessage = error.response?.data?.error || error.message || 'Failed to fetch chart data';
+    throw new Error(errorMessage);
   }
 };

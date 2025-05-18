@@ -12,7 +12,7 @@ import Dashboard from './pages/Dashboard';
 import Home from './pages/Home';
 import ExportHoroscopeExample from './pages/ExportHoroscopeExample';
 import Calendar from "./pages/Calendar";
-import Login from "./pages/Login";
+import LoginPage from "./pages/auth/LoginPage";
 import Signup from "./pages/Signup";
 import RoleSelection from "./pages/RoleSelection";
 import PredictionPage from "./pages/Prediction";
@@ -31,6 +31,7 @@ import DayAnalysisView from './pages/DayAnalysisView';
 import TransitView from './pages/TransitView';
 import DasaBhuktiView from './pages/DasaBhuktiView';
 import PrasannamView from './pages/PrasannamView';
+import EditPredictionPage from './pages/EditPredictionPage';
 
 interface PredictionPageProps {
   prediction: PredictionResult | null;
@@ -64,10 +65,17 @@ function App() {
                 <Route path="/transit" element={<TransitView />} />
                 <Route path="/dasa-bhukti" element={<DasaBhuktiView />} />
                 <Route path="/prasannam" element={<PrasannamView />} />
+                <Route path="/edit-prediction/:id" element={
+                  <PrivateRoute>
+                    <RoleRoute role="astrologer">
+                      <EditPredictionPage />
+                    </RoleRoute>
+                  </PrivateRoute>
+                } />
                 <Route path="/calendar" element={<Calendar />} />
                 <Route path="/dashboard" element={<Dashboard />} />
                 {/* END HEADER MENU ROUTES */}
-                <Route path="/login" element={<Login />} />
+                <Route path="/login" element={<LoginPage />} />
                 <Route path="/signup" element={<Signup />} />
                 <Route path="/role-selection" element={<RoleSelection />} />
                 <Route path="/prediction" element={<PredictionPage />} />
