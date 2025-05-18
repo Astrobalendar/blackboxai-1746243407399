@@ -12,11 +12,10 @@ services:
     # Build & Start Commands
     buildCommand: |
       cd apps/backend
-      pip install poetry
-      poetry install --no-interaction --no-ansi
+      pip install -r requirements.txt
     startCommand: |
       cd apps/backend
-      poetry run uvicorn app.main:app --host 0.0.0.0 --port $PORT
+      uvicorn app.main:app --host 0.0.0.0 --port $PORT
     
     # Environment Variables
     envVars:
