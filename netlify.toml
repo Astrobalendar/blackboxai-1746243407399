@@ -15,12 +15,6 @@
 [[plugins]]
 package = "@netlify/plugin-lighthouse"
 
-[[plugins]]
-package = "@netlify/plugin-nextjs"
-
-[plugins.inputs]
-enabled = false
-
 [[redirects]]
 from = "/backend/*"
 to = "/404.html"
