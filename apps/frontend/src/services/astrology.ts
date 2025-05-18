@@ -2,7 +2,7 @@ import axios from 'axios';
 import { getAuth } from 'firebase/auth';
 import { PredictionResult } from '@shared/types/prediction';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api/v1';
+const API_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3001';
 
 interface PredictionRequest {
   name: string;
@@ -78,53 +78,74 @@ export const getChartData = async (
 
     const timezone = birthDetails.timeZone || Intl.DateTimeFormat().resolvedOptions().timeZone;
     
+    // Get the current user's ID and role from auth context
+    const currentUser = getAuth().currentUser;
+    const userId = currentUser?.uid || 'anonymous';
+    const userRole = currentUser?.email?.endsWith('@astrologer.com') ? 'astrologer' : 'user';
+    const displayName = currentUser?.displayName || 'Unknown User';
+
     const payload = {
-      date: birthDetails.dateOfBirth,
-      time: birthDetails.timeOfBirth,
+      // Required fields for the prediction API
+      user_id: userId,
+      role: userRole,
+      display_name: displayName,
+      
+      // Birth details
+      birth_date: birthDetails.dateOfBirth,
+      birth_time: birthDetails.timeOfBirth || '12:00:00',
+      birth_place: birthDetails.locationName || 'Unknown',
       latitude: birthDetails.latitude,
       longitude: birthDetails.longitude,
-      timezone: timezone,
-      place: birthDetails.locationName,
-      ayanamsa: 'LAHIRI',
-      settings: {
-        sidereal: true,
-        ayanamsa: 'LAHIRI',
-        houseSystem: 'PLACIDUS',
-        aspectPoints: ['BODYTYPE'],
-        aspectWithPoints: ['HOUSE', 'RASHI'],
-        aspectTypes: ['MAJOR', 'MINOR', 'CHALIT'],
-        language: 'en',
-        observation: {
-          type: 'geo',
-          geo: {
-            latitude: birthDetails.latitude,
-            longitude: birthDetails.longitude
-          }
-        }
+      time_zone: birthDetails.timeZone || Intl.DateTimeFormat().resolvedOptions().timeZone,
+      
+      // Chart type
+      chart_type: 'rasi',
+      
+      // Chart options
+      options: {
+        show_planets: true,
+        show_houses: true,
+        show_aspects: true,
+        show_navamsa: true,
+        show_arudhas: false,
+        show_retrograde: true,
+        show_planet_dignities: true
+      },
+      
+      // Additional metadata
+      metadata: {
+        client: 'astrobalendar-web',
+        version: '1.0.0',
+        timestamp: new Date().toISOString()
       }
     };
 
-    if (process.env.NODE_ENV !== 'production') {
+    if (import.meta.env.DEV) {
       console.log('Sending chart data request:', {
-        url: `${API_URL}/charts/generate`,
-        payload: payload
+        url: `${API_URL}/api/predict`,
       });
     }
 
+    // Prepare headers with authentication and metadata
+    const headers = {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`,
+      'X-Requested-With': 'XMLHttpRequest',
+      'Accept': 'application/json',
+      'Cache-Control': 'no-cache, no-store, must-revalidate',
+      'Pragma': 'no-cache',
+      'Expires': '0',
+      'X-User-ID': userId,
+      'X-User-Role': userRole,
+      'X-User-Name': displayName
+    };
+
     const response = await axios.post(
-      `${API_URL}/charts/generate`,
+      `${API_URL}/api/predict`,
       payload,
       {
         timeout: 30000,
-        headers: { 
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-          'X-Requested-With': 'XMLHttpRequest',
-          'Accept': 'application/json',
-          'Cache-Control': 'no-cache, no-store, must-revalidate',
-          'Pragma': 'no-cache',
-          'Expires': '0'
-        },
+        headers
       }
     );
     
@@ -257,10 +278,17 @@ export const getChartData = async (
     
     // Handle non-Axios errors
     if (error instanceof Error) {
-      throw error;
+      console.error('Error in chart data service:', {
+        message: error.message,
+        name: error.name,
+        stack: error.stack
+      });
+      throw new Error(`Chart data service error: ${error.message}`);
     }
     
     // Handle other errors
-    throw new Error(error.message || 'Failed to fetch chart data');
+    const errorMessage = error?.message || 'Failed to fetch chart data';
+    console.error('Unexpected error in chart data service:', error);
+    throw new Error(`Unexpected error: ${errorMessage}`);
   }
 };

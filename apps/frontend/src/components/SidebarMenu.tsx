@@ -4,6 +4,11 @@ import { useAuth } from '../context/AuthProvider';
 
 const menuItems = [
   {
+    name: 'My Horoscopes',
+    path: '/horoscope',
+    icon: '📋',
+  },
+  {
     name: 'Horoscope Entry',
     path: '/horoscope/new',
     icon: '📜',
