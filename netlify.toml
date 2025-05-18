@@ -1,27 +1,16 @@
 [build]
   command = "cd apps/frontend && npm install && npm run build"
   publish = "apps/frontend/.next"
-  base = "."
 
 [build.environment]
-  # Node.js configuration
   NODE_VERSION = "18"
   NODE_ENV = "production"
+  PYTHON = ""
   
-  # Disable Python installation
-  PYTHON_VERSION = ""
-  PIP_DISABLE_PIP_VERSION_CHECK = "1"
-  
-  # Application environment variables
+  # Frontend environment variables
   NEXT_PUBLIC_API_URL = "https://astrobalendar-backend.onrender.com"
   NEXT_PUBLIC_GOOGLE_MAPS_API_KEY = "@google_maps_api_key"
 
-# Disable all automatic plugin installation
+# Disable all plugins
 [plugins]
   disabled = true
-
-# Handle client-side routing
-[[redirects]]
-  from = "/*"
-  to = "/index.html"
-  status = 200
