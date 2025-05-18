@@ -8,26 +8,60 @@ services:
     region: oregon
     runtime: python
     buildCommand: |
-      # Set Node.js version
+      # Set up Node.js 18
+      curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
+      export NVM_DIR="$HOME/.nvm"
+      [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
       nvm install 18
       nvm use 18
       
+      # Update npm to latest
+      npm install -g npm@latest
+      
+      # Set up Python environment
+      python -m venv .venv
+      source .venv/bin/activate
+      
       # Install Python dependencies
-      pip install --upgrade pip
+      pip install --upgrade pip setuptools wheel
       cd apps/backend
       pip install -r requirements.txt
       
-      # Install Node.js dependencies and build frontend
-      cd ../..
-      cd apps/frontend
-      npm install -g npm@latest
-      npm ci --legacy-peer-deps
-      npm run build
+      # Install Node.js dependencies for backend (if any)
+      if [ -f "package.json" ]; then
+        npm ci --legacy-peer-deps --production
+      fi
+      
+      # Install build dependencies for Python packages
+      sudo apt-get update && sudo apt-get install -y --no-install-recommends \
+        gcc \
+        python3-dev \
+        libpq-dev \
+        && rm -rf /var/lib/apt/lists/*
+      
+      # Optional: Install frontend dependencies if needed for backend
+      # cd ../../apps/frontend
+      # npm ci --legacy-peer-deps
+      # npm run build
+      # cd ../../
     startCommand: >-
-      gunicorn apps.backend.main:app 
-      --workers 4 
-      --worker-class uvicorn.workers.UvicornWorker 
-      --bind 0.0.0.0:$PORT
+      # Activate Python virtual environment
+      source .venv/bin/activate
+      
+      # Set Python path
+      export PYTHONPATH="${PYTHONPATH}:/opt/render/project/src"
+      
+      # Start Gunicorn with Uvicorn worker
+      gunicorn apps.backend.main:app \
+        --workers 4 \
+        --worker-class uvicorn.workers.UvicornWorker \
+        --bind 0.0.0.0:$PORT \
+        --timeout 120 \
+        --keep-alive 5 \
+        --worker-tmp-dir /dev/shm \
+        --log-level=info \
+        --access-logfile - \
+        --error-logfile -
     envVars:
       - key: PORT
         value: 10000
