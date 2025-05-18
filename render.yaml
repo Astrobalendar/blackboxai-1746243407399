@@ -8,9 +8,16 @@ services:
     region: oregon
     runtime: python
     buildCommand: |
+      # Install Python dependencies
       pip install --upgrade pip
       cd apps/backend
       pip install -r requirements.txt
+      
+      # Install Node.js dependencies and build frontend
+      cd ../..
+      cd apps/frontend
+      npm ci
+      npm run build
     startCommand: >-
       gunicorn apps.backend.main:app 
       --workers 4 
