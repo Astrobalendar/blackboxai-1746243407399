@@ -1,10 +1,9 @@
 [build]
-  command = "cd apps/frontend && npm install && npm run build"
-  publish = "apps/frontend/.next"
+  command = "npm install && npm run build"
+  publish = ".next"
   base = "."
 
 [build.environment]
-  # Node.js configuration
   NODE_VERSION = "18"
   NODE_ENV = "production"
   
