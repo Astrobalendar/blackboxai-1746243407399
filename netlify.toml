@@ -10,6 +10,7 @@
   
   # Python configuration
   PYTHON_VERSION = "3.9"
+  PIPENV_RUNTIME = "3.9"
   
   # Rust configuration
   RUSTUP_HOME = "/opt/buildhome/.rustup"
@@ -20,10 +21,6 @@
   NEXT_PUBLIC_API_URL = "https://astrobalendar-backend.onrender.com"
   NEXT_PUBLIC_GOOGLE_MAPS_API_KEY = "@google_maps_api_key"
 
-# Configure Python build settings
-[build.environment]
-  PIPENV_RUNTIME = "3.9"
-  
 # Enable Next.js plugin with Python support
 [[plugins]]
   package = "@netlify/plugin-nextjs"
@@ -34,6 +31,3 @@
   from = "/*"
   to = "/index.html"
   status = 200
-
-[[plugins]]
-  package = "@netlify/plugin-nextjs"
