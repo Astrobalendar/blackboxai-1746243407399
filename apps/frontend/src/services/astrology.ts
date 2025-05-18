@@ -2,7 +2,7 @@ import axios from 'axios';
 import { getAuth } from 'firebase/auth';
 import { PredictionResult } from '@shared/types/prediction';
 
-const API_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3001';
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api/v1';
 
 interface PredictionRequest {
   name: string;
@@ -76,17 +76,54 @@ export const getChartData = async (
       throw new Error('Authentication required');
     }
 
+    const timezone = birthDetails.timeZone || Intl.DateTimeFormat().resolvedOptions().timeZone;
+    
+    const payload = {
+      date: birthDetails.dateOfBirth,
+      time: birthDetails.timeOfBirth,
+      latitude: birthDetails.latitude,
+      longitude: birthDetails.longitude,
+      timezone: timezone,
+      place: birthDetails.locationName,
+      ayanamsa: 'LAHIRI',
+      settings: {
+        sidereal: true,
+        ayanamsa: 'LAHIRI',
+        houseSystem: 'PLACIDUS',
+        aspectPoints: ['BODYTYPE'],
+        aspectWithPoints: ['HOUSE', 'RASHI'],
+        aspectTypes: ['MAJOR', 'MINOR', 'CHALIT'],
+        language: 'en',
+        observation: {
+          type: 'geo',
+          geo: {
+            latitude: birthDetails.latitude,
+            longitude: birthDetails.longitude
+          }
+        }
+      }
+    };
+
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('Sending chart data request:', {
+        url: `${API_URL}/charts/generate`,
+        payload: payload
+      });
+    }
+
     const response = await axios.post(
-      `${API_URL}/api/v1/chart-data`,
-      {
-        ...birthDetails,
-        timezone: birthDetails.timeZone || Intl.DateTimeFormat().resolvedOptions().timeZone
-      },
+      `${API_URL}/charts/generate`,
+      payload,
       {
         timeout: 30000,
         headers: { 
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+          'Authorization': `Bearer ${token}`,
+          'X-Requested-With': 'XMLHttpRequest',
+          'Accept': 'application/json',
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0'
         },
       }
     );
@@ -98,19 +135,54 @@ export const getChartData = async (
       throw new Error('Empty response from chart data service');
     }
     
-    // Handle case where response is { rasi: [...], navamsa: [...] }
-    if (responseData.rasi && responseData.navamsa) {
-      return {
-        rasi: responseData.rasi,
-        navamsa: responseData.navamsa
-      };
+    // Log the raw response for debugging
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('Raw chart data response:', {
+        status: response.status,
+        statusText: response.statusText,
+        headers: response.headers,
+        data: responseData
+      });
     }
     
-    // Handle case where response is { status: 'success', data: { rasi: [...], navamsa: [...] } }
-    if (responseData.status === 'success' && responseData.data?.rasi && responseData.data?.navamsa) {
-      return {
-        rasi: responseData.data.rasi,
-        navamsa: responseData.data.navamsa
+    // If we got a successful response but no data, throw a helpful error
+    if (!responseData) {
+      throw new Error('Received empty response from chart service');
+    }
+
+    // Handle different response formats
+    let chartData = responseData?.data || responseData;
+    
+    // Extract rasi and navamsa data from the response
+    let rasi = [];
+    let navamsa = [];
+    
+    // Try different response formats
+    if (chartData?.chart?.planets) {
+      // Format: { chart: { planets: [...] } }
+      rasi = chartData.chart.planets;
+      if (chartData.navamsa?.planets) {
+        navamsa = chartData.navamsa.planets;
+      }
+    } else if (chartData?.planets) {
+      // Direct planets array
+      rasi = chartData.planets;
+    } else if (chartData?.rasi) {
+      // Direct rasi/navamsa format
+      rasi = chartData.rasi;
+      navamsa = chartData.navamsa || [];
+    } else if (responseData?.success === true && responseData.data) {
+      // Handle success: true with data format
+      chartData = responseData.data;
+      rasi = chartData.planets || chartData.rasi || [];
+      navamsa = chartData.navamsa || [];
+    }
+    
+    // If we have rasi data but no navamsa, create an empty navamsa array
+    if (rasi.length > 0) {
+      return { 
+        rasi, 
+        navamsa: navamsa.length > 0 ? navamsa : [] 
       };
     }
     
@@ -118,27 +190,74 @@ export const getChartData = async (
   } catch (error: any) {
     console.error('Error in getChartData:', error);
     
+    // Log detailed error information for debugging
+    if (process.env.NODE_ENV === 'development') {
+      console.error('Error details:', {
+        name: error.name,
+        message: error.message,
+        stack: error.stack,
+        isAxiosError: axios.isAxiosError(error),
+        response: axios.isAxiosError(error) ? {
+          status: error.response?.status,
+          statusText: error.response?.statusText,
+          data: error.response?.data,
+          headers: error.response?.headers
+        } : undefined,
+        request: axios.isAxiosError(error) ? {
+          url: error.config?.url,
+          method: error.config?.method,
+          baseURL: error.config?.baseURL,
+          headers: error.config?.headers,
+          params: error.config?.params,
+          data: error.config?.data
+        } : undefined
+      });
+    }
+
     // Handle Axios errors
     if (axios.isAxiosError(error)) {
       if (error.code === 'ECONNABORTED') {
-        throw new Error('Request timed out. Please try again.');
+        throw new Error('Request timed out. Please check your connection and try again.');
       }
       
       if (error.response) {
-        // Handle HTTP error responses
+        // Handle HTTP error responses with more detailed messages
+        const errorMessage = error.response.data?.message || 
+                            error.response.data?.error || 
+                            'Failed to fetch chart data';
+        
         switch (error.response.status) {
           case 400:
-            throw new Error('Invalid birth data provided');
+            throw new Error(`Invalid request: ${errorMessage}`);
           case 401:
-            throw new Error('Authentication required');
+            // If we get a 401, the token might be expired - sign out the user
+            await getAuth().signOut();
+            throw new Error('Your session has expired. Please log in again.');
+          case 403:
+            throw new Error('You do not have permission to access this resource.');
           case 404:
-            throw new Error('Chart data service not found. Please contact support.');
+            throw new Error('The requested chart data could not be found.');
+          case 422:
+            throw new Error(`Validation error: ${errorMessage}`);
+          case 429:
+            throw new Error('Too many requests. Please wait before trying again.');
           case 500:
-            throw new Error('Server error. Please try again later.');
+          case 502:
+          case 503:
+          case 504:
+            throw new Error('Our chart service is temporarily unavailable. Please try again in a few minutes.');
           default:
-            throw new Error(error.response.data?.message || 'Failed to fetch chart data');
+            throw new Error(`An error occurred: ${errorMessage}`);
         }
+      } else if (error.request) {
+        // The request was made but no response was received
+        throw new Error('Could not connect to the chart service. Please check your internet connection.');
       }
+    }
+    
+    // Handle non-Axios errors
+    if (error instanceof Error) {
+      throw error;
     }
     
     // Handle other errors
