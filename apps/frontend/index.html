@@ -7,7 +7,7 @@
     <meta name="description" content="Get personalized, multi-language horoscopes based on your zodiac sign and birthdate." />
     <link rel="icon" type="image/png" href="/assets/icon.png" />
     
-    <!-- Google Maps Places API -->
+    <!-- Google Maps API with async loading -->
     <script>
       // This will be called when the Google Maps script loads
       window.initGoogleMaps = function() {
@@ -19,46 +19,27 @@
         console.log('Dispatching google-maps-ready event');
         document.dispatchEvent(event);
       };
-
-      // Function to load Google Maps API
-      function loadGoogleMaps() {
-        // Don't load if already loaded or loading
-        if (window.google?.maps?.places || document.querySelector('script[src*="maps.googleapis.com/maps/api/js"]')) {
-          console.log('Google Maps script already loaded or loading');
-          return;
-        }
-        
-        const googleMapsApiKey = 'AIzaSyBKPYeumm5w2MOaDm8SywAPNhQNX3j_mAc'; // From your .env file
+    </script>
+    
+    <!-- Google Maps API Script -->
+    <script>
+      (function() {
+        const googleMapsApiKey = 'AIzaSyBKPYeumm5w2MOaDm8SywAPNhQNX3j_mAc';
         if (!googleMapsApiKey) {
           console.error('Google Maps API key is not set');
           return;
         }
         
-        console.log('Loading Google Maps script...');
+        // Create script element
         const script = document.createElement('script');
-        script.src = `https://maps.googleapis.com/maps/api/js?key=${googleMapsApiKey}&libraries=places&loading=async&callback=initGoogleMaps`;
+        script.src = `https://maps.googleapis.com/maps/api/js?key=${googleMapsApiKey}&libraries=places&callback=initGoogleMaps`;
         script.async = true;
         script.defer = true;
         
-        script.onload = function() {
-          console.log('Google Maps script loaded successfully');
-        };
-        
-        script.onerror = function(error) {
-          console.error('Failed to load Google Maps script:', error);
-        };
-        
         // Add to head
         document.head.appendChild(script);
-      }
-
-      // Load Google Maps when the page is fully loaded
-      if (document.readyState === 'complete' || document.readyState === 'interactive') {
-        // Call on next tick to ensure the rest of the page has loaded
-        setTimeout(loadGoogleMaps, 100);
-      } else {
-        window.addEventListener('load', loadGoogleMaps);
-      }
+        console.log('Google Maps script loading started');
+      })();
     </script>
     
     <!-- Plausible Analytics -->
