@@ -8,6 +8,10 @@ services:
     region: oregon
     runtime: python
     buildCommand: |
+      # Set Node.js version
+      nvm install 18
+      nvm use 18
+      
       # Install Python dependencies
       pip install --upgrade pip
       cd apps/backend
@@ -16,7 +20,8 @@ services:
       # Install Node.js dependencies and build frontend
       cd ../..
       cd apps/frontend
-      npm ci
+      npm install -g npm@latest
+      npm ci --legacy-peer-deps
       npm run build
     startCommand: >-
       gunicorn apps.backend.main:app 
