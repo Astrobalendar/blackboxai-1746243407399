@@ -12,10 +12,19 @@ import {
   getDocs,
   deleteDoc,
   doc,
+  DocumentData,
+  QueryDocumentSnapshot,
+  Query,
+  where,
+  or,
+  and,
+  getCountFromServer,
+  updateDoc,
 } from 'firebase/firestore';
 import { toast } from 'react-hot-toast';
+import { FirebaseError } from 'firebase/app';
 
-interface Horoscope {
+interface Horoscope extends DocumentData {
   id: string;
   fullName: string;
   dateOfBirth: string;
@@ -24,7 +33,18 @@ interface Horoscope {
   createdAt?: { seconds: number; nanoseconds: number } | null;
   status?: 'New' | 'Reviewed' | 'Archived';
   createdBy?: { uid: string; fullName: string };
+  // Add any other fields that might exist in your documents
+  [key: string]: any;
 }
+
+interface FetchHoroscopesResult {
+  data: Horoscope[];
+  lastVisible: QueryDocumentSnapshot<DocumentData> | null;
+  hasMore: boolean;
+}
+
+const MAX_RETRIES = 3;
+const RETRY_DELAY_MS = 1000;
 
 const PAGE_SIZE = 10;
 const LOCAL_STORAGE_KEY = 'horoscopeListState';
@@ -42,11 +62,11 @@ type StatusType = typeof STATUS_OPTIONS[number];
 const HoroscopeList: React.FC = () => {
   const [horoscopes, setHoroscopes] = useState<Horoscope[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState('');
   const [searchInput, setSearchInput] = useState('');
-  const [lastDoc, setLastDoc] = useState<any>(null);
-  const [firstDoc, setFirstDoc] = useState<any>(null);
-  const [pageStack, setPageStack] = useState<any[]>([]); // for Prev
+  const [lastDoc, setLastDoc] = useState<QueryDocumentSnapshot<DocumentData> | null>(null);
+  const [pageStack, setPageStack] = useState<QueryDocumentSnapshot<DocumentData>[]>([]);
   const [hasMore, setHasMore] = useState(true);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [showConfirm, setShowConfirm] = useState(false);
@@ -54,7 +74,9 @@ const HoroscopeList: React.FC = () => {
   const [createdByFilter, setCreatedByFilter] = useState<string>('');
   const [astrologerOptions, setAstrologerOptions] = useState<{uid: string; fullName: string}[]>([]);
   const [statusEdit, setStatusEdit] = useState<{id: string; status: StatusType} | null>(null);
-  const debounceRef = useRef<NodeJS.Timeout|null>(null);
+  const [retryCount, setRetryCount] = useState(0);
+  const debounceRef = useRef<NodeJS.Timeout | null>(null);
+  const isMounted = useRef(true);
 
   const { user, userRole, loading: authLoading } = useAuth();
   const navigate = useNavigate();
@@ -99,40 +121,123 @@ const HoroscopeList: React.FC = () => {
     }
   }, [userRole]);
 
-  const fetchHoroscopes = useCallback(async (reset = false, direction: 'next'|'prev'|null = null) => {
-    setLoading(true);
+  const executeQuery = async (q: Query<DocumentData>, retry = 0): Promise<FetchHoroscopesResult> => {
     try {
-      let q = query(
-        collection(db, 'horoscopes'),
-        orderBy('createdAt', 'desc'),
-        limit(PAGE_SIZE)
-      );
-      if (!reset && lastDoc) {
-        q = query(
-          collection(db, 'horoscopes'),
-          orderBy('createdAt', 'desc'),
-          startAfter(lastDoc),
-          limit(PAGE_SIZE)
-        );
-      }
       const snapshot = await getDocs(q);
-      const docs = snapshot.docs.map((d) => ({ id: d.id, ...d.data() })) as Horoscope[];
-      if (reset) {
-        setHoroscopes(docs);
-      } else {
-        setHoroscopes((prev) => [...prev, ...docs]);
+      const docs = snapshot.docs.map((d) => ({
+        id: d.id,
+        ...d.data()
+      })) as Horoscope[];
+      
+      return {
+        data: docs,
+        lastVisible: snapshot.docs[snapshot.docs.length - 1] || null,
+        hasMore: snapshot.docs.length === PAGE_SIZE
+      };
+    } catch (err) {
+      const error = err as FirebaseError;
+      console.error('Firestore query error:', error);
+      
+      if (retry < MAX_RETRIES) {
+        console.log(`Retrying query (${retry + 1}/${MAX_RETRIES})...`);
+        await new Promise(resolve => setTimeout(resolve, RETRY_DELAY_MS * (retry + 1)));
+        return executeQuery(q, retry + 1);
       }
-      setLastDoc(snapshot.docs[snapshot.docs.length - 1]);
-      setHasMore(snapshot.docs.length === PAGE_SIZE);
-    } finally {
-      setLoading(false);
+      
+      throw new Error(`Failed to fetch horoscopes: ${error.message}`);
     }
-  }, [db, lastDoc]);
+  };
 
+  const buildQuery = (cursor: QueryDocumentSnapshot<DocumentData> | null = null) => {
+    let q = query(
+      collection(db, 'horoscopes'),
+      orderBy('createdAt', 'desc'),
+      limit(PAGE_SIZE)
+    );
+
+    // Apply search filter if search term exists
+    if (search) {
+      const searchLower = search.toLowerCase();
+      q = query(
+        q,
+        or(
+          where('fullName', '>=', searchLower),
+          where('fullName', '<=', searchLower + '\uf8ff'),
+          where('locationName', '>=', searchLower),
+          where('locationName', '<=', searchLower + '\uf8ff')
+        )
+      );
+    }
+
+    // Apply createdBy filter if set
+    if (createdByFilter) {
+      q = query(q, where('createdBy.uid', '==', createdByFilter));
+    }
+
+    // Apply pagination cursor
+    if (cursor) {
+      q = query(q, startAfter(cursor));
+    }
+
+    return q;
+  };
+
+  const fetchHoroscopes = useCallback(async (reset = false) => {
+    if (!isMounted.current) return;
+    
+    setLoading(true);
+    setError(null);
+
+    try {
+      const q = buildQuery(reset ? null : lastDoc);
+      const { data, lastVisible, hasMore } = await executeQuery(q);
+      
+      if (!isMounted.current) return;
+      
+      setHoroscopes(prev => reset ? data : [...prev, ...data]);
+      setLastDoc(lastVisible);
+      setHasMore(hasMore);
+      setRetryCount(0);
+    } catch (err) {
+      const error = err as Error;
+      console.error('Error fetching horoscopes:', error);
+      if (isMounted.current) {
+        setError(error.message);
+        toast.error('Failed to load horoscopes. Please try again.');
+      }
+    } finally {
+      if (isMounted.current) {
+        setLoading(false);
+      }
+    }
+  }, [lastDoc, search, createdByFilter]);
+
+  // Handle component mount/unmount
   useEffect(() => {
-    if (!authLoading) fetchHoroscopes(true);
-    // eslint-disable-next-line
-  }, [authLoading, userRole, user, createdByFilter, search]);
+    isMounted.current = true;
+    return () => {
+      isMounted.current = false;
+    };
+  }, []);
+
+  // Fetch data when dependencies change
+  useEffect(() => {
+    if (!authLoading) {
+      fetchHoroscopes(true);
+    }
+  }, [authLoading, userRole, user, createdByFilter, search, fetchHoroscopes]);
+
+  // Retry failed fetches
+  useEffect(() => {
+    if (error && retryCount < MAX_RETRIES) {
+      const timer = setTimeout(() => {
+        setRetryCount(prev => prev + 1);
+        fetchHoroscopes(true);
+      }, RETRY_DELAY_MS * (retryCount + 1));
+      
+      return () => clearTimeout(timer);
+    }
+  }, [error, retryCount, fetchHoroscopes]);
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchInput(e.target.value);
@@ -142,17 +247,29 @@ const HoroscopeList: React.FC = () => {
 const filteredHoroscopes = horoscopes;
 
   const handleDelete = async (id: string) => {
+    if (!window.confirm('Are you sure you want to delete this horoscope? This action cannot be undone.')) {
+      return;
+    }
+    
     setDeletingId(id);
     try {
       await deleteDoc(doc(db, 'horoscopes', id));
-      setHoroscopes((prev) => prev.filter((h) => h.id !== id));
-      toast.success('Horoscope deleted successfully');
+      
+      if (isMounted.current) {
+        setHoroscopes((prev) => prev.filter((h) => h.id !== id));
+        toast.success('Horoscope deleted successfully');
+      }
     } catch (err) {
-      toast.error('Failed to delete horoscope');
+      console.error('Error deleting horoscope:', err);
+      if (isMounted.current) {
+        toast.error('Failed to delete horoscope');
+      }
     } finally {
-      setDeletingId(null);
-      setShowConfirm(false);
-      setDeleteTarget(null);
+      if (isMounted.current) {
+        setDeletingId(null);
+        setShowConfirm(false);
+        setDeleteTarget(null);
+      }
     }
   };
 
