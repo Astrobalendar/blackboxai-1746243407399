@@ -1,7 +1,7 @@
 [build]
   base = "apps/frontend"
   command = "npm ci --include=dev && npm run build"
-  publish = ".next"
+  publish = "dist"  # Vite outputs to 'dist' directory
   ignore = "git diff --quiet HEAD^ HEAD --quiet apps/backend/ || echo 'Backend changes detected but will be ignored in this build.'"
 
 [build.environment]
@@ -12,12 +12,11 @@
   PYTHON = "/bin/false"
   PIP_DISABLE_PIP_VERSION_CHECK = "1"
 
-[[plugins]]
-package = "@netlify/plugin-nextjs"
-
+# Optional: Keep Lighthouse if you want to use it
 [[plugins]]
 package = "@netlify/plugin-lighthouse"
 
+# Redirects configuration
 [[redirects]]
 from = "/backend/*"
 to = "/404.html"
