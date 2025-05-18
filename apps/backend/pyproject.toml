@@ -1,0 +1,31 @@
+[tool.poetry]
+name = "astrobalendar-backend"
+version = "0.1.0"
+description = "Backend for Astrobalendar application"
+authors = ["Your Name <your.email@example.com>"]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+fastapi = "^0.104.1"
+uvicorn = {extras = ["standard"], version = "^0.23.2"}
+pydantic = "^2.4.2"
+python-jose = {extras = ["cryptography"], version = "^3.3.0"}
+motor = "^3.3.2"
+pytest = "^7.4.3"
+httpx = "^0.25.1"
+openai = "^1.3.0"
+aiohttp = "^3.8.6"
+python-multipart = "^0.0.6"
+python-dotenv = "^1.0.0"
+pymongo = "^4.5.0"
+
+[tool.poetry.group.dev.dependencies]
+pytest-asyncio = "^0.21.1"
+pytest-cov = "^4.1.0"
+black = "^23.9.1"
+isort = "^5.12.0"
+flake8 = "^6.1.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
