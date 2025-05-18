@@ -7,19 +7,14 @@
 [build.environment]
   NODE_VERSION = "18"
   NODE_ENV = "production"
-  
-  # Frontend environment variables
-  NEXT_PUBLIC_API_URL = "https://astrobalendar-backend.onrender.com"
-  NEXT_PUBLIC_GOOGLE_MAPS_API_KEY = "@google_maps_api_key"
+  NEXT_PUBLIC_API_URL = "${NEXT_PUBLIC_API_URL}"
+  NEXT_PUBLIC_GOOGLE_MAPS_API_KEY = "${NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}"
+  PYTHON = "/bin/false"
+  PIP_DISABLE_PIP_VERSION_CHECK = "1"
 
 # Enable Next.js plugin
 [[plugins]]
   package = "@netlify/plugin-nextjs"
-  
-# Explicitly disable Python
-[build.environment]
-  PYTHON = "/bin/false"
-  PIP_DISABLE_PIP_VERSION_CHECK = "1"
 
 # Ignore backend directory
 [[redirects]]
