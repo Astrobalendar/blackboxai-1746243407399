@@ -1,18 +1,22 @@
-# Render Configuration for Astrobalendar Backend
-# Docs: https://render.com/docs/deploy-python
+# Render Blueprint for Astrobalendar
+# Docs: https://render.com/docs/blueprint-spec
 
 services:
-  # 🔧 Backend: Python FastAPI Server
+  # Backend: Python FastAPI Server
   - type: web
     name: astrobalendar-backend
-    env: python3
+    env: python
     plan: free
     region: oregon
     
     # Build & Start Commands
     buildCommand: |
-      pip install -r requirements.txt
-    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+      cd apps/backend
+      pip install poetry
+      poetry install --no-interaction --no-ansi
+    startCommand: |
+      cd apps/backend
+      poetry run uvicorn app.main:app --host 0.0.0.0 --port $PORT
     
     # Environment Variables
     envVars:
@@ -35,27 +39,45 @@ services:
           name: astrobalendar-db
           property: connectionString
     
+    # Health Check Path
+    healthCheckPath: /health
+    
+    # Auto-Deploy from main branch
+    autoDeploy: true
+    
+    # IP Allow List (restrict access if needed)
+    # ipAllowList: 
+    #   - 192.0.2.0/24
+    #   - 203.0.113.0/24
+    
     # Scaling
     scaling:
       maxInstances: 1
       minInstances: 1
       targetCPUUtilizationPercent: 70
-    
-    # Add-ons (uncomment and configure as needed)
-    # addOns:
-    #   - name: astrobalendar-redis
-    #     type: redis
-    #     plan: free
-    #     options:
-    #       version: 6
-    
-    # Custom domains (configure in Render dashboard)
-    # customDomains:
-    #   - name: api.astrobalendar.com
-    #     domainType: apex
-    #     redirectWww: true
-    autoDeploy: true
-    
+
+# Database (MongoDB)
+databases:
+  - name: astrobalendar-db
+    plan: free
+    databaseName: astrobalendar
+    user: astrobalendar_user
+    ipAllowList:
+      - 0.0.0.0/0  # Warning: This allows access from any IP. Restrict in production.
+
+# Cron Jobs (uncomment and configure as needed)
+# jobs:
+#   - name: update-daily-horoscopes
+#     type: cron
+#     schedule: "0 0 * * *"  # Run daily at midnight
+#     command: >
+#       cd apps/backend &&
+#       poetry run python -m scripts.update_horoscopes
+#     envVars:
+#       - key: ENVIRONMENT
+#         value: production
+#     plan: free
+
   # 🗄️ Database: MongoDB (Using Render's Managed MongoDB)
   - type: mongodb
     name: astrobalendar-db
