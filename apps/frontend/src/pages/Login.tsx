@@ -1,14 +1,23 @@
 import React from 'react';
 import { GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { auth, db } from '../firebase';
 import { doc, getDoc } from 'firebase/firestore';
 import { useAuth } from '../context/AuthProvider';
 import '../styles/login.css';
 
 // WARNING: Always import context and firebase in the correct order to avoid circular dependencies and TDZ errors.
+interface LocationState {
+  forceCreate?: boolean;
+  formData?: any;
+  checkForDuplicate?: boolean;
+  pendingHoroscopeData?: string;
+}
+
 const Login: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const locationState = location.state as LocationState | undefined;
   const { user, loading } = useAuth();
 
   // All hooks MUST be at the top level, before any return or conditional
@@ -19,12 +28,51 @@ const Login: React.FC = () => {
   const [signInLoading, setSignInLoading] = React.useState(false);
   const [signInErrorMsg, setSignInErrorMsg] = React.useState<string | null>(null);
 
-  // Redirect immediately if user is already authenticated
+  // Handle redirection after successful authentication
   React.useEffect(() => {
     if (!loading && user) {
-      navigate('/dashboard/client'); // Or home/dashboard as appropriate
+      // Check for pending horoscope data in session storage
+      const pendingHoroscopeData = sessionStorage.getItem('pendingHoroscopeData');
+      const returnTo = new URLSearchParams(window.location.search).get('returnTo');
+      
+      if (pendingHoroscopeData) {
+        try {
+          const horoscopeData = JSON.parse(pendingHoroscopeData);
+          sessionStorage.removeItem('pendingHoroscopeData');
+          
+          // Check if we need to force create a new horoscope
+          const forceCreate = locationState?.forceCreate || false;
+          
+          if (forceCreate) {
+            navigate('/new-horoscope', { 
+              state: { 
+                formData: horoscopeData,
+                forceCreate: true
+              } 
+            });
+          } else {
+            // Check for duplicates and show warning if needed
+            navigate('/new-horoscope', { 
+              state: { 
+                formData: horoscopeData,
+                checkForDuplicate: true
+              } 
+            });
+          }
+          return;
+        } catch (err) {
+          console.error('Error processing pending horoscope data:', err);
+        }
+      }
+      
+      // Default redirect if no pending horoscope data
+      if (returnTo) {
+        navigate(returnTo);
+      } else {
+        navigate('/dashboard/client');
+      }
     }
-  }, [user, loading, navigate]);
+  }, [user, loading, navigate, locationState]);
 
   if (loading) {
     return <div>Loading...</div>;
@@ -44,18 +92,63 @@ const Login: React.FC = () => {
       // Check if user doc exists, create if not
       const userDocRef = doc(db, 'users', user.uid);
       const userDocSnap = await getDoc(userDocRef);
-      let role = null;
+      
       if (!userDocSnap.exists()) {
         // New Google user, redirect to signup for role selection
-        navigate('/signup', { state: { email: user.email, displayName: user.displayName, photoURL: user.photoURL } });
+        navigate('/signup', { 
+          state: { 
+            email: user.email, 
+            displayName: user.displayName, 
+            photoURL: user.photoURL,
+            // Preserve any pending horoscope data
+            pendingHoroscopeData: sessionStorage.getItem('pendingHoroscopeData')
+          } 
+        });
         return;
-      } else {
-        role = userDocSnap.data().role;
       }
-      // Redirect based on role
-      if (role === 'astrologer') navigate('/dashboard/astrologer');
-      else if (role === 'student') navigate('/dashboard/student');
-      else navigate('/dashboard/client');
+      
+      // Check for pending horoscope data after successful login
+      const pendingHoroscopeData = sessionStorage.getItem('pendingHoroscopeData');
+      if (pendingHoroscopeData) {
+        try {
+          const horoscopeData = JSON.parse(pendingHoroscopeData);
+          sessionStorage.removeItem('pendingHoroscopeData');
+          
+          // Check if we need to force create a new horoscope
+          const forceCreate = locationState?.forceCreate || false;
+          
+          if (forceCreate) {
+            navigate('/new-horoscope', { 
+              state: { 
+                formData: horoscopeData,
+                forceCreate: true
+              } 
+            });
+            return;
+          } else {
+            // Check for duplicates and show warning if needed
+            navigate('/new-horoscope', { 
+              state: { 
+                formData: horoscopeData,
+                checkForDuplicate: true
+              } 
+            });
+            return;
+          }
+        } catch (err) {
+          console.error('Error processing pending horoscope data:', err);
+        }
+      }
+      
+      // Default redirect based on role if no pending horoscope data
+      const role = userDocSnap.data()?.role;
+      if (role === 'astrologer') {
+        navigate('/dashboard/astrologer');
+      } else if (role === 'student') {
+        navigate('/dashboard/student');
+      } else {
+        navigate('/dashboard/client');
+      }
     } catch (error) {
       setSignInErrorMsg('Google sign-in failed. Please try again.');
       console.error(error);
