@@ -1,24 +1,34 @@
 [build]
-  command = "bash ./netlify-build.sh"
+  command = "bash scripts/install-rust.sh && bash scripts/netlify-build.sh"
   publish = "apps/frontend/.next"
   base = "."
 
 [build.environment]
+  # Node.js configuration
   NODE_VERSION = "18"
   NODE_ENV = "production"
+  
+  # Python configuration
+  PYTHON_VERSION = "3.9"
+  
+  # Rust configuration
+  RUSTUP_HOME = "/opt/buildhome/.rustup"
+  CARGO_HOME = "/opt/buildhome/.cargo"
+  PATH = "/opt/buildhome/.cargo/bin:$PATH"
+  
+  # Application environment variables
   NEXT_PUBLIC_API_URL = "https://astrobalendar-backend.onrender.com"
   NEXT_PUBLIC_GOOGLE_MAPS_API_KEY = "@google_maps_api_key"
-  
-# Disable Python installation
-[build.environment]
-  PYTHON_VERSION = ""
-  PIPENV_RUNTIME = ""
 
-# Disable automatic Python installation
+# Configure Python build settings
+[build.environment]
+  PIPENV_RUNTIME = "3.9"
+  
+# Enable Next.js plugin with Python support
 [[plugins]]
   package = "@netlify/plugin-nextjs"
   [plugins.inputs]
-    python = false
+    python = "3.9"
 
 [[redirects]]
   from = "/*"
