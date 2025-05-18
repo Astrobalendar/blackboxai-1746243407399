@@ -1,18 +1,13 @@
 import * as React from 'react';
 import { useEffect, useRef, useState, useCallback } from 'react';
-import { MapPin, Crosshair } from 'lucide-react';
-import { initAutocomplete } from '../utils/googleMaps';
+import { MapPin, Crosshair, Loader2 } from 'lucide-react';
+import type { GeocoderResult, GeocoderStatus, PlaceResult } from '../utils/googleMaps';
 
-interface PlaceResult {
-  geometry?: {
-    location: {
-      lat: () => number;
-      lng: () => number;
-    };
-  };
-  formatted_address?: string;
-  name?: string;
-  place_id?: string;
+// Extend the global window interface with our custom properties
+declare global {
+  interface Window {
+    googleMapsReady?: boolean;
+  }
 }
 
 interface LocationResult {
@@ -53,64 +48,97 @@ const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const [showClearButton, setShowClearButton] = useState(!!value);
   const autocompleteRef = useRef<any>(null);
+  const [mapsReady, setMapsReady] = useState(!!window.google?.maps?.places);
 
-  // Initialize the autocomplete
+  // Handle Google Maps script loading
   useEffect(() => {
-    if (!inputRef.current) return;
-
-    const init = async () => {
-      try {
-        autocompleteRef.current = initAutocomplete(
-          inputRef.current!,
-          (place: PlaceResult) => {
-            if (place.geometry && place.geometry.location) {
-              onLocationSelect({
-                address: place.formatted_address || place.name || '',
-                lat: place.geometry.location.lat(),
-                lng: place.geometry.location.lng(),
-                placeId: place.place_id,
-              });
-              setShowClearButton(true);
-            }
-          },
-          {
-            types,
-            componentRestrictions: {
-              country: countryRestriction,
-            },
-          }
-        );
-      } catch (error) {
-        console.error('Error initializing Google Places Autocomplete:', error);
+    let mounted = true;
+    
+    const checkAndSetMapsReady = () => {
+      if (window.google?.maps?.places) {
+        console.log('Google Maps is ready');
+        if (mounted) setMapsReady(true);
+        return true;
       }
+      return false;
     };
 
-    // Only initialize if Google Maps is loaded
-    if (window.google?.maps?.places) {
-      init();
+    // Check if already loaded
+    if (checkAndSetMapsReady()) return;
+
+    // Set up event listener for when Google Maps loads
+    const handleMapsReady = () => {
+      console.log('Received google-maps-ready event');
+      checkAndSetMapsReady();
+    };
+
+    // Check if the ready flag is already set
+    if (window.googleMapsReady) {
+      console.log('Google Maps ready flag is set');
+      if (mounted) setMapsReady(true);
     } else {
-      // Try to load the Google Maps script if not already loaded
-      const script = document.createElement('script');
-      // Ensure we have a valid API key
-      const apiKey = (import.meta.env.VITE_GOOGLE_MAPS_API_KEY as string) || '';
-      if (!apiKey) {
-        console.error('Google Maps API key is not set. Please check your environment variables.');
-        return;
-      }
-      script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places`;
-      script.async = true;
-      script.onload = init;
-      document.head.appendChild(script);
+      console.log('Adding event listener for google-maps-ready');
+      document.addEventListener('google-maps-ready', handleMapsReady);
+    }
+
+    // Cleanup
+    return () => {
+      mounted = false;
+      document.removeEventListener('google-maps-ready', handleMapsReady);
+    };
+  }, []);
+
+  // Initialize Google Places Autocomplete
+  useEffect(() => {
+    if (!mapsReady || !inputRef.current) return;
+
+    let isMounted = true;
+    let autocomplete: any = null;
+
+    try {
+      const currentInput = inputRef.current;
+      console.log('Initializing Google Places Autocomplete on input');
+
+      const options = {
+        types,
+        componentRestrictions: countryRestriction ? { country: countryRestriction } : undefined,
+      };
+
+      autocomplete = new window.google.maps.places.Autocomplete(currentInput, options);
+      
+      autocomplete.addListener('place_changed', () => {
+        if (!isMounted) return;
+        
+        const place = autocomplete.getPlace();
+        console.log('Place selected:', place);
+        
+        if (place?.geometry?.location) {
+          const location = {
+            address: place.formatted_address || place.name || currentInput.value,
+            lat: place.geometry.location.lat(),
+            lng: place.geometry.location.lng(),
+            placeId: place.place_id || '',
+          };
+          console.log('Location selected:', location);
+          onLocationSelect(location);
+          setShowClearButton(true);
+        }
+      });
+
+      autocompleteRef.current = autocomplete;
+    } catch (error) {
+      console.error('Error initializing Google Places Autocomplete:', error);
     }
 
     return () => {
-      if (autocompleteRef.current && inputRef.current && window.google?.maps?.event) {
-        window.google.maps.event.clearInstanceListeners(inputRef.current);
+      isMounted = false;
+      if (autocomplete && inputRef.current) {
+        window.google?.maps?.event.clearInstanceListeners(inputRef.current);
       }
     };
-  }, [onLocationSelect, countryRestriction, types]);
+  }, [mapsReady, onLocationSelect, countryRestriction, types]);
 
-  const handleClear = () => {
+  const handleClear = useCallback(() => {
     if (inputRef.current) {
       inputRef.current.value = '';
       onChange('');
@@ -122,7 +150,7 @@ const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({
         placeId: '',
       });
     }
-  };
+  }, [onChange, onLocationSelect]);
 
   // Handle getting current location
   const handleGetCurrentLocation = useCallback(() => {
@@ -138,14 +166,20 @@ const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({
         try {
           const { latitude, longitude } = position.coords;
           
+          if (!window.google?.maps?.Geocoder) {
+            console.error('Google Maps Geocoder not available');
+            setIsLoading(false);
+            return;
+          }
+          
           // Use reverse geocoding to get the address
           const geocoder = new window.google.maps.Geocoder();
           geocoder.geocode(
             { location: { lat: latitude, lng: longitude } },
-            (results: google.maps.GeocoderResult[] | null, status: google.maps.GeocoderStatus) => {
+            (results: (GeocoderResult | null)[] | null, status: GeocoderStatus) => {
               setIsLoading(false);
               
-              if (status === 'OK' && results && results[0]) {
+              if (status === 'OK' && results?.[0]) {
                 const address = results[0].formatted_address || `${latitude}, ${longitude}`;
                 if (inputRef.current) {
                   inputRef.current.value = address;

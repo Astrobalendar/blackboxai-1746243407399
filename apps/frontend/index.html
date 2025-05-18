@@ -8,11 +8,48 @@
     <link rel="icon" type="image/png" href="/assets/icon.png" />
     
     <!-- Google Maps Places API -->
-    <script
-      src="https://maps.googleapis.com/maps/api/js?key=YOUR_GOOGLE_MAPS_API_KEY&libraries=places&callback=Function.prototype"
-      async
-      defer
-    ></script>
+    <script>
+      // This will be called when the Google Maps script loads
+      window.initGoogleMaps = function() {
+        console.log('Google Maps API loaded successfully');
+        // Set a flag that the API is loaded
+        window.googleMapsReady = true;
+        // Dispatch an event that components can listen for
+        const event = new Event('google-maps-ready');
+        console.log('Dispatching google-maps-ready event');
+        document.dispatchEvent(event);
+      };
+      
+      // Load Google Maps script only if not already loaded
+      (function() {
+        // Don't load if already loaded or loading
+        if (window.google?.maps?.places || document.querySelector('script[src*="maps.googleapis.com/maps/api/js"]')) {
+          console.log('Google Maps script already loaded or loading');
+          return;
+        }
+        
+        const googleMapsApiKey = 'AIzaSyBKPYeumm5w2MOaDm8SywAPNhQNX3j_mAc'; // From your .env file
+        if (!googleMapsApiKey) {
+          console.error('Google Maps API key is not set');
+          return;
+        }
+        
+        console.log('Loading Google Maps script...');
+        const script = document.createElement('script');
+        script.src = `https://maps.googleapis.com/maps/api/js?key=${googleMapsApiKey}&libraries=places&callback=initGoogleMaps`;
+        script.async = true;
+        script.defer = true;
+        script.onload = function() {
+          console.log('Google Maps script loaded successfully');
+        };
+        script.onerror = function(error) {
+          console.error('Failed to load Google Maps script:', error);
+        };
+        
+        // Add to head
+        document.head.appendChild(script);
+      })();
+    </script>
     
     <!-- Plausible Analytics -->
     <script async defer data-domain="astrobalendar.com" src="https://plausible.io/js/plausible.js"></script>
