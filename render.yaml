@@ -8,6 +8,12 @@ services:
     region: oregon
     runtime: python
     buildCommand: |
+      # Install Rust and Cargo
+      curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+      export PATH="$HOME/.cargo/bin:$PATH"
+      rustc --version
+      cargo --version
+      
       # Set up Node.js 18
       curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
       export NVM_DIR="$HOME/.nvm"
@@ -22,8 +28,18 @@ services:
       python -m venv .venv
       source .venv/bin/activate
       
-      # Install Python dependencies
+      # Install build dependencies
       pip install --upgrade pip setuptools wheel
+      
+      # Install Python build dependencies
+      sudo apt-get update && sudo apt-get install -y --no-install-recommends \
+        gcc \
+        python3-dev \
+        libpq-dev \
+        build-essential \
+        && rm -rf /var/lib/apt/lists/*
+      
+      # Install Python dependencies
       cd apps/backend
       pip install -r requirements.txt
       
