@@ -10,17 +10,15 @@
   
   # Disable Python installation
   PYTHON_VERSION = ""
+  PIP_DISABLE_PIP_VERSION_CHECK = "1"
   
   # Application environment variables
   NEXT_PUBLIC_API_URL = "https://astrobalendar-backend.onrender.com"
   NEXT_PUBLIC_GOOGLE_MAPS_API_KEY = "@google_maps_api_key"
 
-# Next.js plugin configuration
-[[plugins]]
-  package = "@netlify/plugin-nextjs"
-  
-  [plugins.inputs]
-    python = false
+# Disable all automatic plugin installation
+[plugins]
+  disabled = true
 
 # Handle client-side routing
 [[redirects]]
