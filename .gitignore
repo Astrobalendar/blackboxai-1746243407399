@@ -255,3 +255,4 @@ logs
 .env*.local
 *.env
 
+test_firebase.py
