@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Link, Navigate } from "react-router-dom";
 import { AuthProvider } from './context/AuthProvider';
 import { HoroscopeProvider } from './context/HoroscopeContext';
 import { LoadScript } from '@react-google-maps/api';
+// Using inline SVG for PlusIcon to avoid dependency issues
 
 import PrivateRoute from './components/PrivateRoute';
 import RoleRoute from './components/RoleRoute';
@@ -132,7 +133,9 @@ function App() {
                           to="/horoscope/new"
                           className="group flex items-center px-2 py-2 text-sm font-medium rounded-md text-gray-300 hover:bg-gray-700 hover:text-white"
                         >
-                          <PlusIcon className="mr-3 h-6 w-6 text-gray-400 group-hover:text-gray-300" />
+                          <svg xmlns="http://www.w3.org/2000/svg" className="mr-3 h-6 w-6 text-gray-400 group-hover:text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                          </svg>
                           New Horoscope
                         </Link>
                       </div>
