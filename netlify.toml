@@ -3,18 +3,27 @@
   publish = "apps/frontend/.next"
 
 [build.environment]
+  # Node.js configuration
   NODE_VERSION = "18"
   NODE_ENV = "production"
-  PYTHON = ""
+  
+  # Explicitly disable Python
+  PYTHON = "/bin/false"
+  PIP_DISABLE_PIP_VERSION_CHECK = "1"
   
   # Frontend environment variables
   NEXT_PUBLIC_API_URL = "https://astrobalendar-backend.onrender.com"
   NEXT_PUBLIC_GOOGLE_MAPS_API_KEY = "@google_maps_api_key"
 
-# Next.js plugin configuration (required for Next.js projects)
+# Next.js plugin configuration
 [[plugins]]
   package = "@netlify/plugin-nextjs"
   
   [plugins.inputs]
     # Disable Python installation
     python = false
+    
+    # Disable other unnecessary features
+    enable_functions = false
+    enable_image_optimization = false
+    enable_webpack5 = true
