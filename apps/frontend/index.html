@@ -19,9 +19,9 @@
         console.log('Dispatching google-maps-ready event');
         document.dispatchEvent(event);
       };
-      
-      // Load Google Maps script only if not already loaded
-      (function() {
+
+      // Function to load Google Maps API
+      function loadGoogleMaps() {
         // Don't load if already loaded or loading
         if (window.google?.maps?.places || document.querySelector('script[src*="maps.googleapis.com/maps/api/js"]')) {
           console.log('Google Maps script already loaded or loading');
@@ -36,19 +36,29 @@
         
         console.log('Loading Google Maps script...');
         const script = document.createElement('script');
-        script.src = `https://maps.googleapis.com/maps/api/js?key=${googleMapsApiKey}&libraries=places&callback=initGoogleMaps`;
+        script.src = `https://maps.googleapis.com/maps/api/js?key=${googleMapsApiKey}&libraries=places&loading=async&callback=initGoogleMaps`;
         script.async = true;
         script.defer = true;
+        
         script.onload = function() {
           console.log('Google Maps script loaded successfully');
         };
+        
         script.onerror = function(error) {
           console.error('Failed to load Google Maps script:', error);
         };
         
         // Add to head
         document.head.appendChild(script);
-      })();
+      }
+
+      // Load Google Maps when the page is fully loaded
+      if (document.readyState === 'complete' || document.readyState === 'interactive') {
+        // Call on next tick to ensure the rest of the page has loaded
+        setTimeout(loadGoogleMaps, 100);
+      } else {
+        window.addEventListener('load', loadGoogleMaps);
+      }
     </script>
     
     <!-- Plausible Analytics -->
