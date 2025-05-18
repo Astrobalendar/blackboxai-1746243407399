@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { getAuth } from 'firebase/auth';
 import { PredictionResult } from '@shared/types/prediction';
 
 const API_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3001';
@@ -57,6 +58,7 @@ export interface ChartDataRequest {
   locationName: string;
   latitude: number;
   longitude: number;
+  timeZone?: string;
 }
 
 export interface ChartDataResponse {
@@ -68,30 +70,78 @@ export const getChartData = async (
   birthDetails: ChartDataRequest
 ): Promise<ChartDataResponse> => {
   try {
-    // Call the backend API endpoint for computing chart data
+    const token = await getAuth().currentUser?.getIdToken();
+    
+    if (!token) {
+      throw new Error('Authentication required');
+    }
+
     const response = await axios.post(
       `${API_URL}/api/v1/chart-data`,
-      birthDetails,
+      {
+        ...birthDetails,
+        timezone: birthDetails.timeZone || Intl.DateTimeFormat().resolvedOptions().timeZone
+      },
       {
         timeout: 30000,
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
       }
     );
     
-    // Handle nested response format { status: 'success', data: { rasi: [...], navamsa: [...] } }
+    // Handle different response formats
     const responseData = response.data?.data || response.data;
     
-    if (!responseData || !responseData.rasi || !responseData.navamsa) {
-      throw new Error('Invalid chart data response format');
+    if (!responseData) {
+      throw new Error('Empty response from chart data service');
     }
     
-    return {
-      rasi: responseData.rasi,
-      navamsa: responseData.navamsa
-    };
+    // Handle case where response is { rasi: [...], navamsa: [...] }
+    if (responseData.rasi && responseData.navamsa) {
+      return {
+        rasi: responseData.rasi,
+        navamsa: responseData.navamsa
+      };
+    }
+    
+    // Handle case where response is { status: 'success', data: { rasi: [...], navamsa: [...] } }
+    if (responseData.status === 'success' && responseData.data?.rasi && responseData.data?.navamsa) {
+      return {
+        rasi: responseData.data.rasi,
+        navamsa: responseData.data.navamsa
+      };
+    }
+    
+    throw new Error('Invalid chart data response format');
   } catch (error: any) {
     console.error('Error in getChartData:', error);
-    const errorMessage = error.response?.data?.error || error.message || 'Failed to fetch chart data';
-    throw new Error(errorMessage);
+    
+    // Handle Axios errors
+    if (axios.isAxiosError(error)) {
+      if (error.code === 'ECONNABORTED') {
+        throw new Error('Request timed out. Please try again.');
+      }
+      
+      if (error.response) {
+        // Handle HTTP error responses
+        switch (error.response.status) {
+          case 400:
+            throw new Error('Invalid birth data provided');
+          case 401:
+            throw new Error('Authentication required');
+          case 404:
+            throw new Error('Chart data service not found. Please contact support.');
+          case 500:
+            throw new Error('Server error. Please try again later.');
+          default:
+            throw new Error(error.response.data?.message || 'Failed to fetch chart data');
+        }
+      }
+    }
+    
+    // Handle other errors
+    throw new Error(error.message || 'Failed to fetch chart data');
   }
 };

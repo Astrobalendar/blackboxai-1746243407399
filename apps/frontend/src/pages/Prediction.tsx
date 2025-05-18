@@ -13,10 +13,10 @@ import { useAuth } from '../context/AuthProvider';
 import { KPStellarPredictionView } from '../components/prediction/KPStellarPredictionView';
 import { toast } from 'react-toastify';
 import axios from 'axios';
+import { getChartData } from '../services/astrology';
 
 // API Configuration
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
-const CHART_DATA_ENDPOINT = `${API_BASE_URL}/api/v1/chart-data`;
 
 export interface BirthData {
   fullName: string;
@@ -63,7 +63,7 @@ const Prediction: React.FC = () => {
   const editable = false; // Default to non-editable for clients/students
   const db = getFirestore();
 
-  // Fetch chart data from backend API
+  // Fetch chart data from backend API using the astrology service
   const fetchChartData = useCallback(async (birthData: BirthData): Promise<ChartData> => {
     try {
       setLoadingChart(true);
@@ -73,28 +73,35 @@ const Prediction: React.FC = () => {
         throw new Error('User not authenticated');
       }
 
-      const token = await user.getIdToken();
-      const response = await axios.post(CHART_DATA_ENDPOINT, {
-        ...birthData,
-        userId: user.uid
-      }, {
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        timeout: 30000 // 30 seconds timeout
+      // Convert birth data to the format expected by getChartData
+      const chartData = await getChartData({
+        dateOfBirth: birthData.dateOfBirth,
+        timeOfBirth: birthData.timeOfBirth,
+        locationName: birthData.locationName,
+        latitude: birthData.latitude || 0, // Provide default values
+        longitude: birthData.longitude || 0,
+        timeZone: birthData.timezone
       });
 
-      if (!response.data) {
-        throw new Error('No chart data received');
-      }
-
-      return response.data as ChartData;
+      // Return the chart data in the expected format
+      return {
+        ...chartData, // This includes rasi and navamsa properties
+        // Add any additional chart data transformation if needed
+      };
     } catch (error) {
       console.error('Error fetching chart data:', error);
       const errorMessage = error instanceof Error ? error.message : 'Failed to fetch chart data';
       setChartError(errorMessage);
-      toast.error('Failed to load chart data. Please try again later.');
+      
+      // Show a more specific error message based on the error type
+      if (errorMessage.includes('Authentication')) {
+        toast.error('Please log in to view chart data');
+      } else if (errorMessage.includes('timeout') || errorMessage.includes('timed out')) {
+        toast.error('Request timed out. Please try again.');
+      } else {
+        toast.error('Failed to load chart data. Please try again later.');
+      }
+      
       throw error;
     } finally {
       setLoadingChart(false);
