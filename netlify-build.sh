@@ -3,21 +3,16 @@
 # Exit on error
 set -e
 
-# Install Rust and Cargo
-curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
-export PATH="$HOME/.cargo/bin:$PATH"
-
-# Verify installations
-rustc --version
-cargo --version
+# Navigate to frontend directory
+cd apps/frontend
 
 # Install Node.js dependencies
-cd apps/frontend
+echo "Installing Node.js dependencies..."
 npm install
 
 # Build the Next.js application
+echo "Building frontend application..."
 npm run build
 
 # Exit with success
-cd ../..
-echo "Build completed successfully!"
+echo "Frontend build completed successfully!"
