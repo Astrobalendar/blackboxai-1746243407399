@@ -5,8 +5,8 @@ services:
   # Backend Service
   - type: web
     name: astrobalendar-backend
-    env: python
     region: oregon
+    runtime: python
     buildCommand: |
       pip install --upgrade pip
       pip install -r apps/backend/requirements.txt
@@ -28,6 +28,10 @@ services:
       # Firebase Configuration (set in Render dashboard)
       - key: FIREBASE_SERVICE_ACCOUNT_JSON
         sync: false
+      - key: FIREBASE_API_KEY
+        sync: false
+      - key: FIREBASE_AUTH_DOMAIN
+        sync: false
       - key: FIREBASE_PROJECT_ID
         sync: false
       - key: FIREBASE_STORAGE_BUCKET
@@ -36,9 +40,12 @@ services:
         sync: false
       - key: FIREBASE_APP_ID
         sync: false
+      - key: FIREBASE_MEASUREMENT_ID
+        sync: false
       # Redis Configuration
       - key: REDIS_URL
         fromService:
+          type: redis
           name: astrobalendar-redis
           property: connectionString
     healthCheckPath: /health
@@ -60,12 +67,6 @@ services:
 # PYTHONUNBUFFERED=1
 # PYTHONDONTWRITEBYTECODE=1
 
-  # Redis for caching
-  - type: redis
-    name: astrobalendar-redis
-    plan: free
-    ipAllowList: []  # Public access - restrict in production
-
 # Cron Jobs (uncomment and configure as needed)
 # jobs:
 #   - name: update-daily-horoscopes
@@ -73,7 +74,7 @@ services:
 #     schedule: "0 0 * * *"  # Run daily at midnight
 #     command: >
 #       cd apps/backend &&
-#       poetry run python -m scripts.update_horoscopes
+#       python -m scripts.update_horoscopes
 #     envVars:
 #       - key: ENVIRONMENT
 #         value: production
