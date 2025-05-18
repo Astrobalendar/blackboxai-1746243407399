@@ -9,8 +9,8 @@ services:
     runtime: python
     buildCommand: |
       pip install --upgrade pip
-      pip install -r apps/backend/requirements.txt
-      cd apps/backend && pip install -r requirements.txt
+      cd apps/backend
+      pip install -r requirements.txt
     startCommand: >-
       gunicorn apps.backend.main:app 
       --workers 4 
