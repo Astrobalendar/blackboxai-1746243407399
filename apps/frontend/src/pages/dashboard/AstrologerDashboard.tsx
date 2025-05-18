@@ -1,180 +1,253 @@
-import React, { useEffect, useState, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import * as React from 'react';
+import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthProvider';
-import PredictionHistoryTable, { PredictionHistoryEntry } from '../../components/PredictionHistoryTable';
-import { useRequireBirthData } from '../../components/useRequireBirthData';
-import { toast } from 'react-toastify';
-import { Search } from 'lucide-react';
+import { useHoroscope } from '../../context/HoroscopeContext';
+import { Search, Calendar, User, MapPin, Clock } from 'lucide-react';
+import { format } from 'date-fns';
+import type { Horoscope } from '../../services/horoscopeService';
+
+// Extend the Horoscope type to include any additional fields we need
+interface ExtendedHoroscope extends Omit<Horoscope, 'birthDate' | 'birthTime' | 'birthPlace'> {
+  dateOfBirth: string;
+  timeOfBirth: string;
+  locationName: string;
+  // Add any additional fields needed for display
+  birthDetails?: {
+    dateOfBirth?: string;
+    timeOfBirth?: string;
+    locationName?: string;
+  };
+}
 
 const AstrologerDashboard: React.FC = () => {
-  const { checking } = useRequireBirthData();
   const { user } = useAuth();
-  const navigate = useNavigate();
-  const [history, setHistory] = useState<PredictionHistoryEntry[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const { horoscopes = [], loading, error } = useHoroscope();
   const [searchQuery, setSearchQuery] = useState('');
-  const [isSearching, setIsSearching] = useState(false);
+  const [filteredHoroscopes, setFilteredHoroscopes] = useState<ExtendedHoroscope[]>([]);
 
+  // Filter horoscopes based on search query
   useEffect(() => {
-    const fetchHistory = async () => {
-      if (!user) return;
-      
-      try {
-        setIsLoading(true);
-        // In a real app, you would fetch this from your API
-        // const res = await fetch(`/api/astrologer/${user.uid}/predictions`);
-        // const data = await res.json();
-        
-        // Mock data for demonstration
-        const mockData: PredictionHistoryEntry[] = [
-          {
-            id: '1',
-            prediction_id: 'pred-12345',
-            fullName: 'John Doe',
-            role: 'client',
-            match_status: 'matched',
-            timestamp: new Date().toISOString(),
-            birthDetails: {
-              dateOfBirth: '1990-01-01',
-              timeOfBirth: '12:00',
-              locationName: 'New York, NY',
-              latitude: 40.7128,
-              longitude: -74.0060
-            },
-            predictionData: {
-              // Add prediction data structure here
-            }
-          },
-          // Add more mock data as needed
-        ];
-        
-        setHistory(mockData);
-      } catch (error) {
-        console.error('Failed to fetch prediction history:', error);
-        toast.error('Failed to load prediction history');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    
-    fetchHistory();
-  }, [user]);
-
-  // Filter predictions based on search query
-  const filteredPredictions = useMemo(() => {
-    if (!searchQuery.trim()) return history;
-    
-    const query = searchQuery.toLowerCase();
-    return history.filter(prediction => 
-      prediction.fullName?.toLowerCase().includes(query) ||
-      prediction.prediction_id?.toLowerCase().includes(query) ||
-      prediction.id?.toLowerCase().includes(query)
-    );
-  }, [history, searchQuery]);
-
-  const handleEditPrediction = (prediction: PredictionHistoryEntry) => {
-    // Navigate to edit page with prediction ID
-    navigate(`/edit-prediction/${prediction.id}`, { 
-      state: { 
-        predictionData: prediction.predictionData,
-        birthDetails: prediction.birthDetails
-      } 
-    });
-  };
-
-  const handleSearch = async (query: string) => {
-    if (!query.trim()) {
-      setSearchQuery('');
-      return;
-    }
-
     try {
-      setIsSearching(true);
-      // In a real app, you would call your search API here
-      // const response = await fetch(`/api/horoscopes/search?q=${encodeURIComponent(query)}`);
-      // const results = await response.json();
-      // setHistory(results);
+      const filtered = horoscopes
+        .filter(horoscope => !!horoscope) // Filter out any undefined/null items
+        .map(horoscope => ({
+          ...horoscope,
+          dateOfBirth: horoscope.birthDate,
+          timeOfBirth: horoscope.birthTime,
+          locationName: horoscope.birthPlace,
+          birthDetails: {
+            dateOfBirth: horoscope.birthDate,
+            timeOfBirth: horoscope.birthTime,
+            locationName: horoscope.birthPlace
+          }
+        }))
+        .filter(horoscope => {
+          if (!searchQuery.trim()) return true;
+          
+          const searchLower = searchQuery.toLowerCase();
+          const locationName = horoscope.locationName || '';
+          const dateOfBirth = horoscope.dateOfBirth || '';
+          
+          return (
+            (horoscope.fullName?.toLowerCase() || '').includes(searchLower) ||
+            locationName.toLowerCase().includes(searchLower) ||
+            dateOfBirth.includes(searchQuery)
+          );
+        });
       
-      // For now, we'll just filter the existing data client-side
-      setSearchQuery(query);
+      setFilteredHoroscopes(filtered as ExtendedHoroscope[]);
     } catch (error) {
-      console.error('Search failed:', error);
-      toast.error('Failed to perform search');
-    } finally {
-      setIsSearching(false);
+      console.error('Error filtering horoscopes:', error);
+      setFilteredHoroscopes([]);
+    }
+  }, [searchQuery, horoscopes]);
+
+  const formatDate = (dateString: string | undefined): string => {
+    if (!dateString) return 'N/A';
+    try {
+      return format(new Date(dateString), 'MMM dd, yyyy');
+    } catch (error) {
+      console.error('Error formatting date:', error);
+      return 'Invalid date';
     }
   };
 
-  if (checking) return null;
+  const formatTime = (timeString: string | undefined): string => {
+    if (!timeString) return 'N/A';
+    try {
+      const [hours, minutes] = timeString.split(':');
+      const date = new Date();
+      date.setHours(parseInt(hours, 10), parseInt(minutes, 10));
+      return format(date, 'h:mm a');
+    } catch (error) {
+      console.error('Error formatting time:', error);
+      return timeString || 'N/A';
+    }
+  };
 
-  return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div className="flex justify-between items-center mb-8">
-        <div>
-          <h2 className="text-2xl font-bold text-gray-900">Astrologer Dashboard</h2>
-          <p className="mt-1 text-sm text-gray-500">
-            Manage client predictions and view your horoscope readings
-          </p>
-        </div>
-        <div>
+  const handleSearch = (query: string) => {
+    setSearchQuery(query.trim());
+  };
+
+  // Handle view details
+  const handleViewDetails = (horoscope: ExtendedHoroscope) => {
+    // Navigate to horoscope details page
+    console.log('View details for:', horoscope.id);
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-yellow-500"></div>
+      </div>
+    );
+  }
+
+  // If there's an error, show error message
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center p-6 max-w-md">
+          <div className="text-red-500 text-5xl mb-4">⚠️</div>
+          <h2 className="text-xl font-semibold text-gray-800 mb-2">Error Loading Horoscopes</h2>
+          <p className="text-gray-600 mb-4">{error.message || 'An unknown error occurred'}</p>
           <button
-            onClick={() => navigate('/new-horoscope')}
-            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
+            onClick={() => window.location.reload()}
+            className="px-4 py-2 bg-yellow-500 text-white rounded-md hover:bg-yellow-600 transition-colors"
           >
-            + New Horoscope
+            Try Again
           </button>
         </div>
       </div>
+    );
+  }
 
-      <div className="bg-white shadow rounded-lg p-6">
-        <div className="mb-6">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div>
-              <h3 className="text-lg font-medium text-gray-900">Prediction History</h3>
-              <p className="mt-1 text-sm text-gray-500">
-                View and manage all your predictions
-              </p>
+  // Show loading state
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-500 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading horoscopes...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show empty state if no horoscopes
+  if (!filteredHoroscopes || filteredHoroscopes.length === 0) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="text-center py-12">
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-yellow-100 mb-4">
+              <Search className="w-8 h-8 text-yellow-600" />
             </div>
-            <div className="relative w-full sm:w-80">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Search className="h-5 w-5 text-gray-400" />
-              </div>
-              <input
-                type="text"
-                className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-purple-500 focus:border-purple-500 sm:text-sm"
-                placeholder="Search by name or ID..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                disabled={isLoading}
-              />
-            </div>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">No horoscopes found</h3>
+            <p className="text-gray-500 mb-6">
+              {searchQuery ? 'Try a different search term' : 'Get started by creating a new horoscope'}
+            </p>
+            <Link
+              to="/horoscope/new"
+              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500"
+            >
+              Create New Horoscope
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Main dashboard view
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="md:flex md:items-center md:justify-between mb-6">
+          <div className="flex-1 min-w-0">
+            <h1 className="text-2xl font-bold text-gray-900">Horoscope Dashboard</h1>
+            <p className="mt-1 text-sm text-gray-500">
+              View and manage all horoscopes
+            </p>
+          </div>
+          <div className="mt-4 flex md:mt-0 md:ml-4">
+            <Link
+              to="/horoscope/new"
+              className="ml-3 inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500"
+            >
+              New Horoscope
+            </Link>
           </div>
         </div>
         
-        {isLoading ? (
-          <div className="flex justify-center items-center py-12">
-            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-500"></div>
+        {/* Search bar */}
+        <div className="mb-6">
+          <div className="relative rounded-md shadow-sm max-w-md">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <Search className="h-4 w-4 text-gray-400" />
+            </div>
+            <input
+              type="text"
+              className="focus:ring-yellow-500 focus:border-yellow-500 block w-full pl-10 sm:text-sm border-gray-300 rounded-md p-2 border"
+              placeholder="Search by name, location, or date..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
           </div>
-        ) : filteredPredictions.length === 0 ? (
-          <div className="text-center py-12">
-            <p className="text-gray-500">
-              {searchQuery ? 'No predictions match your search.' : 'No prediction history available.'}
-            </p>
-            {searchQuery && (
-              <button
-                onClick={() => setSearchQuery('')}
-                className="mt-2 text-purple-600 hover:text-purple-800 text-sm font-medium"
-              >
-                Clear search
-              </button>
-            )}
-          </div>
-        ) : (
-          <PredictionHistoryTable 
-            data={filteredPredictions} 
-            onEdit={handleEditPrediction} 
-          />
-        )}
+        </div>
+
+        {/* Horoscope list */}
+        <div className="bg-white shadow overflow-hidden sm:rounded-lg">
+          <ul className="divide-y divide-gray-200">
+            {filteredHoroscopes.map((horoscope) => (
+              <li key={horoscope.id} className="hover:bg-gray-50 transition-colors duration-150">
+                <Link to={`/horoscope/${horoscope.id}`} className="block">
+                  <div className="px-4 py-4 sm:px-6">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center">
+                        <div className="flex-shrink-0 h-10 w-10 rounded-full bg-yellow-100 flex items-center justify-center">
+                          <User className="h-5 w-5 text-yellow-600" />
+                        </div>
+                        <div className="ml-4">
+                          <p className="text-sm font-medium text-gray-900">
+                            {horoscope.fullName || 'Unnamed Horoscope'}
+                          </p>
+                          {horoscope.createdAt && (
+                            <p className="text-sm text-gray-500">
+                              Created: {formatDate(horoscope.createdAt)}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                      <div className="ml-2 flex-shrink-0 flex">
+                        <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                          View Details
+                        </span>
+                      </div>
+                    </div>
+                    <div className="mt-2 sm:flex sm:justify-between">
+                      <div className="sm:flex space-x-4">
+                        <div className="flex items-center text-gray-600">
+                          <Calendar className="h-4 w-4 mr-1 text-gray-400" />
+                          <span className="text-sm">{formatDate(horoscope.dateOfBirth)}</span>
+                        </div>
+                        <div className="flex items-center text-gray-600">
+                          <Clock className="h-4 w-4 mr-1 text-gray-400" />
+                          <span className="text-sm">{formatTime(horoscope.timeOfBirth)}</span>
+                        </div>
+                        <div className="flex items-center text-gray-600">
+                          <MapPin className="h-4 w-4 mr-1 text-gray-400" />
+                          <span className="text-sm">{horoscope.locationName || 'Location not specified'}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </div>
       </div>
     </div>
   );

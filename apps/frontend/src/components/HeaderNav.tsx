@@ -96,6 +96,7 @@ const UserRoleNavButton: React.FC<{ mobile?: boolean }> = ({ mobile }) => {
   // Use displayName if available, else role, else fallback
   const displayName = user && user.displayName ? user.displayName : userRole ? userRole.charAt(0).toUpperCase() + userRole.slice(1) : null;
   const label = user ? 'Logout' : 'Login';
+  const displayText = user ? `Logout (${displayName || 'User'})` : 'Login';
   const handleClick = async () => {
     if (user) {
       await signOut(auth);
@@ -115,8 +116,7 @@ const UserRoleNavButton: React.FC<{ mobile?: boolean }> = ({ mobile }) => {
       aria-label={displayName ? `${displayName} (${label})` : label}
       title={displayName ? `${displayName} (${label})` : label}
     >
-      {displayName && user ? <span className="mr-2">{displayName}</span> : null}
-      {label}
+      {displayText}
     </button>
   );
 };
