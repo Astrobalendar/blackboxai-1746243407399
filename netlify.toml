@@ -1,5 +1,5 @@
 [build]
-  command = "cd apps/frontend && npm install && npm run build"
+  command = "chmod +x netlify-build.sh && ./netlify-build.sh"
   publish = "apps/frontend/.next"
 
 [build.environment]
@@ -15,15 +15,6 @@
   NEXT_PUBLIC_API_URL = "https://astrobalendar-backend.onrender.com"
   NEXT_PUBLIC_GOOGLE_MAPS_API_KEY = "@google_maps_api_key"
 
-# Next.js plugin configuration
-[[plugins]]
-  package = "@netlify/plugin-nextjs"
-  
-  [plugins.inputs]
-    # Disable Python installation
-    python = false
-    
-    # Disable other unnecessary features
-    enable_functions = false
-    enable_image_optimization = false
-    enable_webpack5 = true
+# Disable all plugins to prevent Python installation
+[plugins]
+  disabled = true
