@@ -53,38 +53,61 @@ const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({
   // Handle Google Maps script loading
   useEffect(() => {
     let mounted = true;
+    let retryCount = 0;
+    const maxRetries = 3;
+    let retryTimeout: NodeJS.Timeout;
     
     const checkAndSetMapsReady = () => {
       if (window.google?.maps?.places) {
         console.log('Google Maps is ready');
-        if (mounted) setMapsReady(true);
+        if (mounted) {
+          setMapsReady(true);
+        }
         return true;
       }
       return false;
     };
 
+    const handleMapsReady = () => {
+      console.log('Received google-maps-ready event');
+      if (mounted && !checkAndSetMapsReady() && retryCount < maxRetries) {
+        // Sometimes the API might not be fully ready when the event is received
+        retryCount++;
+        console.log(`Retrying to verify Google Maps is ready (attempt ${retryCount}/${maxRetries})`);
+        retryTimeout = setTimeout(handleMapsReady, 500);
+      }
+    };
+
+    const handleMapsError = () => {
+      console.error('Failed to load Google Maps');
+      if (mounted) {
+        // You might want to show an error state to the user here
+        console.error('Google Maps failed to load. Please refresh the page or check your connection.');
+      }
+    };
+
     // Check if already loaded
     if (checkAndSetMapsReady()) return;
 
-    // Set up event listener for when Google Maps loads
-    const handleMapsReady = () => {
-      console.log('Received google-maps-ready event');
-      checkAndSetMapsReady();
-    };
+    console.log('Setting up Google Maps event listeners');
+    document.addEventListener('google-maps-ready', handleMapsReady);
+    document.addEventListener('google-maps-error', handleMapsError);
 
-    // Check if the ready flag is already set
-    if (window.googleMapsReady) {
-      console.log('Google Maps ready flag is set');
-      if (mounted) setMapsReady(true);
-    } else {
-      console.log('Adding event listener for google-maps-ready');
-      document.addEventListener('google-maps-ready', handleMapsReady);
-    }
+    // Fallback: Check again after a delay
+    const fallbackCheck = setTimeout(() => {
+      if (mounted && !window.google?.maps?.places) {
+        console.log('Fallback: Checking Google Maps availability');
+        checkAndSetMapsReady();
+      }
+    }, 2000);
 
     // Cleanup
     return () => {
       mounted = false;
+      clearTimeout(fallbackCheck);
+      clearTimeout(retryTimeout);
       document.removeEventListener('google-maps-ready', handleMapsReady);
+      document.removeEventListener('google-maps-error', handleMapsError);
     };
   }, []);
 

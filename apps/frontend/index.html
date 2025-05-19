@@ -7,21 +7,7 @@
     <meta name="description" content="Get personalized, multi-language horoscopes based on your zodiac sign and birthdate." />
     <link rel="icon" type="image/png" href="/assets/icon.png" />
     
-    <!-- Google Maps API with async loading -->
-    <script>
-      // This will be called when the Google Maps script loads
-      window.initGoogleMaps = function() {
-        console.log('Google Maps API loaded successfully');
-        // Set a flag that the API is loaded
-        window.googleMapsReady = true;
-        // Dispatch an event that components can listen for
-        const event = new Event('google-maps-ready');
-        console.log('Dispatching google-maps-ready event');
-        document.dispatchEvent(event);
-      };
-    </script>
-    
-    <!-- Google Maps API Script -->
+    <!-- Google Maps API Script with proper loading and error handling -->
     <script>
       (function() {
         const googleMapsApiKey = 'AIzaSyBKPYeumm5w2MOaDm8SywAPNhQNX3j_mAc';
@@ -30,11 +16,32 @@
           return;
         }
         
+        // Check if already loaded
+        if (window.google && window.google.maps) {
+          console.log('Google Maps already loaded');
+          handleGoogleMapsReady();
+          return;
+        }
+        
         // Create script element
         const script = document.createElement('script');
-        script.src = `https://maps.googleapis.com/maps/api/js?key=${googleMapsApiKey}&libraries=places&callback=initGoogleMaps`;
+        script.src = `https://maps.googleapis.com/maps/api/js?key=${googleMapsApiKey}&libraries=places&callback=handleGoogleMapsReady&loading=async`;
         script.async = true;
         script.defer = true;
+        
+        // Error handling
+        script.onerror = function() {
+          console.error('Failed to load Google Maps script');
+          // Dispatch error event
+          document.dispatchEvent(new Event('google-maps-error'));
+        };
+        
+        // Success handler
+        window.handleGoogleMapsReady = function() {
+          console.log('Google Maps API loaded successfully');
+          window.googleMapsReady = true;
+          document.dispatchEvent(new Event('google-maps-ready'));
+        };
         
         // Add to head
         document.head.appendChild(script);
