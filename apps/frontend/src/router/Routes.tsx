@@ -13,6 +13,8 @@ const ProfileManagement = lazy(() => import('../pages/ProfileManagement'));
 const AdminPanel = lazy(() => import('../pages/AdminPanel'));
 const Settings = lazy(() => import('../pages/Settings'));
 const KPAstrologyPage = lazy(() => import('../pages/KPAstrologyPage'));
+const LoginPage = lazy(() => import('../pages/LoginPage'));
+const SignupPage = lazy(() => import('../pages/SignupPage'));
 
 // Fallback component for lazy loading
 const Loader = () => (
@@ -45,8 +47,8 @@ export const AppRoutes = () => {
         {/* Public routes */}
         <Route path="/" element={<Home />} />
         <Route path="/auth">
-          <Route path="login" element={user ? <Navigate to="/dashboard" replace /> : <div>Login Page</div>} />
-          <Route path="register" element={user ? <Navigate to="/dashboard" replace /> : <div>Register Page</div>} />
+          <Route path="login" element={user ? <Navigate to="/dashboard" replace /> : <LoginPage />} />
+          <Route path="register" element={user ? <Navigate to="/dashboard" replace /> : <SignupPage />} />
           <Route path="forgot-password" element={<div>Forgot Password</div>} />
         </Route>
         
