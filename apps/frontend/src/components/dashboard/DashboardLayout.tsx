@@ -1,44 +1,37 @@
 import React from 'react';
-import { useAuth } from '../../context/AuthProvider';
-import DashboardTopNav from './DashboardTopNav';
-import ResearchStatCard from './ResearchStatCard';
-import { BarChart } from 'lucide-react';
-import useTodayFeedbackCount from './useTodayFeedbackCount';
+import { useAuth } from '../../contexts/AuthContext';
+import SidebarMenu from '../SidebarMenu';
+import HeaderNav from '../HeaderNav';
+import { Toaster } from '../ui/toaster';
 
-const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { user, userRole } = useAuth();
-  const [token, setToken] = React.useState<string | null>(null);
+interface DashboardLayoutProps {
+  children: React.ReactNode;
+}
 
-  React.useEffect(() => {
-    let isMounted = true;
-    if (user) {
-      user.getIdToken().then(t => { if (isMounted) setToken(t); });
-    } else {
-      setToken(null);
-    }
-    return () => { isMounted = false; };
-  }, [user]);
-
-  const { count, isLoading } = useTodayFeedbackCount(token || '');
+const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
+  const { user } = useAuth();
 
   return (
-    <>
-      {/* Unified layout: use only main header */}
-      <div className="min-h-screen flex flex-col">
-        {/* Astro Research Lab Stat Card */}
-        <div className="mb-8 flex flex-wrap gap-6 px-8 pt-6">
-          <ResearchStatCard
-            title="Feedback Received Today"
-            value={isLoading ? '...' : count}
-            icon={<BarChart className="w-8 h-8 text-blue-500" />}
-            color="border-blue-500"
-          />
-        </div>
-        <main className="flex-1 px-8 pb-8">
-          {children}
+    <div className="min-h-screen bg-gray-50">
+      {/* Sidebar */}
+      <SidebarMenu />
+      
+      {/* Main content */}
+      <div className="lg:pl-64 flex flex-col flex-1">
+        {/* Top navigation */}
+        <HeaderNav user={user} />
+        
+        {/* Main content area */}
+        <main className="flex-1 pb-8">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+            {children}
+          </div>
         </main>
       </div>
-    </>
+      
+      {/* Toast notifications */}
+      <Toaster />
+    </div>
   );
 };
 

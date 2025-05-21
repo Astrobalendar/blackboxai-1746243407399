@@ -7,12 +7,24 @@
     <meta name="description" content="Get personalized, multi-language horoscopes based on your zodiac sign and birthdate." />
     <link rel="icon" type="image/png" href="/assets/icon.png" />
     
-    <!-- Google Maps API Script with proper loading and error handling -->
+    <!-- Google Maps API Script with enhanced loading and error handling -->
     <script>
       (function() {
+        // Prevent duplicate initialization
+        if (window._googleMapsInitialized) {
+          console.log('Google Maps script initialization already attempted');
+          return;
+        }
+        window._googleMapsInitialized = true;
+
         const googleMapsApiKey = 'AIzaSyBKPYeumm5w2MOaDm8SywAPNhQNX3j_mAc';
+        
         if (!googleMapsApiKey) {
-          console.error('Google Maps API key is not set');
+          const errorMsg = 'Google Maps API key is not set';
+          console.error(errorMsg);
+          document.dispatchEvent(new CustomEvent('google-maps-error', { 
+            detail: { error: errorMsg }
+          }));
           return;
         }
         
@@ -22,30 +34,73 @@
           handleGoogleMapsReady();
           return;
         }
+
+        console.log('Google Maps script loading started');
         
         // Create script element
         const script = document.createElement('script');
-        script.src = `https://maps.googleapis.com/maps/api/js?key=${googleMapsApiKey}&libraries=places&callback=handleGoogleMapsReady&loading=async`;
+        script.id = 'google-maps-script';
+        script.src = `https://maps.googleapis.com/maps/api/js?key=${googleMapsApiKey}&libraries=places&loading=async&callback=handleGoogleMapsReady`;
         script.async = true;
         script.defer = true;
         
         // Error handling
-        script.onerror = function() {
-          console.error('Failed to load Google Maps script');
-          // Dispatch error event
-          document.dispatchEvent(new Event('google-maps-error'));
+        script.onerror = function(error) {
+          const errorMsg = 'Failed to load Google Maps script';
+          console.error(errorMsg, error);
+          document.dispatchEvent(new CustomEvent('google-maps-error', { 
+            detail: { 
+              error: errorMsg,
+              details: error 
+            }
+          }));
         };
         
         // Success handler
         window.handleGoogleMapsReady = function() {
+          if (!window.google || !window.google.maps) {
+            const errorMsg = 'Google Maps API loaded but not properly initialized';
+            console.error(errorMsg);
+            document.dispatchEvent(new CustomEvent('google-maps-error', {
+              detail: { error: errorMsg }
+            }));
+            return;
+          }
+          
           console.log('Google Maps API loaded successfully');
           window.googleMapsReady = true;
           document.dispatchEvent(new Event('google-maps-ready'));
         };
+
+        // Set a timeout to handle cases where the script loads but doesn't call the callback
+        const timeoutId = setTimeout(() => {
+          if (!window.googleMapsReady) {
+            const errorMsg = 'Google Maps loading timed out';
+            console.error(errorMsg);
+            document.dispatchEvent(new CustomEvent('google-maps-error', {
+              detail: { error: errorMsg }
+            }));
+          }
+        }, 10000); // 10 second timeout
+
+        // Clean up timeout and set callback when script loads
+        script.onload = function() {
+          clearTimeout(timeoutId);
+          if (window.google && window.google.maps) {
+            window.handleGoogleMapsReady();
+          } else {
+            // If script loaded but not initialized, set up a fallback check
+            const checkInterval = setInterval(() => {
+              if (window.google && window.google.maps) {
+                clearInterval(checkInterval);
+                window.handleGoogleMapsReady();
+              }
+            }, 100);
+          }
+        };
         
         // Add to head
         document.head.appendChild(script);
-        console.log('Google Maps script loading started');
       })();
     </script>
     
@@ -53,7 +108,38 @@
     <script async defer data-domain="astrobalendar.com" src="https://plausible.io/js/plausible.js"></script>
   </head>
   <body>
-    <div id="root"></div>
-    <!-- Vite injects scripts here -->
+    <div id="root">
+      <div style="display: flex; justify-content: center; align-items: center; height: 100vh;">
+        <div style="text-align: center; padding: 2rem;">
+          <h1>Loading Astrobalendar...</h1>
+          <p>Please wait while we load the application.</p>
+          <div id="loading-status" style="margin-top: 1rem;">Initializing...</div>
+        </div>
+      </div>
+    </div>
+    <script type="module" src="/src/main.tsx"></script>
+    <script>
+      // Add loading status updates
+      document.addEventListener('DOMContentLoaded', () => {
+        const statusEl = document.getElementById('loading-status');
+        const updateStatus = (message) => {
+          if (statusEl) statusEl.textContent = message;
+          console.log('Status:', message);
+        };
+
+        updateStatus('Loading application...');
+
+        // Listen for Google Maps events
+        document.addEventListener('google-maps-ready', () => {
+          updateStatus('Google Maps loaded successfully');
+        });
+
+        document.addEventListener('google-maps-error', (e) => {
+          const error = e.detail ? e.detail.error : 'Unknown error';
+          console.error('Google Maps error:', error);
+          updateStatus(`Error: ${error}. The app may not work correctly.`);
+        });
+      });
+    </script>
   </body>
 </html>

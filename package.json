@@ -2,6 +2,7 @@
   "dependencies": {
     "@firebase/auth": "^1.10.4",
     "@firebase/firestore": "^4.7.14",
+    "@radix-ui/react-tabs": "^1.1.11",
     "@sendgrid/mail": "^8.1.5",
     "@types/formidable": "^3.4.5",
     "@types/jszip": "^3.4.0",
@@ -30,6 +31,7 @@
     "@types/axios": "^0.9.36",
     "@types/chai": "^5.2.2",
     "@types/cypress": "^0.1.6",
+    "@types/lodash": "^4.17.16",
     "@types/mocha": "^10.0.10",
     "@types/next": "^8.0.7",
     "@types/node": "^22.15.18",
@@ -44,7 +46,10 @@
     "webpack-cli": "^6.0.1"
   },
   "scripts": {
-    "build": "vite build",
-    "deploy": "npm run build && firebase deploy"
+    "cleanup": "tsx scripts/cleanup.ts",
+    "deploy": "tsx scripts/deploy.ts",
+    "check-unused": "tsx scripts/check-unused-and-duplicates.ts",
+    "start": "npx tsx scripts/index.ts",
+    "validate": "tsx scripts/validate-routes.ts"
   }
 }

@@ -4,6 +4,7 @@ import { Menu } from 'lucide-react';
 
 const NAV_ITEMS = [
   { name: 'Horoscope Entry', path: '/horoscope/new' },
+  { name: 'KP Astrology', path: '/kp-astrology' },
   { name: 'Day Analysis', path: '/day-analysis' },
   { name: 'Transit', path: '/transit' },
   { name: 'Dasa Bhukti', path: '/dasa-bhukti' },

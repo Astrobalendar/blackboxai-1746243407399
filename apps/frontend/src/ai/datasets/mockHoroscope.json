@@ -1,0 +1,20 @@
+[
+  {
+    "fullName": "Jane Doe",
+    "birthDate": "1990-01-01",
+    "birthTime": "12:00",
+    "birthPlace": "Chennai, India",
+    "sunSign": "Aries",
+    "moonSign": "Cancer",
+    "ascendant": "Libra"
+  },
+  {
+    "fullName": "John Smith",
+    "birthDate": "1985-05-15",
+    "birthTime": "18:45",
+    "birthPlace": "Mumbai, India",
+    "sunSign": "Taurus",
+    "moonSign": "Leo",
+    "ascendant": "Scorpio"
+  }
+]

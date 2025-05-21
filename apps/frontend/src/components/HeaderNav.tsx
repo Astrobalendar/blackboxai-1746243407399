@@ -1,161 +1,196 @@
-import React from "react";
-import { Link, useNavigate, NavLink } from "react-router-dom";
-import { useTranslation } from 'react-i18next';
-import { useAuth } from '../context/AuthProvider';
+import React, { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
+import { Button } from '@/components/ui/button';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { LogOut, Menu, Moon, Sun, User as UserIcon, X } from 'lucide-react';
+import { useTheme } from '../contexts/ThemeProvider';
+import { cn } from '@/lib/utils';
+import { User } from 'firebase/auth';
 
+// Extend the Firebase User type to include custom claims
+interface CustomUser extends User {
+  role?: string;
+}
 
-const languages = [
-  { code: 'en', label: 'EN' },
-  { code: 'hi', label: 'हिंदी' },
-  { code: 'ta', label: 'தமிழ்' },
-];
+interface HeaderNavProps {
+  user: CustomUser | null;
+}
 
-const HeaderNav: React.FC = () => {
-  const [open, setOpen] = React.useState(false);
+const HeaderNav: React.FC<HeaderNavProps> = ({ user }) => {
+  // Safely get the user's role if it exists in custom claims
+  const userRole = user?.role || 'user';
   const navigate = useNavigate();
-  const { t, i18n } = useTranslation();
-  const [langOpen, setLangOpen] = React.useState(false);
+  const { theme, setTheme } = useTheme();
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-  // Centralized header menu items for both desktop and mobile
-  const dashboardNavItems: { name: string; path: string }[] = [
-    { name: t('menu.horoscopeEntry', 'Horoscope Entry'), path: '/horoscope/new' },
-    { name: t('menu.dayAnalysis', 'Day Analysis'), path: '/day-analysis' },
-    { name: t('menu.transit', 'Transit'), path: '/transit' },
-    { name: t('menu.dasaBhukti', 'Dasa Bhukti'), path: '/dasa-bhukti' },
-    { name: t('menu.prasannam', 'Prasannam'), path: '/prasannam' },
-    { name: t('menu.calendar', 'Calendar'), path: '/calendar' },
-    { name: t('menu.dashboard', 'Dashboard'), path: '/dashboard' },
+  const toggleTheme = () => {
+    setTheme(theme === 'dark' ? 'light' : 'dark');
+  };
+
+  const handleSignOut = async () => {
+    try {
+      // Add sign out logic here
+      navigate('/login');
+    } catch (error) {
+      console.error('Error signing out:', error);
+    }
+  };
+
+  const getUserInitials = (user: CustomUser | null) => {
+    if (!user) return 'U';
+    
+    // Try displayName first, then email
+    const name = user.displayName || user.email?.split('@')[0] || '';
+    if (!name) return 'U';
+    
+    return name
+      .split(' ')
+      .map((n) => n[0])
+      .join('')
+      .toUpperCase()
+      .substring(0, 2);
+  };
+
+  const navItems = [
+    { name: 'Dashboard', path: '/dashboard' },
+    { name: 'Horoscopes', path: '/horoscopes' },
+    { name: 'Calendar', path: '/calendar' },
   ];
 
   return (
-    <nav className="bg-gradient-to-r from-yellow-200 via-yellow-100 to-yellow-300 shadow flex items-center justify-between px-6 py-4">
-      <div className="flex items-center gap-4">
-        <Link to="/" className="text-yellow-900 font-bold text-xl tracking-wide">AstroBalendar</Link>
-        <Link to="/calendar" className="text-yellow-700 hover:text-yellow-900 px-2">Calendar</Link>
-      </div>
-      <div className="flex items-center gap-4">
-        {/* Language Switcher */}
-        <div className="relative">
-          <button
-            onClick={() => setLangOpen(v => !v)}
-            className="flex items-center gap-2 px-3 py-1 bg-yellow-200 text-yellow-900 rounded-full hover:bg-yellow-100 focus:outline-none focus:ring-2 focus:ring-yellow-400"
-            aria-label="Change Language"
+    <header className="sticky top-0 z-40 w-full border-b bg-background">
+      <div className="container flex h-16 items-center justify-between py-4">
+        <div className="flex items-center gap-6 md:gap-10">
+          <Link to="/" className="flex items-center space-x-2">
+            <span className="inline-block font-bold">AstroBalendar</span>
+          </Link>
+          <nav className="hidden md:flex gap-6">
+            {navItems.map((item) => (
+              <Link
+                key={item.path}
+                to={item.path}
+                className="text-sm font-medium text-muted-foreground transition-colors hover:text-primary"
+              >
+                {item.name}
+              </Link>
+            ))}
+          </nav>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={toggleTheme}
+            className="rounded-full"
+            aria-label="Toggle theme"
           >
-            <span className="font-semibold">{languages.find(l => l.code === i18n.language)?.label || 'EN'}</span>
-            <svg className={`w-3 h-3 transition-transform ${langOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
-          </button>
-          {langOpen && (
-            <div className="absolute right-0 mt-2 w-28 bg-white rounded-lg shadow-lg border border-yellow-100 z-50">
-              {languages.map(lang => (
-                <button
-                  key={lang.code}
-                  onClick={() => { i18n.changeLanguage(lang.code); setLangOpen(false); }}
-                  className={`w-full text-left px-4 py-2 hover:bg-yellow-100 text-yellow-900 font-medium rounded-lg transition ${i18n.language === lang.code ? 'bg-yellow-100' : ''}`}
-                >
-                  {lang.label}
-                </button>
-              ))}
+            <Sun className="h-5 w-5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+            <Moon className="absolute h-5 w-5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+          </Button>
+
+          {user ? (
+            <div className="relative ml-4">
+              <Button
+                variant="ghost"
+                className="relative h-8 w-8 rounded-full"
+                onClick={() => setIsMenuOpen(!isMenuOpen)}
+              >
+                <Avatar className="h-8 w-8">
+                  <AvatarImage src={user.photoURL || ''} alt={user.displayName || user?.email || 'User'} />
+                  <AvatarFallback>
+                    {getUserInitials(user)}
+                  </AvatarFallback>
+                </Avatar>
+              </Button>
+
+              {isMenuOpen && (
+                <div className="absolute right-0 mt-2 w-48 rounded-md bg-popover p-1 shadow-lg">
+                  <div className="p-2">
+                    <p className="truncate text-sm font-medium">
+                      {user.displayName || user.email}
+                    </p>
+                    <p className="truncate text-xs text-muted-foreground">
+                      {userRole.charAt(0).toUpperCase() + userRole.slice(1)}
+                    </p>
+                  </div>
+                  <div className="p-1">
+                    <Button
+                      variant="ghost"
+                      className="w-full justify-start"
+                      onClick={() => {
+                        navigate('/profile');
+                        setIsMenuOpen(false);
+                      }}
+                    >
+                      <UserIcon className="mr-2 h-4 w-4" />
+                      Profile
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      className="w-full justify-start"
+                      onClick={handleSignOut}
+                    >
+                      <LogOut className="mr-2 h-4 w-4" />
+                      Sign out
+                    </Button>
+                  </div>
+                </div>
+              )}
             </div>
+          ) : (
+            <>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => navigate('/login')}
+              >
+                Sign In
+              </Button>
+              <Button size="sm" onClick={() => navigate('/register')}>
+                Sign Up
+              </Button>
+            </>
           )}
-        </div>
-        {/* Main Menu (Desktop) */}
-        <div className="hidden md:flex gap-x-6 items-center">
-          {dashboardNavItems.map((item: { name: string; path: string }) => (
-            <NavLink
-              key={item.path}
-              to={item.path}
-              className={(props: { isActive: boolean }) =>
-                `px-3 py-2 rounded-lg font-semibold text-yellow-800 hover:bg-yellow-100 focus:outline-yellow-400 transition-all ${
-                  props.isActive ? 'bg-yellow-200 text-yellow-900 underline font-bold' : ''
-                }`
-              }
-              aria-label={item.name}
-              title={item.name}
-            >
-              {item.name}
-            </NavLink>
-          ))}
-          <UserRoleNavButton />
-        </div>
-        {/* Main Menu (Mobile) */}
-        <div className="md:hidden flex items-center">
-          <MobileMenu />
+
+          {/* Mobile menu button */}
+          <Button
+            variant="ghost"
+            size="icon"
+            className="md:hidden"
+            onClick={() => setIsMenuOpen(!isMenuOpen)}
+          >
+            {isMenuOpen ? (
+              <X className="h-5 w-5" />
+            ) : (
+              <Menu className="h-5 w-5" />
+            )}
+          </Button>
         </div>
       </div>
-    </nav>
-  );
-};
 
-import { signOut } from 'firebase/auth';
-import { auth } from '../firebase';
-
-const UserRoleNavButton: React.FC<{ mobile?: boolean }> = ({ mobile }) => {
-  const { userRole, user } = useAuth();
-  const navigate = useNavigate();
-  const { t } = useTranslation();
-  // Use displayName if available, else role, else fallback
-  const displayName = user && user.displayName ? user.displayName : userRole ? userRole.charAt(0).toUpperCase() + userRole.slice(1) : null;
-  const label = user ? 'Logout' : 'Login';
-  const displayText = user ? `Logout (${displayName || 'User'})` : 'Login';
-  const handleClick = async () => {
-    if (user) {
-      await signOut(auth);
-      navigate('/');
-    } else {
-      navigate('/login');
-    }
-  };
-  return (
-    <button
-      onClick={handleClick}
-      className={
-        mobile
-          ? 'px-4 py-2 bg-yellow-300 text-yellow-900 rounded-full shadow hover:bg-yellow-200 focus:outline-none focus:ring-2 focus:ring-yellow-400 w-full text-left font-semibold'
-          : 'px-4 py-2 rounded-lg font-semibold text-yellow-800 bg-yellow-100 hover:bg-yellow-200 focus:outline-yellow-400 transition-all'
-      }
-      aria-label={displayName ? `${displayName} (${label})` : label}
-      title={displayName ? `${displayName} (${label})` : label}
-    >
-      {displayText}
-    </button>
-  );
-};
-
-// Mobile menu: hamburger with nav items and user role button
-const MobileMenu: React.FC = () => {
-  const [open, setOpen] = React.useState(false);
-  const navigate = useNavigate();
-  return (
-    <div className="relative w-full">
-      <button
-        onClick={() => setOpen((v) => !v)}
-        className="flex items-center gap-2 px-4 py-2 bg-yellow-300 text-yellow-900 rounded-full shadow hover:bg-yellow-200 focus:outline-none focus:ring-2 focus:ring-yellow-400"
-        aria-label="Open Menu"
-        title="Open Menu"
-      >
-        <span className="font-semibold">Menu</span>
-        <svg className={`w-4 h-4 transition-transform ${open ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
-      </button>
-      {open && (
-        <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-yellow-100 z-50">
-          {dashboardNavItems.map((item) => (
-            <NavLink
-              key={item.path}
-              to={item.path}
-              className={({ isActive }) =>
-                `w-full block text-left px-5 py-3 hover:bg-yellow-100 text-yellow-900 font-medium rounded-lg transition ${isActive ? 'bg-yellow-200 font-bold' : ''}`
-              }
-              aria-label={item.name}
-              title={item.name}
-              onClick={() => setOpen(false)}
-            >
-              {item.name}
-            </NavLink>
-          ))}
-          <UserRoleNavButton mobile />
+      {/* Mobile menu */}
+      {isMenuOpen && (
+        <div className="md:hidden fixed inset-0 top-16 z-40 bg-background border-t">
+          <div className="container py-4 space-y-2">
+            {navItems.map((item) => (
+              <Button
+                key={item.path}
+                variant="ghost"
+                className="w-full justify-start"
+                onClick={() => {
+                  navigate(item.path);
+                  setIsMenuOpen(false);
+                }}
+              >
+                {item.name}
+              </Button>
+            ))}
+          </div>
         </div>
       )}
-    </div>
+    </header>
   );
 };
 

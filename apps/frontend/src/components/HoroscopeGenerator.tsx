@@ -75,14 +75,31 @@ const mockHoroscopes: Record<string, Record<string, string>> = {
   }
 };
 
-const HoroscopeGenerator: React.FC = () => {
-  const [date, setDate] = useState('');
-  const [sign, setSign] = useState('');
+interface HistoryEntry {
+  date: string;
+  sign: string;
+  horoscope: string;
+  timestamp: string;
+}
+
+interface HoroscopeGeneratorProps {
+  birthDate?: string;
+  sign?: string;
+  fullName?: string;
+}
+
+const HoroscopeGenerator: React.FC<HoroscopeGeneratorProps> = ({ 
+  birthDate: initialDate = '',
+  sign: initialSign = '',
+  fullName = ''
+}) => {
+  const [date, setDate] = useState<string>(initialDate || '');
+  const [sign, setSign] = useState<string>(initialSign || '');
   const [horoscope, setHoroscope] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [language, setLanguage] = useState('en');
-  const [history, setHistory] = useState<{ date: string; sign: string; horoscope: string; timestamp: string }[]>([]);
+  const [history, setHistory] = useState<HistoryEntry[]>([]);
   const [showHistory, setShowHistory] = useState(true); // Added state for toggling history panel
 
   useEffect(() => {
@@ -113,13 +130,33 @@ const HoroscopeGenerator: React.FC = () => {
   const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedDate = e.target.value;
     setDate(selectedDate);
-    const calculatedSign = getZodiacSign(selectedDate);
-    setSign(calculatedSign);
+    if (!initialSign) {
+      const calculatedSign = getZodiacSign(selectedDate);
+      setSign(calculatedSign);
+    }
   };
 
   const handleLanguageChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setLanguage(e.target.value);
   };
+
+  // Update sign when initialSign prop changes
+  useEffect(() => {
+    if (initialSign) {
+      setSign(initialSign);
+    }
+  }, [initialSign]);
+
+  // Update date when initialDate prop changes
+  useEffect(() => {
+    if (initialDate) {
+      setDate(initialDate);
+      if (!initialSign) {
+        const calculatedSign = getZodiacSign(initialDate);
+        setSign(calculatedSign);
+      }
+    }
+  }, [initialDate, initialSign]);
 
   const fetchHoroscope = async () => {
     setLoading(true);
@@ -160,19 +197,23 @@ const HoroscopeGenerator: React.FC = () => {
   };
 
   return (
-    <div className="w-full px-4 py-8">
-      <h2 className="text-2xl font-bold mb-4">Horoscope Generator</h2>
+    <div className="w-full">
+      {!initialDate && !initialSign && (
+        <h2 className="text-2xl font-bold mb-4">Horoscope Generator</h2>
+      )}
       <div className="flex flex-col md:flex-row gap-4">
         <div className="flex-1">
-          <label className="block mb-2">
-            Date:
-            <input
-              type="date"
-              value={date}
-              onChange={handleDateChange}
-              className="w-full p-2 border rounded"
-            />
-          </label>
+          {!initialDate && (
+            <label className="block mb-2">
+              Date:
+              <input
+                type="date"
+                value={date}
+                onChange={handleDateChange}
+                className="w-full p-2 border rounded"
+              />
+            </label>
+          )}
           <label className="block mb-2">
             Zodiac Sign:
             <input
@@ -183,6 +224,11 @@ const HoroscopeGenerator: React.FC = () => {
               className="w-full p-2 border rounded bg-gray-100"
             />
           </label>
+          {initialDate && initialSign && fullName && (
+            <p className="text-sm text-muted-foreground mb-4">
+              Horoscope for {fullName} ({sign}) born on {new Date(initialDate).toLocaleDateString()}
+            </p>
+          )}
           <label className="block mb-4">
             Language:
             <select
@@ -197,9 +243,10 @@ const HoroscopeGenerator: React.FC = () => {
           </label>
           <button
             onClick={fetchHoroscope}
-            className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+            className="w-full bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 mt-4"
+            disabled={!date || !sign}
           >
-            Get Horoscope
+            {loading ? 'Loading...' : 'Get Horoscope'}
           </button>
         </div>
         <div className="flex-1">
@@ -209,30 +256,32 @@ const HoroscopeGenerator: React.FC = () => {
         </div>
       </div>
 
-      <div className="history-panel mt-8">
-        <h3 className="text-xl font-semibold mb-2">
-          Prediction History (Last 7 Days)
-          <button
-            onClick={toggleHistory}
-            className="ml-4 text-sm text-blue-500 underline"
-          >
-            {showHistory ? 'Hide' : 'Show'}
-          </button>
-        </h3>
-        {showHistory && (
-          history.length === 0 ? (
-            <p className="text-gray-500">No history available.</p>
-          ) : (
-            <ul className="space-y-2">
-              {history.map((entry, index) => (
-                <li key={index} className="p-2 border rounded bg-gray-50">
-                  <strong>{entry.date} ({entry.sign}):</strong> {entry.horoscope}
-                </li>
-              ))}
-            </ul>
-          )
-        )}
-      </div>
+      {!initialDate && !initialSign && (
+        <div className="history-panel mt-8">
+          <h3 className="text-xl font-semibold mb-2">
+            Prediction History (Last 7 Days)
+            <button
+              onClick={toggleHistory}
+              className="ml-4 text-sm text-blue-500 underline"
+            >
+              {showHistory ? 'Hide' : 'Show'}
+            </button>
+          </h3>
+          {showHistory && (
+            history.length === 0 ? (
+              <p className="text-gray-500">No history available.</p>
+            ) : (
+              <ul className="space-y-2">
+                {history.map((entry, index) => (
+                  <li key={index} className="p-2 border rounded bg-gray-50">
+                    <strong>{entry.date} ({entry.sign}):</strong> {entry.horoscope}
+                  </li>
+                ))}
+              </ul>
+            )
+          )}
+        </div>
+      )}
     </div>
   );
 };

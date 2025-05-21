@@ -1,6 +1,98 @@
-# 🌌 AstroBalendar – AI-powered KP Astrology App
+# 🌌 AstroBalendar – AI-powered KP Astrology – Advanced AI/ML-Based KP Paddhati Stellar Analysis
 
-AstroBalendar is a full-stack, multi-platform astrology app built with React, FastAPI, and React Native. It supports chart-based predictions, cross-device access, and export features (PDF, JSON, image).
+## 🚀 Project Overview
+This project is a production-grade, AI/ML-enhanced KP Paddhati framework for accurate stellar prediction and astrological computation. The architecture is clean, extensible, and optimized for rapid research and deployment.
+
+---
+
+## 📁 Directory Structure
+
+```
+astrobalendar/
+├── apps/
+│   ├── frontend/ 
+│   │   ├── src/
+│   │   │   ├── components/ 
+│   │   │   ├── pages/ 
+│   │   │   ├── contexts/ 
+│   │   │   ├── hooks/ 
+│   │   │   ├── utils/ 
+│   │   │   ├── types/ 
+│   │   │   ├── firebase/ 
+│   │   │   ├── shared/ 
+│   │   │   ├── styles/ 
+│   │   │   ├── ai/ 
+│   ├── backend/ 
+│   ├── mobile/ 
+├── lib/ 
+├── shared/ 
+├── firebase/ 
+├── scripts/ 
+├── tests/ 
+├── docs/ 
+├── docker/ 
+├── .github/ 
+├── public/ 
+└── configs/ 
+```
+
+---
+
+## 🔑 Key Modules
+- `SidebarMenu.tsx`: Modular sidebar for layout navigation.
+- `contexts/`: Centralized React context providers.
+- `firebase/` + `firebase.ts`: Unified Firebase integration.
+- `ai/`: (Planned) KP AI/ML prediction logic and data.
+
+---
+
+## ⚙️ Setup & Integration
+```bash
+npm install
+npm run dev
+npm run build
+npm test
+```
+
+    Firebase: Config in src/firebase/, used globally.
+
+    Tailwind: In tailwind.config.js, imported via index.css.
+
+    Routing: Via react-router-dom, src/pages/
+
+    CI/CD: Configured for GitHub Actions, Netlify, Render, or Firebase Hosting
+
+🧠 KP AI/ML Integration
+
+All ML logic lives in src/ai/ and includes:
+
+    models/ – KP predictive models
+
+    datasets/ – Input/validation sets
+
+    processors/ – Input pre-processing
+
+    predict/ – Prediction engine wrapper
+
+    README.md – Module-specific documentation
+
+👥 Contributing
+
+    Add components to src/components/, pages to src/pages/
+
+    Document logic in src/ai/
+
+    Follow TypeScript + accessibility best practices
+
+🛡️ Code Quality
+
+    Linting: ESLint + Prettier
+
+    Strict TypeScript config
+
+    Dead code removed
+
+    Centralized test and mock directories
 
 ---
 

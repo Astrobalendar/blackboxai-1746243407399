@@ -1,49 +1,36 @@
 import React from 'react';
-import { Navigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthProvider';
+import { Navigate, useLocation } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
+import { Loader } from './ui/Loader';
 
-import { useEffect, useState } from 'react';
-import { db } from '../firebase';
-import { doc, getDoc } from 'firebase/firestore';
+interface PrivateRouteProps {
+  children: React.ReactNode;
+  roles?: string[]; // Optional: For role-based access control
+}
 
-import { useLocation } from 'react-router-dom';
-
-const PrivateRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { user, userRole, loading } = useAuth();
-  const [checking, setChecking] = useState(true);
-  const [isVerified, setIsVerified] = useState<boolean | null>(null);
+const PrivateRoute: React.FC<PrivateRouteProps> = ({ children, roles }) => {
+  const { user, loading } = useAuth();
   const location = useLocation();
 
-  useEffect(() => {
-    const checkVerification = async () => {
-      if (!user) return setIsVerified(false);
-      const userDoc = await getDoc(doc(db, 'users', user.uid));
-      const verified = userDoc.exists() ? userDoc.data().verified : false;
-      setIsVerified(!!verified && user.emailVerified);
-      setChecking(false);
-    };
-    if (user) {
-      checkVerification();
-    } else {
-      setChecking(false);
-    }
-  }, [user]);
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <Loader className="h-12 w-12" />
+      </div>
+    );
+  }
 
-  if (loading || checking) return <div>Loading...</div>;
-  if (!user) return <Navigate to="/login" />;
-  if (!userRole) return <Navigate to="/role-selection" />;
-  // If not verified, only allow access to /birthdata
-  if (!isVerified && location.pathname !== '/birthdata') {
-    return <Navigate to="/birthdata" />;
+  if (!user) {
+    // Redirect to login page, but save the current location they were trying to go to
+    return <Navigate to="/auth/login" state={{ from: location }} replace />;
   }
-  // If verified, prevent access to /birthdata and redirect to dashboard
-  if (isVerified && location.pathname === '/birthdata') {
-    // Redirect based on userRole if available
-    if (userRole === 'astrologer') return <Navigate to="/dashboard/astrologer" />;
-    if (userRole === 'student') return <Navigate to="/dashboard/student" />;
-    // Default to client dashboard
-    return <Navigate to="/dashboard/client" />;
-  }
+
+  // Optional: Role-based access control
+  // if (roles && roles.length > 0 && !roles.some(role => user.roles?.includes(role))) {
+  //   return <Navigate to="/unauthorized" state={{ from: location }} replace />;
+  // }
+
+
   return <>{children}</>;
 };
 

@@ -3,25 +3,57 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Astrobalendar</title>
-    <meta name="description" content="Astrobalendar - Astrology predictions, calendars, and insights." />
+    <title>AstroBalendar – Daily Horoscope Generator</title>
+    <meta name="description" content="Get personalized, multi-language horoscopes based on your zodiac sign and birthdate." />
     <link rel="icon" type="image/png" href="/assets/icon.png" />
-
+    
+    <!-- Google Maps API Script with proper loading and error handling -->
+    <script>
+      (function() {
+        const googleMapsApiKey = 'AIzaSyBKPYeumm5w2MOaDm8SywAPNhQNX3j_mAc';
+        if (!googleMapsApiKey) {
+          console.error('Google Maps API key is not set');
+          return;
+        }
+        
+        // Check if already loaded
+        if (window.google && window.google.maps) {
+          console.log('Google Maps already loaded');
+          handleGoogleMapsReady();
+          return;
+        }
+        
+        // Create script element
+        const script = document.createElement('script');
+        script.src = `https://maps.googleapis.com/maps/api/js?key=${googleMapsApiKey}&libraries=places&callback=handleGoogleMapsReady&loading=async`;
+        script.async = true;
+        script.defer = true;
+        
+        // Error handling
+        script.onerror = function() {
+          console.error('Failed to load Google Maps script');
+          // Dispatch error event
+          document.dispatchEvent(new Event('google-maps-error'));
+        };
+        
+        // Success handler
+        window.handleGoogleMapsReady = function() {
+          console.log('Google Maps API loaded successfully');
+          window.googleMapsReady = true;
+          document.dispatchEvent(new Event('google-maps-ready'));
+        };
+        
+        // Add to head
+        document.head.appendChild(script);
+        console.log('Google Maps script loading started');
+      })();
+    </script>
+    
     <!-- Plausible Analytics -->
     <script async defer data-domain="astrobalendar.com" src="https://plausible.io/js/plausible.js"></script>
-    <script type="module" crossorigin src="./assets/index-B7NdyUkG.js"></script>
-    <link rel="stylesheet" crossorigin href="./assets/index-BNTf0VKN.css">
   <link rel="manifest" href="./manifest.webmanifest"><script id="vite-plugin-pwa:register-sw" src="./registerSW.js"></script></head>
   <body>
     <div id="root"></div>
     <!-- Vite injects scripts here -->
   </body>
-</html>
-  <title>AstroBalendar – Daily Horoscope Generator</title>
-  <meta name="description" content="Get personalized, multi-language horoscopes based on your zodiac sign and birthdate.">
-  <script async defer data-domain="akuraastrology.netlify.app" src="https://plausible.io/js/plausible.js"></script>
-</head>
-<body>
-  <div id="root"></div>
-</body>
 </html>

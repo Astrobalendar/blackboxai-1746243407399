@@ -1,0 +1,33 @@
+{
+  "name": "akura-astrology-automation",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Automation scripts for Akura Astrology project cleanup and deployment.",
+  "main": "src/index.ts",
+  "scripts": {
+    "cleanup": "ts-node scripts/cleanup.ts",
+    "deploy": "ts-node scripts/deploy.ts",
+    "check-unused": "ts-node scripts/check-unused-and-duplicates.ts",
+    "start": "npx tsx scripts/index.ts",
+    "validate": "ts-node scripts/validate-routes.ts"
+  },
+  "devDependencies": {
+    "@types/node": "^14.0.0",
+    "prompts": "^2.4.2",
+    "ts-node": "^10.9.2",
+    "tsx": "^4.19.4",
+    "typescript": "^5.8.3"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/akura-astrology-automation.git"
+  },
+  "keywords": [
+    "automation",
+    "cleanup",
+    "deployment",
+    "typescript"
+  ],
+  "author": "Your Name",
+  "license": "MIT"
+}
