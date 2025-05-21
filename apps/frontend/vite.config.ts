@@ -139,8 +139,6 @@ export default defineConfig({
       transformMixedEsModules: true,
     },
     rollupOptions: {
-      // Externalize react and react-dom to prevent duplication
-      external: ['react', 'react-dom', 'react/jsx-runtime'],
       output: {
         manualChunks: {
           react: ['react', 'react-dom', 'react-router-dom'],
