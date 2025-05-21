@@ -1,6 +1,5 @@
 // Firebase service for KP Astrology AI/ML Platform (Frontend)
 // Robust, type-safe, modular, and production-ready
-
 import { initializeApp, getApps, getApp, type FirebaseApp, type FirebaseOptions } from 'firebase/app';
 import {
   getAuth, type Auth, setPersistence, inMemoryPersistence, connectAuthEmulator
@@ -118,6 +117,9 @@ class FirebaseService {
 
 // Export singleton
 export const firebaseService = FirebaseService.getInstance();
+
+// Export 'auth' for compatibility with legacy imports
+export const auth = getAuth(firebaseService.app);
 
 // Optionally auto-initialize in browser
 if (typeof window !== 'undefined') {
