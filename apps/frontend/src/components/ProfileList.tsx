@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { collection, getDocs, deleteDoc, doc } from "firebase/firestore";
-import { db, auth } from "../firebase";
+import { getAuthSafe, getDbSafe } from "../firebase";
 
 interface Profile {
   id: string;
@@ -18,11 +18,12 @@ const ProfileList: React.FC<ProfileListProps> = ({ onProfileSelected }) => {
 
   useEffect(() => {
     const fetchProfiles = async () => {
+      const auth = getAuthSafe();
       if (!auth.currentUser) return;
       setLoading(true);
       try {
         const uid = auth.currentUser.uid;
-        const profilesRef = collection(db, `users/${uid}/profiles`);
+        const profilesRef = collection(getDbSafe(), `users/${uid}/profiles`);
         const snapshot = await getDocs(profilesRef);
         const profilesData = snapshot.docs.map((doc) => ({
           id: doc.id,
@@ -40,10 +41,11 @@ const ProfileList: React.FC<ProfileListProps> = ({ onProfileSelected }) => {
   }, []);
 
   const handleDelete = async (profileId: string) => {
+    const auth = getAuthSafe();
     if (!auth.currentUser) return;
     try {
       const uid = auth.currentUser.uid;
-      await deleteDoc(doc(db, `users/${uid}/profiles/${profileId}`));
+      await deleteDoc(doc(getDbSafe(), `users/${uid}/profiles/${profileId}`));
       setProfiles((prev) => prev.filter((profile) => profile.id !== profileId));
     } catch (error) {
       console.error("Error deleting profile:", error);

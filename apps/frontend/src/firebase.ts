@@ -28,17 +28,15 @@ function validateFirebaseEnv() {
   }
 }
 
-function getFirebaseConfig(): FirebaseOptions {
-  validateFirebaseEnv();
-  return {
-    apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-    authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
-    projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
-    storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
-    messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
-    appId: import.meta.env.VITE_FIREBASE_APP_ID
-  };
-}
+const firebaseConfig: FirebaseOptions = {
+  apiKey: "AIzaSyCM33icc6FOyDmhDwZXeW6CeWWeoNyWGqE",
+  authDomain: "astrobalendar-2025-7505d.firebaseapp.com",
+  projectId: "astrobalendar-2025-7505d",
+  storageBucket: "astrobalendar-2025-7505d.firebasestorage.app",
+  messagingSenderId: "213330379553",
+  appId: "1:213330379553:web:659c209c1c35fe0849f460",
+  measurementId: "G-R9K5Q043T3"
+};
 
 class FirebaseService {
   private static _instance: FirebaseService;
@@ -118,11 +116,16 @@ class FirebaseService {
 // Export singleton
 export const firebaseService = FirebaseService.getInstance();
 
-// Export 'auth' for compatibility with legacy imports
-export const auth = getAuth(firebaseService.app);
+// Safe getters for Firebase Auth and Firestore
+export function getAuthSafe() {
+  if (!firebaseService.isInitialized) throw new Error('Firebase not initialized');
+  return getAuth(firebaseService.app);
+}
 
-// Export 'db' for compatibility with legacy imports
-export const db = getFirestore(firebaseService.app);
+export function getDbSafe() {
+  if (!firebaseService.isInitialized) throw new Error('Firebase not initialized');
+  return getFirestore(firebaseService.app);
+}
 
 // Optionally auto-initialize in browser
 if (typeof window !== 'undefined') {

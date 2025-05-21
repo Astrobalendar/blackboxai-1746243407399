@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
 import { doc, setDoc } from 'firebase/firestore';
-import { auth, db } from '../firebase';
+import { getAuthSafe, getDbSafe } from '../firebase';
 
 const roles = [
   { value: 'astrologer', label: 'Astrologer' },
@@ -28,7 +28,7 @@ const Signup: React.FC = () => {
     setError(null);
     try {
       if (isGoogleFlow) {
-        const user = auth.currentUser;
+        const user = getAuthSafe().currentUser;
         if (!user) {
           setError('No signed-in user found.');
           return;
@@ -40,7 +40,7 @@ const Signup: React.FC = () => {
           return `${prefix}${namePart}${rand}`;
         }
         const uniqueId = genUserId(role, user.displayName ?? '');
-        await setDoc(doc(db, 'users', user.uid), {
+        await setDoc(doc(getDbSafe(), 'users', user.uid), {
           fullName: user.displayName ?? '',
           email: user.email ?? '',
           role,
@@ -57,7 +57,7 @@ const Signup: React.FC = () => {
         return;
       }
       // Normal email/password signup
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const userCredential = await createUserWithEmailAndPassword(getAuthSafe(), email, password);
       const user = userCredential.user;
       await updateProfile(user, { displayName: fullName, photoURL });
       function genUserId(role: string, name: string) {
@@ -67,7 +67,7 @@ const Signup: React.FC = () => {
         return `${prefix}${namePart}${rand}`;
       }
       const uniqueId = genUserId(role, fullName);
-      await setDoc(doc(db, 'users', user.uid), {
+      await setDoc(doc(getDbSafe(), 'users', user.uid), {
         fullName,
         email,
         role,

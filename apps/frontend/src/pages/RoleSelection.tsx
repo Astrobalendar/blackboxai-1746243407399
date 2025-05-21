@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { doc, setDoc } from 'firebase/firestore';
-import { auth, db } from '../firebase';
+import { getAuthSafe, getDbSafe } from '../firebase';
 
 const roles = [
   { value: 'astrologer', label: 'Astrologer' },
@@ -21,13 +21,13 @@ const RoleSelection: React.FC = () => {
     setLoading(true);
     setError(null);
     try {
-      const user = auth.currentUser;
+      const user = getAuthSafe().currentUser;
       if (!user) {
         setError('You must be signed in to select a role.');
         setLoading(false);
         return;
       }
-      await setDoc(doc(db, 'users', user.uid), {
+      await setDoc(doc(getDbSafe(), 'users', user.uid), {
         displayName: user.displayName,
         email: user.email,
         role,

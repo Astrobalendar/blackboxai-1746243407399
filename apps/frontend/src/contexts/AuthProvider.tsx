@@ -3,10 +3,10 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { onAuthStateChanged, User } from 'firebase/auth';
 export type { User };
 
-import { auth } from '../firebase';
+import { getAuthSafe } from '../firebase';
 
 import { doc, getDoc } from 'firebase/firestore';
-import { db } from '../firebase';
+import { getDbSafe } from '../firebase';
 
 interface AuthContextProps {
   user: User | null;
@@ -22,11 +22,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+    const unsubscribe = onAuthStateChanged(getAuthSafe(), async (firebaseUser) => {
       setUser(firebaseUser);
       if (firebaseUser) {
         // Fetch role from Firestore
-        const userDoc = await getDoc(doc(db, 'users', firebaseUser.uid));
+        const userDoc = await getDoc(doc(getDbSafe(), 'users', firebaseUser.uid));
         const data = userDoc.exists() ? userDoc.data() : {};
         const role = data.role || null;
         // Optionally, you could also store display name in context if needed

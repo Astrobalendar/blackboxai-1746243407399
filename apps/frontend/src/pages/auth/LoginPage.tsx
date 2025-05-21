@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
-import { auth, db } from '../../firebase';
+import { getAuthSafe, getDbSafe } from '../../firebase';
 import { useAuth } from '../../context/AuthProvider';
 import { FcGoogle } from 'react-icons/fc';
 import { FaApple } from 'react-icons/fa';
@@ -29,7 +29,7 @@ const LoginPage: React.FC = () => {
       setIsLoading(true);
       setError(null);
       const provider = new GoogleAuthProvider();
-      const result = await signInWithPopup(auth, provider);
+      const result = await signInWithPopup(getAuthSafe(), provider);
       await handlePostSignIn(result.user);
     } catch (err) {
       console.error('Google sign-in error:', err);
@@ -49,7 +49,7 @@ const LoginPage: React.FC = () => {
     try {
       setIsLoading(true);
       setError(null);
-      const result = await signInWithEmailAndPassword(auth, email, password);
+      const result = await signInWithEmailAndPassword(getAuthSafe(), email, password);
       await handlePostSignIn(result.user);
     } catch (err: any) {
       console.error('Email sign-in error:', err);
@@ -65,7 +65,7 @@ const LoginPage: React.FC = () => {
 
   const handlePostSignIn = async (user: any) => {
     try {
-      const userDoc = await getDoc(doc(db, 'users', user.uid));
+      const userDoc = await getDoc(doc(getDbSafe(), 'users', user.uid));
       let role = userDoc.data()?.role || 'user';
       
       // Redirect based on role
@@ -118,7 +118,7 @@ const LoginPage: React.FC = () => {
             </p>
           </div>
           <div className="text-sm text-gray-300">
-            © {new Date().getFullYear()} Astrobalendar. All rights reserved.
+            &copy; {new Date().getFullYear()} Astrobalendar. All rights reserved.
           </div>
         </div>
       </div>
