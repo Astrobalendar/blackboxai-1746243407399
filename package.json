@@ -39,6 +39,7 @@
     "@types/uuid": "^10.0.0",
     "cypress-file-upload": "^5.0.8",
     "eas-cli": "^16.4.1",
+    "pnpapi": "^0.0.0",
     "ts-loader": "^9.5.2",
     "vite": "^6.3.5",
     "vitest": "^3.1.3",
