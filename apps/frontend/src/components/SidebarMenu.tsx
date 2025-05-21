@@ -6,7 +6,7 @@ import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { signOut } from 'firebase/auth';
 import { useAuth } from '../contexts/AuthContext';
 import { cn } from '../lib/utils';
-import { getAuth } from '../firebase';
+import { firebaseService } from '../firebase';
 import { 
   LayoutDashboard, 
   Calendar, 
@@ -99,7 +99,7 @@ const SidebarMenu: React.FC = () => {
   const { user, theme, toggleTheme } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const auth = getAuth();
+  const auth = firebaseService.auth;
 
   /**
    * Handles user sign out with error handling
