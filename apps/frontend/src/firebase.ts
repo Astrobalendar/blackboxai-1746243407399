@@ -121,6 +121,9 @@ export const firebaseService = FirebaseService.getInstance();
 // Export 'auth' for compatibility with legacy imports
 export const auth = getAuth(firebaseService.app);
 
+// Export 'db' for compatibility with legacy imports
+export const db = getFirestore(firebaseService.app);
+
 // Optionally auto-initialize in browser
 if (typeof window !== 'undefined') {
   firebaseService.initialize().catch(console.error);
