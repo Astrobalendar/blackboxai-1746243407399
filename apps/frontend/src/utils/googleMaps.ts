@@ -1,6 +1,7 @@
-// Google Maps type definitions and utilities
+/// <reference lib="dom" />
+/* global google, window, document, console, setTimeout, clearTimeout, Event */
 
-type GoogleMaps = typeof google.maps;
+// Google Maps type definitions and utilities
 
 export type GeocoderResult = {
   formatted_address?: string;
@@ -26,82 +27,14 @@ export type GeocoderStatus =
   | 'REQUEST_DENIED' 
   | 'UNKNOWN_ERROR';
 
-export interface PlaceResult {
-  address_components: any[];
-  formatted_address: string;
-  geometry: {
-    location: {
-      lat: () => number;
-      lng: () => number;
-    };
-    viewport: any;
-  };
-  name: string;
-  place_id: string;
-  types: string[];
-  [key: string]: any;
-}
 
-// Extend the global window interface with Google Maps types
-declare global {
-  interface Window {
-    googleMapsReady?: boolean;
-    google?: {
-      maps: {
-        places: {
-          Autocomplete: new (input: HTMLInputElement, opts?: any) => any;
-          AutocompleteService: new () => any;
-          PlacesServiceStatus: {
-            INVALID_REQUEST: string;
-            NOT_FOUND: string;
-            OK: string;
-            OVER_QUERY_LIMIT: string;
-            REQUEST_DENIED: string;
-            UNKNOWN_ERROR: string;
-            ZERO_RESULTS: string;
-          };
-        };
-        Geocoder: new () => google.maps.Geocoder;
-        GeocoderStatus: {
-          ERROR: string;
-          INVALID_REQUEST: string;
-          OK: string;
-          OVER_QUERY_LIMIT: string;
-          REQUEST_DENIED: string;
-          UNKNOWN_ERROR: string;
-          ZERO_RESULTS: string;
-        };
-        event: {
-          clearInstanceListeners: (element: HTMLElement) => void;
-        };
-        LatLng: new (lat: number, lng: number) => any;
-        LatLngLiteral: {
-          lat: number;
-          lng: number;
-        };
-      };
-    };
-  }
-}
 
-export interface PlaceResult {
-  address_components: any[];
-  formatted_address: string;
-  geometry: {
-    location: {
-      lat: () => number;
-      lng: () => number;
-    };
-    viewport: any;
-  };
-  name: string;
-  place_id: string;
-  types: string[];
-}
+
+
 
 export const initAutocomplete = (
   input: HTMLInputElement,
-  onPlaceChanged: (place: PlaceResult) => void,
+  onPlaceChanged: (_place: google.maps.places.PlaceResult) => void,
   options: {
     types?: string[];
     componentRestrictions?: { country: string | string[] };
@@ -115,9 +48,9 @@ export const initAutocomplete = (
   });
 
   autocomplete.addListener('place_changed', () => {
-    const place = autocomplete.getPlace();
-    if (place.geometry && place.geometry.location) {
-      onPlaceChanged(place);
+    const placeResult = autocomplete.getPlace();
+    if (placeResult.geometry && placeResult.geometry.location) {
+      onPlaceChanged(placeResult);
     }
   });
 
@@ -141,7 +74,7 @@ export const geocodeByPlaceId = async (
   return new Promise((resolve, reject) => {
     geocoder.geocode(
       { placeId },
-      (results: GeocoderResult[] | null, status: GeocoderStatus) => {
+      (results: google.maps.GeocoderResult[] | null, status: google.maps.GeocoderStatus) => {
         if (status === 'OK' && results?.[0]) {
           const result = results[0];
           const location = result.geometry?.location;

@@ -1,3 +1,5 @@
+/// <reference lib="dom" />
+/* eslint-env browser */
 import { PredictionResult } from '@shared/types/prediction';
 
 /**
@@ -127,6 +129,7 @@ if (process.env.NODE_ENV === 'development') {
 }
 
 // Add TypeScript declarations
+// (If this interface is already declared in global.d.ts, you can remove this block)
 declare global {
   interface Window {
     setupEmailTestUI?: (prediction: PredictionResult) => void;
