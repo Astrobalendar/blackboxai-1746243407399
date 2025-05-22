@@ -1,8 +1,10 @@
+/// <reference types="node" />
+/// <reference types="node" />
 import Papa from 'papaparse';
 import XLSX from 'xlsx';
 import JSZip from 'jszip';
 
-export async function parseCSV(fileBuffer: Buffer | string): Promise<any[]> {
+export async function parseCSV(fileBuffer: globalThis.Buffer | string): Promise<any[]> {
   const csvStr = typeof fileBuffer === 'string' ? fileBuffer : fileBuffer.toString('utf8');
   const { data } = Papa.parse(csvStr, { header: true, skipEmptyLines: true });
   return data;

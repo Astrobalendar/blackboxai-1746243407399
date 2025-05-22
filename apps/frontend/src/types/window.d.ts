@@ -1,9 +1,10 @@
-import type posthog from 'posthog-js';
+/// <reference lib="dom" />
+/// <reference types="node" />
+
+
 
 declare global {
-  interface Window {
-    posthog?: typeof posthog;
-  }
+  // Add other global window properties here if needed
 }
 
 export {};

@@ -1,31 +1,26 @@
-import { collection, addDoc } from 'firebase/firestore';
+/// <reference lib="dom" />
+/// <reference types="node" />
+
 import axios from 'axios';
 
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001';
 
-interface ErrorMetadata {
-  userId?: string;
-  data?: any;
-  context?: string;
-}
 
-interface ErrorLog {
-  timestamp: Date;
-  errorType: string;
-  errorMessage: string;
-  userId?: string;
-  requestPayload?: Record<string, any>;
-  responsePayload?: Record<string, any>;
-}
-
-export const logError = async (error: Error, metadata?: ErrorMetadata) => {
+export const logError = async (
+  error: Error | string,
+  metadata?: {
+    userId?: string;
+    data?: any;
+    context?: string;
+  }
+) => {
   try {
     await axios.post(`${API_URL}/api/errors`, {
       timestamp: new Date().toISOString(),
       error: {
-        message: error.message,
-        name: error.name,
-        stack: error.stack,
+        message: typeof error === 'string' ? error : error.message,
+        name: typeof error !== 'string' ? error.name : undefined,
+        stack: typeof error !== 'string' ? error.stack : undefined,
       },
       metadata,
     }, {
@@ -39,7 +34,7 @@ export const logError = async (error: Error, metadata?: ErrorMetadata) => {
   }
 };
 
-let isDebugMode = false;
+
 
 export const enableDebugMode = () => {
   localStorage.setItem('debugMode', 'true');

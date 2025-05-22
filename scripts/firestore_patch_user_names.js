@@ -1,6 +1,11 @@
+/* eslint-env node */
 // Usage: node firestore_patch_user_names.js
 // This script patches all users in Firestore to ensure they have fullName and display_name fields.
 // Run from the root of your monorepo: node scripts/firestore_patch_user_names.js
+
+/* eslint-env node */
+/* eslint-disable no-undef */
+/* global require, process, console */
 
 const admin = require('firebase-admin');
 const serviceAccount = require('../serviceAccountKey.json'); // <-- Ensure this path points to your Firebase service account key

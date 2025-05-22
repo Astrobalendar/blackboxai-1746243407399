@@ -1,3 +1,4 @@
+import * as React from 'react';
 declare module 'react-toastify' {
   export interface ToastContainerProps {
     position?: 'top-left' | 'top-center' | 'top-right' | 'bottom-left' | 'bottom-center' | 'bottom-right';
@@ -16,10 +17,10 @@ declare module 'react-toastify' {
 
   export const ToastContainer: React.FC<ToastContainerProps>;
   export const toast: {
-    success: (message: string, options?: any) => void;
-    error: (message: string, options?: any) => void;
-    info: (message: string, options?: any) => void;
-    warning: (message: string, options?: any) => void;
-    default: (message: string, options?: any) => void;
+    success: Function;
+    error: Function;
+    info: Function;
+    warning: Function;
+    default: Function;
   };
 }

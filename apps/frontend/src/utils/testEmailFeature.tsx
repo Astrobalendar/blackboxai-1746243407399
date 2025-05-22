@@ -1,9 +1,10 @@
 /// <reference lib="dom" />
+/// <reference types="node" />
 /* eslint-env browser */
 import { PredictionResult } from '@shared/types/prediction';
 
 /**
- * Test utility for the email prediction feature
+ * Test utility for the email _prediction feature
  * This provides a simple UI in the browser console to test email sending
  * without needing to navigate through the app UI
  */
@@ -123,15 +124,7 @@ export function setupEmailTestUI(prediction: PredictionResult) {
  * Initialize the email test UI when in development mode
  */
 if (process.env.NODE_ENV === 'development') {
-  // You can call this function with a mock prediction object
+  // You can call this function with a mock _prediction object
   // or integrate it with your app's state management
-  window.setupEmailTestUI = setupEmailTestUI;
-}
-
-// Add TypeScript declarations
-// (If this interface is already declared in global.d.ts, you can remove this block)
-declare global {
-  interface Window {
-    setupEmailTestUI?: (prediction: PredictionResult) => void;
-  }
+  globalThis.window.setupEmailTestUI = setupEmailTestUI;
 }

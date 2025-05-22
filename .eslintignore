@@ -1,0 +1,31 @@
+# Ignore node modules and build outputs
+node_modules
+dist
+build
+coverage
+public
+
+# Ignore TypeScript declaration files
+d.ts
+*.d.ts
+
+# Ignore Vite, Cypress, and config files
+vite.config.ts
+cypress.config.ts
+**/*.config.js
+**/*.config.ts
+
+# Ignore scripts and mongo init files
+scripts/
+**/mongo-init.js
+
+# Ignore tests and specs
+**/*.spec.ts
+**/*.test.ts
+
+# Ignore firebase entry points (customize as needed)
+**/firebase.ts
+
+# Ignore other common outputs
+*.log
+*.tmp

@@ -31,14 +31,7 @@ export interface ChartData {
   aspects: any[]; // You might want to type this more specifically
 }
 
-export interface Prediction {
-  id: string;
-  title: string;
-  content: string;
-  category: string;
-  createdAt: Date;
-  updatedAt: Date;
-}
+// Prediction interface is now defined in /shared/types/prediction.ts. Please import from there.
 
 export interface SessionState {
   loading: boolean;
@@ -47,7 +40,7 @@ export interface SessionState {
   error: string | null;
   sessionId: string | null;
   chartData: ChartData | null;
-  predictions: Prediction[];
+  // predictions: Prediction[];
   insights: any[]; // You might want to type this more specifically
   shareWithClient: boolean;
   pdfUrl: string | null;

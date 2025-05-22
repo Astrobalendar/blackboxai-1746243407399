@@ -1,7 +1,9 @@
+/// <reference lib="dom" />
+/* global window, document, console, Blob */
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { signInWithEmailAndPassword } from 'firebase/auth';
-import { getAuthSafe } from '../firebase';
+import { getAuthSafe, signInWithGoogle, signInWithApple } from '../firebase';
 
 interface LoginForm {
   email: string;
@@ -27,6 +29,32 @@ const LoginPage: React.FC = () => {
       navigate('/dashboard');
     } catch (err: any) {
       setError(err.message || 'Login failed.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGoogleLogin = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      await signInWithGoogle();
+      navigate('/dashboard');
+    } catch (err: any) {
+      setError(err.message || 'Google sign-in failed.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleAppleLogin = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      await signInWithApple();
+      navigate('/dashboard');
+    } catch (err: any) {
+      setError(err.message || 'Apple sign-in failed.');
     } finally {
       setLoading(false);
     }
@@ -76,6 +104,24 @@ const LoginPage: React.FC = () => {
         >
           {loading ? 'Signing in...' : 'Sign In'}
         </button>
+        <div className="flex flex-col gap-2 mt-6">
+          <button
+            type="button"
+            onClick={handleGoogleLogin}
+            className="w-full bg-red-500 text-white py-2 px-4 rounded hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-400"
+            disabled={loading}
+          >
+            Continue with Google
+          </button>
+          <button
+            type="button"
+            onClick={handleAppleLogin}
+            className="w-full bg-gray-900 text-white py-2 px-4 rounded hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-400"
+            disabled={loading}
+          >
+            Continue with Apple
+          </button>
+        </div>
         <div className="mt-4 text-center">
           <span>Don't have an account?</span>{' '}
           <Link to="/signup" className="text-blue-600 hover:underline">

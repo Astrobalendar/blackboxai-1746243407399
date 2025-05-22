@@ -1,8 +1,12 @@
+/// <reference lib="dom" />
+/// <reference types="node" />
+/* global window, fetch, process, console, Blob, document */
 import axios from 'axios';
+import { CalendarEvent } from '@shared/types/calendar';
 
 const API_BASE_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000';
 
-export async function getCalendarEvents() {
+export async function getCalendarEvents(): Promise<CalendarEvent[]> {
   try {
     const response = await axios.get(`${API_BASE_URL}/api/calendar/`);
     return response.data;

@@ -3,8 +3,10 @@ import { getFirestore } from 'firebase-admin/firestore';
 import { verifyIdToken } from '../../lib/firebase';
 
 // Helper: Build Firestore query with filters
-function buildQuery(db: FirebaseFirestore.Firestore, filters: any) {
-  let query: FirebaseFirestore.Query = db.collectionGroup('records');
+import type { Firestore, Query } from 'firebase-admin/firestore';
+
+function buildQuery(db: Firestore, filters: any) {
+  let query: Query = db.collectionGroup('records');
   if (filters.topic) query = query.where('topic', '==', filters.topic);
   if (filters.astrologer) query = query.where('astrologer', '==', filters.astrologer);
   if (filters.thumbs) query = query.where('thumbs', '==', filters.thumbs);

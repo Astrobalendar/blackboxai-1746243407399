@@ -1,10 +1,12 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { getFirestore } from 'firebase-admin/firestore';
-import { verifyIdToken } from '../../lib/firebase';
-import { Parser as Json2csvParser } from 'json2csv';
+import type { Query, Firestore as FirebaseFirestore } from 'firebase-admin/firestore';
+import { verifyIdToken } from '@/lib/firebaseAdmin';
+// @ts-expect-error: No type declarations for 'json2csv'
+import { Parser as Json2csvParser } from 'json2csv'; // Ensure 'json2csv' is installed in your dependencies
 
-function buildQuery(db: FirebaseFirestore.Firestore, filters: any) {
-  let query: FirebaseFirestore.Query = db.collectionGroup('records');
+function buildQuery(db: FirebaseFirestore, filters: any) {
+  let query: Query = db.collectionGroup('records');
   if (filters.topic) query = query.where('topic', '==', filters.topic);
   if (filters.astrologer) query = query.where('astrologer', '==', filters.astrologer);
   if (filters.thumbs) query = query.where('thumbs', '==', filters.thumbs);
@@ -44,6 +46,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       res.status(200).send(csv);
     }
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: err instanceof Error ? err.message : String(err) });
   }
 }

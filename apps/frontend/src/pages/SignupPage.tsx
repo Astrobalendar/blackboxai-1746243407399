@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
 import { doc, setDoc } from 'firebase/firestore';
-import { getAuthSafe, getDbSafe } from '../firebase';
+import type { HoroscopeInput, PredictionData } from '@/shared/types/prediction';
+import { getAuthSafe, getDbSafe, signInWithGoogle, signInWithApple } from '../firebase';
 
 interface SignupForm {
   fullName: string;
@@ -36,6 +37,32 @@ const SignupPage: React.FC = () => {
       navigate('/dashboard');
     } catch (err: any) {
       setError(err.message || 'Signup failed.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGoogleSignup = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      await signInWithGoogle();
+      navigate('/dashboard');
+    } catch (err: any) {
+      setError(err.message || 'Google sign-up failed.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleAppleSignup = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      await signInWithApple();
+      navigate('/dashboard');
+    } catch (err: any) {
+      setError(err.message || 'Apple sign-up failed.');
     } finally {
       setLoading(false);
     }
@@ -98,6 +125,24 @@ const SignupPage: React.FC = () => {
         >
           {loading ? 'Signing up...' : 'Sign Up'}
         </button>
+        <div className="flex flex-col gap-2 mt-6">
+          <button
+            type="button"
+            onClick={handleGoogleSignup}
+            className="w-full bg-red-500 text-white py-2 px-4 rounded hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-400"
+            disabled={loading}
+          >
+            Continue with Google
+          </button>
+          <button
+            type="button"
+            onClick={handleAppleSignup}
+            className="w-full bg-gray-900 text-white py-2 px-4 rounded hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-400"
+            disabled={loading}
+          >
+            Continue with Apple
+          </button>
+        </div>
         <div className="mt-4 text-center">
           <span>Already have an account?</span>{' '}
           <Link to="/login" className="text-blue-600 hover:underline">

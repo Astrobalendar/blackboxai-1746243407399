@@ -1,3 +1,5 @@
+/// <reference lib="dom" />
+/* global window, document, console, Blob */
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword } from 'firebase/auth';

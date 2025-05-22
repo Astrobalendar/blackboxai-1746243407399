@@ -1,4 +1,5 @@
 // Import the jest-dom library for custom matchers
+/// <reference lib="dom" />
 import '@testing-library/jest-dom';
 import React from 'react';
 import { vi } from 'vitest';

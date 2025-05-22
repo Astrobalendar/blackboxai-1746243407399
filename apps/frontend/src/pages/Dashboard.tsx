@@ -1,6 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import DashboardLayout from '../components/dashboard/DashboardLayout';
 import ResearchStatCard from '../components/dashboard/ResearchStatCard';
+import HoroscopeForm from '../components/HoroscopeForm';
+import type { HoroscopeInput } from '@/shared/types/prediction';
+import PredictionReport from './PredictionReport';
 import { Activity, Users, Clock, Calendar } from 'lucide-react';
 
 const Dashboard = () => {
@@ -36,6 +39,30 @@ const Dashboard = () => {
     },
   ];
 
+  const [prediction, setPrediction] = useState<any>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleHoroscopeSubmit = async (data: HoroscopeInput) => {
+    setLoading(true);
+    setError(null);
+    setPrediction(null);
+    try {
+      const res = await fetch(`${import.meta.env.VITE_API_URL || '/api/predict'}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+      if (!res.ok) throw new Error('Prediction failed.');
+      const result = await res.json();
+      setPrediction(result);
+    } catch (err: any) {
+      setError(err.message || 'Prediction failed.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <DashboardLayout>
       <div className="p-6">
@@ -45,7 +72,19 @@ const Dashboard = () => {
             Welcome back! Here's what's happening with your predictions.
           </p>
         </div>
-
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+          <div className="bg-white shadow rounded p-6">
+            <h3 className="text-lg font-semibold mb-4">Enter Birth Details</h3>
+            <HoroscopeForm onSubmit={handleHoroscopeSubmit} loading={loading} />
+            {error && <div className="mt-4 text-red-600">{error}</div>}
+          </div>
+          <div className="bg-white shadow rounded p-6">
+            <h3 className="text-lg font-semibold mb-4">Prediction Report</h3>
+            {loading && <div>Loading prediction...</div>}
+            {!loading && prediction && <PredictionReport prediction={prediction} />}
+            {!loading && !prediction && <div className="text-gray-500">No prediction yet.</div>}
+          </div>
+        </div>
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-8">
           {stats.map((stat, index) => (
             <ResearchStatCard
@@ -56,32 +95,6 @@ const Dashboard = () => {
               color={stat.color}
             />
           ))}
-        </div>
-
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-          <div className="bg-white shadow rounded p-6 col-span-4">
-            <h3 className="text-lg font-semibold mb-4">Recent Predictions</h3>
-            <div className="h-[300px] flex items-center justify-center text-muted-foreground">
-              Prediction chart will be displayed here
-            </div>
-          </div>
-          <div className="bg-white shadow rounded p-6 col-span-3">
-            <h3 className="text-lg font-semibold mb-4">Quick Actions</h3>
-            <div className="space-y-4">
-              <button className="w-full text-left p-4 border rounded-lg hover:bg-gray-50 transition-colors">
-                <h3 className="font-medium">Generate New Prediction</h3>
-                <p className="text-sm text-gray-500">Create a new horoscope prediction</p>
-              </button>
-              <button className="w-full text-left p-4 border rounded-lg hover:bg-gray-50 transition-colors">
-                <h3 className="font-medium">View History</h3>
-                <p className="text-sm text-gray-500">Check your previous predictions</p>
-              </button>
-              <button className="w-full text-left p-4 border rounded-lg hover:bg-gray-50 transition-colors">
-                <h3 className="font-medium">Manage Profiles</h3>
-                <p className="text-sm text-gray-500">Edit or add new profiles</p>
-              </button>
-            </div>
-          </div>
         </div>
       </div>
     </DashboardLayout>

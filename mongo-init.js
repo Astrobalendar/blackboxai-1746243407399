@@ -1,3 +1,7 @@
+/* eslint-disable no-undef */
+/* global db */
+/* eslint-disable no-global-assign */
+
 // MongoDB initialization script
 // This script runs when the MongoDB container starts for the first time
 

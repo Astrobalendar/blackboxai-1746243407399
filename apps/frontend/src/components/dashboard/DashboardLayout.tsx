@@ -1,3 +1,4 @@
+/// <reference lib="dom" />
 import React from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import SidebarMenu from '../SidebarMenu';

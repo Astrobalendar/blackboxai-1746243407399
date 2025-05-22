@@ -121,8 +121,8 @@ const MlFeedbackDashboard: React.FC = () => {
             <div className="text-sm">Feedback Used: <span className="font-mono">{lastCheckpoint.recordCount}</span></div>
             <div className="text-sm">Triggered By: <span className="font-mono">{lastCheckpoint.triggeredBy}</span></div>
             <div className="flex gap-3 mt-2">
-              <a href={`https://storage.googleapis.com/${process.env.NEXT_PUBLIC_FIREBASE_BUCKET || 'YOUR_BUCKET'}/${lastCheckpoint.datasetPathCsv}`} target="_blank" rel="noopener" className="text-blue-700 underline flex items-center gap-1"><Download className="w-4 h-4"/>CSV</a>
-              <a href={`https://storage.googleapis.com/${process.env.NEXT_PUBLIC_FIREBASE_BUCKET || 'YOUR_BUCKET'}/${lastCheckpoint.datasetPathJsonl}`} target="_blank" rel="noopener" className="text-blue-700 underline flex items-center gap-1"><Download className="w-4 h-4"/>JSONL</a>
+              <a href={`https://storage.googleapis.com/${process.env.NEXT_PUBLIC_FIREBASE_BUCKET || 'YOUR_BUCKET'}/${lastCheckpoint.datasetPathCsv}`} target="_blank" rel="noopener noreferrer" className="text-blue-700 underline flex items-center gap-1"><Download className="w-4 h-4"/>CSV</a>
+              <a href={`https://storage.googleapis.com/${process.env.NEXT_PUBLIC_FIREBASE_BUCKET || 'YOUR_BUCKET'}/${lastCheckpoint.datasetPathJsonl}`} target="_blank" rel="noopener noreferrer" className="text-blue-700 underline flex items-center gap-1"><Download className="w-4 h-4"/>JSONL</a>
             </div>
           </div>
         </div>
@@ -150,10 +150,10 @@ const MlFeedbackDashboard: React.FC = () => {
                   <td className="p-2">{cp.recordCount}</td>
                   <td className="p-2">{cp.triggeredBy}</td>
                   <td className="p-2">
-                    <a href={`https://storage.googleapis.com/${process.env.NEXT_PUBLIC_FIREBASE_BUCKET || 'YOUR_BUCKET'}/${cp.datasetPathCsv}`} target="_blank" rel="noopener" className="text-blue-700 underline flex items-center gap-1"><Download className="w-4 h-4"/>CSV</a>
+                    <a href={`https://storage.googleapis.com/${process.env.NEXT_PUBLIC_FIREBASE_BUCKET || 'YOUR_BUCKET'}/${cp.datasetPathCsv}`} target="_blank" rel="noopener noreferrer" className="text-blue-700 underline flex items-center gap-1"><Download className="w-4 h-4"/>CSV</a>
                   </td>
                   <td className="p-2">
-                    <a href={`https://storage.googleapis.com/${process.env.NEXT_PUBLIC_FIREBASE_BUCKET || 'YOUR_BUCKET'}/${cp.datasetPathJsonl}`} target="_blank" rel="noopener" className="text-blue-700 underline flex items-center gap-1"><Download className="w-4 h-4"/>JSONL</a>
+                    <a href={`https://storage.googleapis.com/${process.env.NEXT_PUBLIC_FIREBASE_BUCKET || 'YOUR_BUCKET'}/${cp.datasetPathJsonl}`} target="_blank" rel="noopener noreferrer" className="text-blue-700 underline flex items-center gap-1"><Download className="w-4 h-4"/>JSONL</a>
                   </td>
                 </tr>
               ))}

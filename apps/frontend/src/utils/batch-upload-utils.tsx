@@ -1,7 +1,11 @@
+/// <reference lib="dom" />
+/// <reference types="node" />
+/// <reference lib="dom" />
+
 import Papa from 'papaparse';
 import { BatchRecord, ValidationError } from '@/types/batch-upload';
 
-export const parseCSV = async (file: File): Promise<BatchRecord[]> => {
+export const parseCSV = async (file: globalThis.File): Promise<BatchRecord[]> => {
   return new Promise((resolve, reject) => {
     Papa.parse<Record<string, string>>(file, {
       header: true,
@@ -9,16 +13,16 @@ export const parseCSV = async (file: File): Promise<BatchRecord[]> => {
       complete: (results) => {
         resolve(results.data as unknown as BatchRecord[]);
       },
-      error: (error: Error) => {
+      error: (error) => {
         reject(new Error(`CSV parsing failed: ${error.message}`));
       },
     });
   });
 };
 
-export const parseJSON = async (file: File): Promise<BatchRecord[]> => {
+export const parseJSON = async (file: globalThis.File): Promise<BatchRecord[]> => {
   return new Promise((resolve, reject) => {
-    const reader = new FileReader();
+    const reader = new globalThis.FileReader();
     reader.onload = (e) => {
       try {
         const json = JSON.parse(e.target?.result as string);

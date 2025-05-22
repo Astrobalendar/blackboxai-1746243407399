@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '@/contexts/AuthContext';
+
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { LogOut, Menu, Moon, Sun, User as UserIcon, X } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeProvider';
-import { cn } from '@/lib/utils';
+
 import { User } from 'firebase/auth';
 
 // Extend the Firebase User type to include custom claims
@@ -54,8 +54,9 @@ const HeaderNav: React.FC<HeaderNavProps> = ({ user }) => {
 
   const navItems = [
     { name: 'Dashboard', path: '/dashboard' },
-    { name: 'Horoscopes', path: '/horoscopes' },
-    { name: 'Calendar', path: '/calendar' },
+    { name: 'History', path: '/history' },
+    { name: 'Settings', path: '/settings' },
+    { name: 'Demo', path: '/demo' },
   ];
 
   return (

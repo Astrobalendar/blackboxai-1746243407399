@@ -1,4 +1,5 @@
-import { db } from '../firebase';
+/* eslint-env browser */
+import { firebaseService } from '../firebase';
 import { 
   collection, 
   doc, 
@@ -51,7 +52,7 @@ export const saveHoroscope = async (
   chartData: ChartData
 ): Promise<Horoscope> => {
   try {
-    const docRef = await addDoc(collection(db, 'horoscopes'), {
+    const docRef = await addDoc(collection(firebaseService.db, 'horoscopes'), {
       ...horoscopeData,
       chartData,
       createdAt: serverTimestamp(),
@@ -76,7 +77,7 @@ export const saveHoroscope = async (
 // Get a horoscope by ID
 export const getHoroscope = async (horoscopeId: string): Promise<Horoscope> => {
   try {
-    const docRef = doc(db, 'horoscopes', horoscopeId);
+    const docRef = doc(firebaseService.db, 'horoscopes', horoscopeId);
     const docSnap = await getDoc(docRef);
     
     if (!docSnap.exists()) {
@@ -99,7 +100,7 @@ export const getHoroscope = async (horoscopeId: string): Promise<Horoscope> => {
 export const findHoroscopesByUser = async (userId: string): Promise<Horoscope[]> => {
   try {
     const q = query(
-      collection(db, 'horoscopes'),
+      collection(firebaseService.db, 'horoscopes'),
       where('userId', '==', userId)
     );
     
@@ -120,7 +121,7 @@ export const updateHoroscope = async (
   updates: Partial<Omit<Horoscope, 'id' | 'userId' | 'createdAt'>>
 ): Promise<void> => {
   try {
-    const docRef = doc(db, 'horoscopes', horoscopeId);
+    const docRef = doc(firebaseService.db, 'horoscopes', horoscopeId);
     await updateDoc(docRef, {
       ...updates,
       updatedAt: serverTimestamp()

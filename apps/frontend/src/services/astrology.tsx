@@ -1,6 +1,5 @@
 import axios from 'axios';
 import { getAuth } from 'firebase/auth';
-import { PredictionResult } from '@shared/types/prediction';
 
 const API_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3001';
 
@@ -14,7 +13,7 @@ interface PredictionRequest {
   timeZone: string;
 }
 
-export const getAstrologicalPrediction = async (data: PredictionRequest): Promise<PredictionResult> => {
+export const getAstrologicalPrediction = async (data: PredictionRequest): Promise<any> => {
   try {
     const response = await axios.post(`${API_URL}/prediction`, data, {
       timeout: 30000, // 30 second timeout
@@ -76,8 +75,6 @@ export const getChartData = async (
       throw new Error('Authentication required');
     }
 
-    const timezone = birthDetails.timeZone || Intl.DateTimeFormat().resolvedOptions().timeZone;
-    
     // Get the current user's ID and role from auth context
     const currentUser = getAuth().currentUser;
     const userId = currentUser?.uid || 'anonymous';

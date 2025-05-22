@@ -1,4 +1,7 @@
 import { toast } from 'sonner';
+/// <reference lib="dom" />
+/// <reference types="node" />
+/* global window, fetch, process, console */
 import { PredictionResult } from '@shared/types/prediction';
 
 interface UploadResult {

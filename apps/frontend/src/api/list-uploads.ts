@@ -40,7 +40,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       cursor,
     } = req.query;
 
-    let query = db.collection('aiTrainingBatches') as FirebaseFirestore.Query;
+import type { Firestore, Query } from 'firebase-admin/firestore';
+
+    let query = db.collection('aiTrainingBatches') as Query;
     if (!isAdmin) {
       query = query.where('uploadedBy', '==', user.uid);
     }

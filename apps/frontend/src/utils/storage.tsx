@@ -1,3 +1,7 @@
+/// <reference lib="dom" />
+/// <reference types="node" />
+/// <reference lib="dom" />
+/* eslint-env browser */
 import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 import { app } from '../firebase/config';
 

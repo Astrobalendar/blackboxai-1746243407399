@@ -2,7 +2,8 @@
 // Robust, type-safe, modular, and production-ready
 import { initializeApp, getApps, getApp, type FirebaseApp, type FirebaseOptions } from 'firebase/app';
 import {
-  getAuth, type Auth, setPersistence, inMemoryPersistence, connectAuthEmulator
+  getAuth, type Auth, setPersistence, inMemoryPersistence, connectAuthEmulator,
+  GoogleAuthProvider, signInWithPopup, OAuthProvider
 } from 'firebase/auth';
 import {
   getFirestore, type Firestore, connectFirestoreEmulator, enableIndexedDbPersistence, FirestoreError
@@ -130,4 +131,19 @@ export function getDbSafe() {
 // Optionally auto-initialize in browser
 if (typeof window !== 'undefined') {
   firebaseService.initialize().catch(console.error);
+}
+
+// --- Social Auth Helpers ---
+export async function signInWithGoogle() {
+  const auth = getAuthSafe();
+  const provider = new GoogleAuthProvider();
+  return signInWithPopup(auth, provider);
+}
+
+export async function signInWithApple() {
+  const auth = getAuthSafe();
+  const provider = new OAuthProvider('apple.com');
+  provider.addScope('email');
+  provider.addScope('name');
+  return signInWithPopup(auth, provider);
 }

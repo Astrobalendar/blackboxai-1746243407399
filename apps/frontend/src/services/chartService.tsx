@@ -1,3 +1,7 @@
+/// <reference lib="dom" />
+/// <reference types="node" />
+/* global window, fetch, process, console, Blob */
+
 import apiClient from '@/lib/apiClient';
 import { BirthData, KPChartData } from '@/types/kpAstrology';
 

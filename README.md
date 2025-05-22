@@ -1,52 +1,49 @@
-# 🌌 AstroBalendar – AI-powered KP Astrology – Advanced AI/ML-Based KP Paddhati Stellar Analysis
+# KP Astrology AI/ML Platform – Full-Stack, CI/CD-Integrated, Production-Ready
 
-## 🚀 Project Overview
-This project is a production-grade, AI/ML-enhanced KP Paddhati framework for accurate stellar prediction and astrological computation. The architecture is clean, extensible, and optimized for rapid research and deployment.
+## 🧾 Description
 
----
+This is a fully production-grade full-stack KP Astrology platform powered by React, TypeScript, Firebase, and Express. It includes AI/ML integration stubs, Firestore storage, PDF/CSV export, responsive dashboards, and GitHub-based CI/CD deployment.
 
-## 📁 Directory Structure
+## 📁 Directory Structure (Partial)
 
-```
+```text
 astrobalendar/
 ├── apps/
-│   ├── frontend/ 
+│   ├── frontend/
 │   │   ├── src/
-│   │   │   ├── components/ 
-│   │   │   ├── pages/ 
-│   │   │   ├── contexts/ 
-│   │   │   ├── hooks/ 
-│   │   │   ├── utils/ 
-│   │   │   ├── types/ 
-│   │   │   ├── firebase/ 
-│   │   │   ├── shared/ 
-│   │   │   ├── styles/ 
-│   │   │   ├── ai/ 
-│   ├── backend/ 
-│   ├── mobile/ 
-├── lib/ 
-├── shared/ 
-├── firebase/ 
-├── scripts/ 
-├── tests/ 
-├── docs/ 
-├── docker/ 
-├── .github/ 
-├── public/ 
-└── configs/ 
+│   │   │   ├── components/
+│   │   │   ├── pages/
+│   │   │   ├── contexts/
+│   │   │   ├── hooks/
+│   │   │   ├── utils/
+│   │   │   ├── types/
+│   │   │   ├── firebase/
+│   │   │   ├── shared/
+│   │   │   ├── styles/
+│   │   │   ├── ai/
+│   ├── backend/
+│   ├── mobile/
+├── lib/
+├── shared/
+├── firebase/
+├── scripts/
+├── tests/
+├── docs/
+├── docker/
+├── .github/
+├── public/
+└── configs/
 ```
 
----
-
 ## 🔑 Key Modules
+
 - `SidebarMenu.tsx`: Modular sidebar for layout navigation.
 - `contexts/`: Centralized React context providers.
 - `firebase/` + `firebase.ts`: Unified Firebase integration.
 - `ai/`: (Planned) KP AI/ML prediction logic and data.
 
----
-
 ## ⚙️ Setup & Integration
+
 ```bash
 npm install
 npm run dev
@@ -54,47 +51,39 @@ npm run build
 npm test
 ```
 
-    Firebase: Config in src/firebase/, used globally.
+Firebase: Config in src/firebase/, used globally.
+Tailwind: In tailwind.config.js, imported via index.css.
+Routing: Via react-router-dom, src/pages/
+CI/CD: Configured for GitHub Actions, Netlify, Render, or Firebase Hosting
 
-    Tailwind: In tailwind.config.js, imported via index.css.
+## 🧠 KP AI/ML Integration
 
-    Routing: Via react-router-dom, src/pages/
+All ML logic lives in `src/ai/` and includes:
 
-    CI/CD: Configured for GitHub Actions, Netlify, Render, or Firebase Hosting
+```markdown
+- `models/` – KP predictive models
+- `datasets/` – Input/validation sets
+- `processors/` – Input pre-processing
+- `predict/` – Prediction engine wrapper
+- `README.md` – Module-specific documentation
+```
 
-🧠 KP AI/ML Integration
+## 👥 Contributing
 
-All ML logic lives in src/ai/ and includes:
+```markdown
+- Add components to `src/components/`, pages to `src/pages/`
+- Document logic in `src/ai/`
+- Follow TypeScript + accessibility best practices
+```
 
-    models/ – KP predictive models
+## 🛡️ Code Quality
 
-    datasets/ – Input/validation sets
-
-    processors/ – Input pre-processing
-
-    predict/ – Prediction engine wrapper
-
-    README.md – Module-specific documentation
-
-👥 Contributing
-
-    Add components to src/components/, pages to src/pages/
-
-    Document logic in src/ai/
-
-    Follow TypeScript + accessibility best practices
-
-🛡️ Code Quality
-
-    Linting: ESLint + Prettier
-
-    Strict TypeScript config
-
-    Dead code removed
-
-    Centralized test and mock directories
-
----
+```markdown
+- Linting: ESLint + Prettier
+- Strict TypeScript config
+- Dead code removed
+- Centralized test and mock directories
+```
 
 ## 🪐 Tech Stack
 
@@ -111,7 +100,7 @@ All ML logic lives in src/ai/ and includes:
 
 ## 📁 Monorepo Structure
 
-```
+```plaintext
 astrobalendar/
 ├── apps/
 │   ├── frontend/   → Web (React + Vite)
@@ -127,6 +116,7 @@ astrobalendar/
 ## ⚙️ Local Development
 
 ### 1. Clone & Install
+
 ```bash
 git clone https://github.com/YOUR_USERNAME/astrobalendar.git
 cd astrobalendar
@@ -134,6 +124,7 @@ npm install --workspaces
 ```
 
 ### 2. Start Web App
+
 ```bash
 cd apps/frontend
 cp .env.example .env
@@ -141,12 +132,14 @@ npm run dev
 ```
 
 ### 3. Start Backend API
+
 ```bash
 cd apps/backend
 uvicorn main:app --reload
 ```
 
 ### 4. Start Mobile App
+
 ```bash
 cd apps/mobile
 npx expo start
@@ -158,161 +151,38 @@ npx expo start
 
 | Platform | Hosting   | Setup                     |
 |----------|-----------|---------------------------|
-| Web      | Netlify   | Connect /apps/frontend dir|
 | Backend  | Render    | Deploy /apps/backend, set env vars |
-| Mobile   | Expo      | OTA via GitHub or manual EAS config |
 
 ---
 
 ## 🌍 Environment Variables
+
 See `.env.example` in each app folder. Common keys:
+
 - `VITE_BACKEND_URL`
 - `MONGO_URI`
-- `FIREBASE_API_KEY`
 
 ---
 
 ## 🧪 Testing
+
 - Form validation (Jest + DOM testing)
 - API unit tests (Pytest)
-- Manual export checks (PDF/JSON/image)
-- Mobile navigation flow + device testing
-
----
-
-## 📦 CI/CD
-- GitHub Actions workflows: `/frontend.yml`, `/backend.yml`, `/mobile.yml`
-- Netlify auto-deploy from main
-- Render auto-deploy via webhook
-
----
-
-## 🛠️ Contributing & Maintainers
-- Fork, branch, and PR as usual
-- See `CONTRIBUTING.md` (if present) for code style and CI details
-
----
-
-## 📬 Support & Contact
-- File issues or feature requests via GitHub Issues
-- For roadmap or onboarding, see the repo Projects/Discussions
-
----
-
-Happy coding! 🚀
-- Node.js ≥ 18
-- Python ≥ 3.10
-- MongoDB Atlas (Free Tier)
-- OpenAI API Key (if using GPT chat)
-
-### 🧱 Backend (FastAPI)
-```bash
-cd apps/backend
-python -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
-uvicorn main:app --reload
-```
-
-### 🌐 Frontend (Vite + React)
-```bash
-cd apps/frontend
-npm install
-npm run dev
-```
-
-### 🔐 .env File Examples
-
-**Frontend:**
-```ini
-VITE_BACKEND_URL=http://localhost:8000
-```
-
-**Backend:**
-```ini
-MONGODB_URI=mongodb+srv://<user>:<pass>@cluster.mongodb.net/db
-JWT_SECRET_KEY=your_secret
-JWT_ALGORITHM=HS256
-```
-
----
-
-## 🧪 Usage
-
-- Enter birth details to generate KP chart
-- Ask questions in the chatbot: “Will I succeed in my career?”
-- Get real-time AI responses or consult a live astrologer (WIP)
-- Download reports (PDF export coming soon)
-
----
-
-## 🗺️ Platform Matrix
-
-| Platform  | Stack                      | Directory         | Deployment      |
-|-----------|----------------------------|-------------------|-----------------|
-| Web       | React + Vite + TS          | apps/frontend     | Netlify         |
-| Mobile    | React Native + Expo        | apps/mobile       | Expo EAS (WIP)  |
-| Backend   | FastAPI + MongoDB          | apps/backend      | Render/Docker   |
-| Shared    | TypeScript modules         | shared/           | -               |
-| Desktop   | Electron (optional)        | apps/desktop      | -               |
-| Docker    | Dockerfiles (FE/BE)        | docker/           | -               |
-
----
-
-## 🗂️ Directory Structure
-
-```sh
-astrobalendar/
-├── apps/
-│   ├── frontend/    # React web client
-│   ├── mobile/      # Expo mobile app
-│   ├── backend/     # FastAPI backend
-│   └── desktop/     # Electron shell (optional)
-├── shared/          # Shared TS types, API, utils
-├── docker/          # Dockerfiles for frontend/backend
-├── .github/workflows/ # CI/CD workflows
-└── README.md
-```
-
----
-
-## ⚙️ Local Development
-
-### Backend (FastAPI)
-```bash
-cd apps/backend
-python -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
-uvicorn main:app --reload
-```
-
-### Frontend (Vite + React)
-```bash
-cd apps/frontend
-npm install
-npm run dev
-```
-
-### Mobile (Expo)
-```bash
-cd apps/mobile
-npm install # or yarn install
-npx expo start
-```
+{{ ... }}
 
 ---
 
 ## 🔐 Environment Setup
 
-### `.env.example` files are provided in each app folder. Copy to `.env` and fill in required values:
+### `.env.example` files are provided in each app folder. Copy to `.env` and fill in required values
 
-- **Frontend:**
-  - `VITE_BACKEND_URL=http://localhost:8000`
+- `VITE_BACKEND_URL=http://localhost:8000`
+
 - **Backend:**
   - `MONGODB_URI=...`
   - `JWT_SECRET_KEY=...`
   - `OPENAI_API_KEY=...` (if using AstroGPT)
+
 - **Mobile:**
   - `MOBILE_BACKEND_URL=http://localhost:8000`
 
@@ -320,18 +190,7 @@ npx expo start
 
 ## 🚀 Deployment Notes
 
-- **Frontend:**
-  - Connect repo to Netlify, set env vars from `.env.example`.
-  - Auto-deploys on push to `main` or `apps/frontend/**`.
-- **Backend:**
-  - Deploy to Render (Docker or Python), set env vars.
-  - Webhook for auto-deploy on push.
-- **Mobile:**
-  - Expo EAS setup (manual for now, CI scaffolded).
-
----
-
-## 🔄 CI/CD (GitHub Actions)
+{{ ... }}
 
 - `.github/workflows/frontend.yml`: Lint, build, Netlify trigger
 - `.github/workflows/backend.yml`: Python lint/test, Render deploy
@@ -348,7 +207,7 @@ npx expo start
 
 ---
 
-## 🗺️ Roadmap
+## 🗺️ Project Roadmap
 
 - AI-Powered Daily Horoscope Generator
 - Admin Dashboard for Astrologers

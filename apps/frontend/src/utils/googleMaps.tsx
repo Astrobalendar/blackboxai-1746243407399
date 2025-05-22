@@ -1,5 +1,5 @@
 /// <reference lib="dom" />
-/* global google, window, document, console, setTimeout, clearTimeout, Event */
+/// <reference path="./node_modules/@types/google.maps/index.d.ts" />
 
 // Google Maps type definitions and utilities
 
@@ -27,14 +27,9 @@ export type GeocoderStatus =
   | 'REQUEST_DENIED' 
   | 'UNKNOWN_ERROR';
 
-
-
-
-
-
 export const initAutocomplete = (
-  input: HTMLInputElement,
-  onPlaceChanged: (_place: google.maps.places.PlaceResult) => void,
+  input: globalThis.HTMLInputElement,
+  onPlaceChanged: (place: globalThis.google.maps.places.PlaceResult) => void,
   options: {
     types?: string[];
     componentRestrictions?: { country: string | string[] };
@@ -42,7 +37,7 @@ export const initAutocomplete = (
 ) => {
   if (!input) return null;
 
-  const autocomplete = new window.google.maps.places.Autocomplete(input, {
+  const autocomplete = new globalThis.window.google.maps.places.Autocomplete(input, {
     types: options.types || ['(cities)'],
     componentRestrictions: options.componentRestrictions || { country: 'in' },
   });

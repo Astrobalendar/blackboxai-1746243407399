@@ -12,10 +12,8 @@ interface BirthDetails {
   fullName?: string;
 }
 
-interface PredictionData {
-  // Define your prediction data structure here
-  [key: string]: any;
-}
+// Use centralized interface
+import type { PredictionData } from '@/shared/types/prediction';
 
 const EditPredictionPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();

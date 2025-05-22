@@ -120,6 +120,7 @@
     "husky": "^9.1.7",
     "jest": "^29.7.0",
     "jest-environment-jsdom": "^29.7.0",
+    "lint-staged": "^15.5.2",
     "lucide-react": "^0.511.0",
     "netlify-cli": "^17.0.0",
     "postcss": "^8.4.35",
@@ -139,5 +140,11 @@
   },
   "engines": {
     "node": ">=18.0.0"
+  },
+  "lint-staged": {
+    "*.{ts,tsx}": [
+      "eslint --max-warnings=0",
+      "tsc --noEmit"
+    ]
   }
 }

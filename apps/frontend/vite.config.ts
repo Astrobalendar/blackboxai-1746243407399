@@ -1,10 +1,12 @@
 /// <reference types="vitest" />
-import { defineConfig, loadEnv } from 'vite';
+/* eslint-env node */
+/* eslint-env browser */
+import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
 import path from 'path';
 
-const isDevelopment = process.env.NODE_ENV === 'development';
+const isDevelopment = globalThis.process?.env?.NODE_ENV === 'development';
 
 // https://vitejs.dev/config/
 export default defineConfig({

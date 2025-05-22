@@ -1,3 +1,6 @@
+/* eslint-env node */
+
+/* global require, process, __dirname */
 const { app, BrowserWindow } = require('electron');
 const path = require('path');
 

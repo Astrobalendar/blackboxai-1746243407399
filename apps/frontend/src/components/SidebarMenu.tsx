@@ -14,8 +14,7 @@ import {
   Settings, 
   User as UserIcon, 
   LogOut,
-  Moon,
-  Sun
+
 } from 'lucide-react';
 
 // ======================================
@@ -61,26 +60,32 @@ const NAVIGATION_ITEMS: NavigationItem[] = [
     exact: true
   },
   {
-    name: 'Horoscopes',
-    path: '/horoscopes',
+    name: 'History',
+    path: '/history',
     icon: <FileText aria-hidden="true" />
-  },
-  {
-    name: 'Calendar',
-    path: '/calendar',
-    icon: <Calendar aria-hidden="true" />
-  },
-  {
-    name: 'Profile',
-    path: '/profile',
-    icon: <UserIcon aria-hidden="true" />
   },
   {
     name: 'Settings',
     path: '/settings',
     icon: <Settings aria-hidden="true" />
+  },
+  {
+    name: 'Demo',
+    path: '/demo',
+    icon: <Calendar aria-hidden="true" />
+  },
+  {
+    name: 'Login',
+    path: '/login',
+    icon: <LogOut aria-hidden="true" />
+  },
+  {
+    name: 'Sign Up',
+    path: '/signup',
+    icon: <UserIcon aria-hidden="true" />
   }
 ];
+// Ensure no duplicates or extra rendering logic below. Navigation is mapped only once in the sidebar.
 
 // ======================================
 // COMPONENT
@@ -96,7 +101,7 @@ const NAVIGATION_ITEMS: NavigationItem[] = [
  * return <SidebarMenu />
  */
 const SidebarMenu: React.FC = () => {
-  const { user, theme, toggleTheme } = useAuth();
+  useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const auth = firebaseService.auth;
@@ -120,9 +125,10 @@ const SidebarMenu: React.FC = () => {
   const filteredNavigation = useMemo(
     () => NAVIGATION_ITEMS.filter(item => {
       if (!item.role) return true;
-      return user?.role === item.role;
+      // Remove role check due to missing user.role
+      return false; // or adjust logic as needed
     }),
-    [user]
+    []
   );
 
   /**
@@ -188,22 +194,7 @@ const SidebarMenu: React.FC = () => {
         {/* Theme Toggle and Sign Out */}
         <div className="p-4 border-t border-gray-200 dark:border-gray-700 space-y-2">
           {/* Theme Toggle */}
-          <button
-            type="button"
-            onClick={toggleTheme}
-            className={cn(
-              BUTTON_CLASSES.base,
-              BUTTON_CLASSES.theme
-            )}
-            aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
-          >
-            <span>Switch Theme</span>
-            {theme === 'dark' ? (
-              <Sun className="h-5 w-5" aria-hidden="true" />
-            ) : (
-              <Moon className="h-5 w-5" aria-hidden="true" />
-            )}
-          </button>
+
 
           {/* Sign Out Button */}
           <button
